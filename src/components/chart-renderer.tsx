@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect, forwardRef, useImperativeHandle } from "react";
@@ -35,6 +36,9 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // High quality rendering
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     if (currentCandles.length === 0) return;
@@ -42,8 +46,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const bounds = getChartBounds(currentCandles);
     const range = bounds.max - bounds.min;
     const chartHeight = CANVAS_HEIGHT * 0.8;
-    const chartTop = CANVAS_HEIGHT * 0.1;
-
+    
     // Center Logic
     const midPrice = (bounds.max + bounds.min) / 2;
     const getY = (price: number) => {
@@ -52,7 +55,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     };
 
     const candleWidth = (CANVAS_WIDTH / Math.max(10, currentCandles.length)) * settings.zoom;
-    const totalSpacing = candleWidth * 0.2;
+    const totalSpacing = candleWidth * 0.25; // 25% gap for TradingView feel
     const realCandleWidth = candleWidth - totalSpacing;
     const startX = (CANVAS_WIDTH - (candleWidth * currentCandles.length)) / 2;
 
@@ -88,11 +91,16 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       const isBullish = displayCandle.close > displayCandle.open;
       const isDoji = Math.abs(displayCandle.close - displayCandle.open) < 0.1;
-      const color = isDoji ? "#787b86" : isBullish ? "#089981" : "#f23645";
+      
+      // TradingView Pro Colors
+      const bodyColor = isDoji ? "#787b86" : isBullish ? "#089981" : "#f23645";
+      const wickColor = bodyColor; // Standard TV: wick matches body color
 
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color;
-      ctx.lineWidth = Math.max(1.5, 2 * settings.zoom);
+      // Thick Wicks for 4K visibility
+      // Since it's 3840px wide, we need substantial thickness
+      ctx.lineWidth = Math.max(3, 4 * settings.zoom);
+      ctx.strokeStyle = wickColor;
+      ctx.lineCap = "round";
 
       // Draw Wick
       ctx.beginPath();
@@ -102,7 +110,9 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       // Draw Body
       const bodyTop = Math.min(yOpen, yClose);
-      const bodyHeight = Math.max(Math.abs(yOpen - yClose), 1.5 * settings.zoom);
+      const bodyHeight = Math.max(Math.abs(yOpen - yClose), ctx.lineWidth); // Body at least as thick as wick
+      
+      ctx.fillStyle = bodyColor;
       ctx.fillRect(x, bodyTop, realCandleWidth, bodyHeight);
     });
   };
@@ -135,11 +145,12 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   }, [candles, isAnimating, settings]);
 
   return (
-    <div className="canvas-container bg-[#131722] border-2 border-primary/20 shadow-2xl">
+    <div className="canvas-container bg-[#131722] border-2 border-primary/20 shadow-2xl overflow-hidden rounded-xl">
       <canvas 
         ref={canvasRef} 
         width={CANVAS_WIDTH} 
         height={CANVAS_HEIGHT}
+        className="w-full h-full"
       />
     </div>
   );
