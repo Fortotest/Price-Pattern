@@ -345,7 +345,8 @@ export default function PricePattern() {
       let open = lastClose;
       let close, high, low;
 
-      const isImpulsive = Math.random() < 0.15;
+      // Logic for random volatility and impulse candles
+      const isImpulsive = Math.random() < 0.15; // 15% chance for impulse
 
       if (type === 'Bullish') {
         const bodySize = isImpulsive ? randomRange(250, 450) : randomRange(50, 150);
