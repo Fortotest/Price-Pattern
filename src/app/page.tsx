@@ -27,7 +27,10 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
-const NOTIF_SOUND_URL = "https://raw.githubusercontent.com/Fortotest/Market.ai/055e319fa2c7c1e028057e8c69556c303b827848/hidup-jokowi.mp3?raw=true";
+const NOTIF_SOUND_URLS = [
+  "https://raw.githubusercontent.com/Fortotest/Market.ai/aa1fd92abd82277252b6d10912a44c3146ade1ad/hey-antek-antek-asing-prabowo.mp3?raw=true",
+  "https://raw.githubusercontent.com/Fortotest/Market.ai/055e319fa2c7c1e028057e8c69556c303b827848/hidup-jokowi.mp3?raw=true"
+];
 
 // --- Sub-Components ---
 
@@ -306,14 +309,11 @@ export default function PricePattern() {
   
   const chartRef = useRef<ChartRendererHandle>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const playNotifSound = useCallback(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio(NOTIF_SOUND_URL);
-    }
-    audioRef.current.currentTime = 0;
-    audioRef.current.play().catch(e => console.warn("Audio play failed:", e));
+    const randomUrl = NOTIF_SOUND_URLS[Math.floor(Math.random() * NOTIF_SOUND_URLS.length)];
+    const audio = new Audio(randomUrl);
+    audio.play().catch(e => console.warn("Audio play failed:", e));
   }, []);
 
   const showNotification = (title: string, emoji: string) => {
