@@ -10,7 +10,11 @@ export type MarketPattern = 'Bullish Trend' | 'Bearish Trend' | 'Double Top' | '
 
 export interface ChartSettings {
   zoom: number;
-  spacing: number;
+  spacing: number; 
   speed: number;
   autoCenter: boolean;
+  bullColor: string;
+  bearColor: string;
+  bodyRadius: number;
+  wickRadius: number;
 }

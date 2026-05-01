@@ -1,5 +1,4 @@
-
-import { Candlestick } from "./chart-types";
+import { Candlestick, ChartSettings } from "./chart-types";
 
 export const CANVAS_WIDTH = 3840;
 export const CANVAS_HEIGHT = 2160;
@@ -20,34 +19,36 @@ export function getChartBounds(candles: Candlestick[]) {
   return { min: min - padding, max: max + padding };
 }
 
-export function generateSVG(candles: Candlestick[]): string {
+export function generateSVG(candles: Candlestick[], settings: ChartSettings): string {
   const bounds = getChartBounds(candles);
   const range = Math.max(bounds.max - bounds.min, 1);
   const height = CANVAS_HEIGHT;
   const width = CANVAS_WIDTH;
   
-  const zoom = 1.0; 
-  const baseWidth = (width / Math.max(12, candles.length)) * zoom;
-  const spacing = baseWidth * 0.2;
-  const bodyWidth = Math.max(4, baseWidth - spacing);
-  const wickWidth = Math.max(6, bodyWidth * 0.15);
+  const zoom = settings.zoom || 1.0;
+  const spacingMultiplier = settings.spacing || 1.2;
+  const effectiveCount = Math.max(12, candles.length);
+  const baseWidth = (width / effectiveCount) * zoom * spacingMultiplier;
+  const spacing = baseWidth * 0.35;
+  const bodyWidth = Math.max(6, baseWidth - spacing);
+  const wickWidth = Math.max(8, bodyWidth * 0.16);
 
   const getY = (price: number) => {
     const midPrice = (bounds.max + bounds.min) / 2;
-    const scaledY = ((price - midPrice) / range) * (height * 0.8);
+    const scaledY = ((price - midPrice) / range) * (height * 0.85);
     return (height / 2) - scaledY;
   };
+
+  const actualWidth = (candles.length - 1) * baseWidth;
+  const startX = (width / 2) - (actualWidth / 2);
 
   let svgContent = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
   svgContent += `<rect width="100%" height="100%" fill="#000000" />`;
 
-  const startX = (width / 2) - ((candles.length * baseWidth) / 2) + (baseWidth / 2);
-
   candles.forEach((c, i) => {
     const x = startX + (i * baseWidth);
     const isBullish = c.close >= c.open;
-    const isDoji = Math.abs(c.close - c.open) < 0.1;
-    const color = isDoji ? "#787b86" : isBullish ? "#00b386" : "#f23645";
+    const color = isBullish ? settings.bullColor : settings.bearColor;
     
     const shift = (c.offsetY || 0);
     const yOpen = getY(c.open) + shift;
@@ -57,16 +58,13 @@ export function generateSVG(candles: Candlestick[]): string {
     
     const top = Math.min(yOpen, yClose);
     const bodyHeight = Math.max(Math.abs(yOpen - yClose), wickWidth);
+    const rx = settings.bodyRadius || 0;
 
-    // Wick - Slightly rounded in SVG
-    svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="round" />`;
+    // Wick
+    svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="${settings.wickRadius > 0 ? 'round' : 'butt'}" />`;
     
-    // Body - Sharp Corners
-    if (!isDoji) {
-      svgContent += `<rect x="${x - bodyWidth / 2}" y="${top}" width="${bodyWidth}" height="${bodyHeight}" fill="${color}" />`;
-    } else {
-      svgContent += `<line x1="${x - bodyWidth / 2}" y1="${yOpen}" x2="${x + bodyWidth / 2}" y2="${yOpen}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="round" />`;
-    }
+    // Body
+    svgContent += `<rect x="${x - bodyWidth / 2}" y="${top}" width="${bodyWidth}" height="${bodyHeight}" fill="${color}" rx="${rx}" />`;
   });
 
   svgContent += `</svg>`;
@@ -74,45 +72,8 @@ export function generateSVG(candles: Candlestick[]): string {
 }
 
 export const TEMPLATES = {
-  HAMMER: [
-    { open: 150, high: 155, low: 80, close: 148, offsetY: 0 }
-  ],
-  SHOOTING_STAR: [
-    { open: 140, high: 220, low: 138, close: 135, offsetY: 0 }
-  ],
-  BULLISH_MARUBOZU: [
-    { open: 100, high: 200, low: 100, close: 200, offsetY: 0 }
-  ],
-  BEARISH_MARUBOZU: [
-    { open: 200, high: 200, low: 100, close: 100, offsetY: 0 }
-  ],
-  BULLISH_ENGULFING: [
-    { open: 120, high: 125, low: 90, close: 95, offsetY: 0 },
-    { open: 95, high: 155, low: 92, close: 150, offsetY: 0 }
-  ],
-  BEARISH_ENGULFING: [
-    { open: 150, high: 160, low: 145, close: 155, offsetY: 0 },
-    { open: 155, high: 160, low: 85, close: 90, offsetY: 0 }
-  ],
-  TWEEZER_BOTTOM: [
-    { open: 150, high: 155, low: 100, close: 105, offsetY: 0 },
-    { open: 105, high: 160, low: 100, close: 155, offsetY: 0 }
-  ],
-  MORNING_STAR: [
-    { open: 200, high: 205, low: 145, close: 150, offsetY: 0 },
-    { open: 150, high: 152, low: 138, close: 140, offsetY: 0 },
-    { open: 140, high: 195, low: 135, close: 185, offsetY: 0 }
-  ],
-  EVENING_STAR: [
-    { open: 100, high: 155, low: 95, close: 145, offsetY: 0 },
-    { open: 145, high: 165, low: 140, close: 160, offsetY: 0 },
-    { open: 160, high: 165, low: 105, close: 110, offsetY: 0 }
-  ],
-  THREE_WHITE_SOLDIERS: [
-    { open: 100, high: 135, low: 98, close: 130, offsetY: 0 },
-    { open: 130, high: 165, low: 128, close: 160, offsetY: 0 },
-    { open: 160, high: 195, low: 158, close: 190, offsetY: 0 }
-  ],
+  HAMMER: [{ open: 150, high: 155, low: 80, close: 148, offsetY: 0 }],
+  SHOOTING_STAR: [{ open: 140, high: 220, low: 138, close: 135, offsetY: 0 }],
   DOUBLE_BOTTOM: [
     { open: 300, high: 305, low: 220, close: 230, offsetY: 0 },
     { open: 230, high: 320, low: 225, close: 310, offsetY: 0 },
@@ -124,21 +85,6 @@ export const TEMPLATES = {
     { open: 340, high: 345, low: 220, close: 230, offsetY: 0 },
     { open: 230, high: 355, low: 225, close: 345, offsetY: 0 },
     { open: 345, high: 350, low: 140, close: 150, offsetY: 0 }
-  ],
-  HEAD_AND_SHOULDERS: [
-    { open: 100, high: 250, low: 95, close: 240, offsetY: 0 },
-    { open: 240, high: 245, low: 180, close: 190, offsetY: 0 },
-    { open: 190, high: 350, low: 185, close: 340, offsetY: 0 },
-    { open: 340, high: 345, low: 180, close: 190, offsetY: 0 },
-    { open: 190, high: 255, low: 185, close: 245, offsetY: 0 },
-    { open: 245, high: 250, low: 100, close: 110, offsetY: 0 }
-  ],
-  BULLISH_WEDGE: [
-    { open: 400, high: 410, low: 300, close: 310, offsetY: 0 },
-    { open: 310, high: 360, low: 305, close: 350, offsetY: 0 },
-    { open: 350, high: 355, low: 260, close: 270, offsetY: 0 },
-    { open: 270, high: 320, low: 265, close: 310, offsetY: 0 },
-    { open: 310, high: 450, low: 305, close: 430, offsetY: 0 }
   ],
   FULL_BULLISH_WAVE: [
     { open: 100, high: 115, low: 98, close: 112, offsetY: 0 },

@@ -41,7 +41,6 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Pitch Black Background
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -50,16 +49,16 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const bounds = getChartBounds(currentCandles);
     const range = Math.max(bounds.max - bounds.min, 1);
     const zoom = settings.zoom || 1.0;
+    const spacingMultiplier = settings.spacing || 1.2;
     
-    // Auto-scaling logic
-    const effectiveCount = Math.max(10, currentCandles.length);
-    const baseWidth = (CANVAS_WIDTH / effectiveCount) * zoom;
-    const spacing = baseWidth * 0.25; 
-    const bodyWidth = Math.max(4, baseWidth - spacing);
-    const wickWidth = Math.max(8, bodyWidth * 0.15); // Tebal wick yang konsisten
+    const effectiveCount = Math.max(12, currentCandles.length);
+    const baseWidth = (CANVAS_WIDTH / effectiveCount) * zoom * spacingMultiplier;
+    const spacing = baseWidth * 0.35; 
+    const bodyWidth = Math.max(6, baseWidth - spacing);
+    const wickWidth = Math.max(8, bodyWidth * 0.16); 
 
-    const actualWidth = currentCandles.length * baseWidth;
-    const startX = (CANVAS_WIDTH / 2) - (actualWidth / 2) + (baseWidth / 2);
+    const actualWidth = (currentCandles.length - 1) * baseWidth;
+    const startX = (CANVAS_WIDTH / 2) - (actualWidth / 2);
     const centerY = CANVAS_HEIGHT / 2;
 
     const getY = (price: number) => {
@@ -67,11 +66,6 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.85);
       return centerY - scaledY;
     };
-
-    // Render Candles
-    const currentIndex = Math.floor(progressValue);
-    const rawP = progressValue - currentIndex;
-    const p = easeOut(Math.min(rawP, 1));
 
     for (let i = 0; i < Math.ceil(progressValue); i++) {
       if (i >= currentCandles.length) break;
@@ -87,7 +81,10 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       let curOpenY = yOpen, curCloseY = yClose, curHighY = yHigh, curLowY = yLow;
 
-      if (i === currentIndex && isAnimating) {
+      if (i === Math.floor(progressValue) && isAnimating) {
+        const rawP = progressValue - i;
+        const p = easeOut(Math.min(rawP, 1));
+        
         if (c.close >= c.open) {
           if (p < 0.2) { const t = p / 0.2; curCloseY = lerp(yOpen, yLow, t); curHighY = yOpen; curLowY = curCloseY; }
           else if (p < 0.7) { const t = (p - 0.2) / 0.5; curCloseY = lerp(yLow, yHigh, t); curLowY = yLow; curHighY = Math.min(yOpen, curCloseY); }
@@ -100,31 +97,28 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       }
 
       const isBullish = c.close >= c.open;
-      const isDoji = Math.abs(c.close - c.open) < 0.1;
-      const color = isDoji ? "#787b86" : isBullish ? "#00b386" : "#f23645";
+      const color = isBullish ? settings.bullColor : settings.bearColor;
 
-      // Wick - Slightly rounded
+      // Wick
       ctx.beginPath();
       ctx.moveTo(x, curHighY);
       ctx.lineTo(x, curLowY);
       ctx.strokeStyle = color;
       ctx.lineWidth = wickWidth;
-      ctx.lineCap = 'round'; 
+      ctx.lineCap = settings.wickRadius > 0 ? 'round' : 'butt';
       ctx.stroke();
 
-      // Body - Sharp (Square)
+      // Body
       const rectY = Math.min(yOpen, curCloseY);
       const rectHeight = Math.max(wickWidth, Math.abs(yOpen - curCloseY));
       ctx.fillStyle = color;
-      if (!isDoji) {
-        ctx.fillRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight);
-      } else {
+      
+      if (settings.bodyRadius > 0) {
         ctx.beginPath();
-        ctx.moveTo(x - bodyWidth / 2, yOpen);
-        ctx.lineTo(x + bodyWidth / 2, yOpen);
-        ctx.lineWidth = wickWidth;
-        ctx.lineCap = 'round';
-        ctx.stroke();
+        ctx.roundRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight, settings.bodyRadius);
+        ctx.fill();
+      } else {
+        ctx.fillRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight);
       }
     }
   };
@@ -141,7 +135,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
         const progressValue = progress * candles.length;
         draw(candles, progressValue);
         if (progress < 1) animationRef.current = requestAnimationFrame(animate);
-        else setTimeout(() => onAnimationComplete?.(), 300);
+        else onAnimationComplete?.();
       };
       animationRef.current = requestAnimationFrame(animate);
     } else {
@@ -151,7 +145,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   }, [candles, isAnimating, settings]);
 
   return (
-    <div className="landscape-card-container cursor-default">
+    <div className="landscape-card-container">
       <canvas 
         ref={canvasRef} 
         width={CANVAS_WIDTH} 
