@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useCallback } from "react";
 import { Candlestick, ChartSettings } from "@/lib/chart-types";
-import { TEMPLATES, createTemplateWithNewIds, createId } from "@/lib/chart-utils";
+import { TEMPLATES, createTemplateWithNewIds, createId, CANVAS_WIDTH, CANVAS_HEIGHT, getChartBounds } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
 import ManualEditor from "@/components/manual-editor";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import {
   Trash2,
   Menu,
   X,
-  Download,
+  FileCode,
   Video
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -367,16 +367,73 @@ export default function PricePatternStudio() {
     setCandles([]);
   }, []);
 
-  const handleExportPNG = useCallback(() => {
-    const canvas = chartRef.current?.getCanvas();
-    if (!canvas || candles.length === 0) return;
-    const url = canvas.toDataURL('image/png');
+  const handleExportSVG = useCallback(() => {
+    if (candles.length === 0) return;
+    
+    const bounds = getChartBounds(candles);
+    const range = Math.max(bounds.max - bounds.min, 1);
+    const zoom = settings.zoom || 0.8;
+    const spacingMultiplier = settings.spacing || 1.2;
+    
+    const Y_AXIS_WIDTH = 240;
+    const X_AXIS_HEIGHT = 160;
+    const chartAreaWidth = CANVAS_WIDTH - Y_AXIS_WIDTH;
+    const chartAreaHeight = CANVAS_HEIGHT - X_AXIS_HEIGHT;
+    const effectiveCount = Math.max(12, candles.length);
+    const bodyWidth = (chartAreaWidth / effectiveCount) * 0.8 * zoom;
+    const baseWidth = ((chartAreaWidth / effectiveCount) * 0.8) * spacingMultiplier;
+    const actualWidth = (candles.length - 1) * baseWidth;
+    const startX = (chartAreaWidth / 2) - (actualWidth / 2);
+    const centerY = chartAreaHeight / 2;
+
+    const getY = (price: number) => {
+      const midPrice = (bounds.max + bounds.min) / 2;
+      const scaledY = ((price - midPrice) / range) * (chartAreaHeight * 0.85);
+      return centerY - scaledY;
+    };
+
+    let svgContent = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" viewBox="0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}" fill="none" xmlns="http://www.w3.org/2000/svg">`;
+    
+    // Background is transparent by default
+    
+    candles.forEach((c, i) => {
+      const x = startX + (i * baseWidth);
+      const priceOffset = c.offsetY || 0;
+      const yOpen = getY(c.open + priceOffset);
+      const yClose = getY(c.close + priceOffset);
+      const yHigh = getY(c.high + priceOffset);
+      const yLow = getY(c.low + priceOffset);
+      
+      const isBullish = c.close >= c.open;
+      const color = isBullish ? settings.bullColor : settings.bearColor;
+      const wickStrokeWidth = Math.max(10, bodyWidth * 0.15);
+      const rectY = Math.min(yOpen, yClose);
+      const rectHeight = Math.max(2, Math.abs(yOpen - yClose));
+      
+      // Draw Wick
+      svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickStrokeWidth}" stroke-linecap="${settings.wickRadius > 0 ? 'round' : 'butt'}" />`;
+      
+      // Draw Body
+      if (settings.bodyRadius > 0) {
+        svgContent += `<rect x="${x - bodyWidth / 2}" y="${rectY}" width="${bodyWidth}" height="${rectHeight}" rx="${settings.bodyRadius}" fill="${color}" />`;
+      } else {
+        svgContent += `<rect x="${x - bodyWidth / 2}" y="${rectY}" width="${bodyWidth}" height="${rectHeight}" fill="${color}" />`;
+      }
+    });
+
+    // Add Axes Labels (Simple implementation for SVG)
+    svgContent += `<text x="${chartAreaWidth + 40}" y="${chartAreaHeight / 2}" fill="#aaaaaa" font-family="monospace" font-size="42" font-weight="bold">PRICE AXIS</text>`;
+    
+    svgContent += `</svg>`;
+
+    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `price-chart-4k.png`;
+    a.download = `price-chart-vector.svg`;
     a.click();
-    toast({ title: "Export Success", description: "4K PNG saved." });
-  }, [candles, toast]);
+    toast({ title: "Export Success", description: "SVG Vector saved." });
+  }, [candles, settings, toast]);
 
   const handleReplay = useCallback(() => {
     if (candles.length === 0) return;
@@ -389,7 +446,7 @@ export default function PricePatternStudio() {
     if (!canvas || candles.length === 0) return;
     setIsRecording(true);
     const stream = canvas.captureStream(60);
-    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 25000000 });
+    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 30000000 });
     const chunks: Blob[] = [];
     recorder.ondataavailable = (e) => chunks.push(e.data);
     recorder.onstop = () => {
@@ -401,7 +458,7 @@ export default function PricePatternStudio() {
       a.click();
       setIsRecording(false);
       setIsAnimating(false);
-      toast({ title: "Render Success", description: "4K Video saved." });
+      toast({ title: "Render Success", description: "Transparent 4K Video saved." });
     };
     recorder.start();
     setIsAnimating(true);
@@ -500,8 +557,8 @@ export default function PricePatternStudio() {
             
             <Separator orientation="vertical" className="h-6 bg-white/10" />
             
-            <Button variant="outline" className="h-10 px-6 text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportPNG} disabled={candles.length === 0}>
-              <Download className="w-3.5 h-3.5" /> PNG
+            <Button variant="outline" className="h-10 px-6 text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
+              <FileCode className="w-3.5 h-3.5" /> SVG
             </Button>
             
             <Button className="min-w-[140px] h-10 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2 shadow-lg shadow-emerald-900/20" onClick={handleRecordVideo} disabled={candles.length === 0}>
@@ -513,7 +570,7 @@ export default function PricePatternStudio() {
         <footer className="h-8 bg-[#0a0a0a] border-t border-white/5 px-4 flex items-center justify-between text-[8px] font-bold text-muted-foreground uppercase tracking-[1px]">
           <div className="flex gap-6">
             <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Bars: {candles.length}</span>
-            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Axis Zoom Enabled</span>
+            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Vector Active</span>
           </div>
           <div className="flex items-center gap-3">
             <Monitor className="w-3 h-3" />

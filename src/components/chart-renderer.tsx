@@ -50,7 +50,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const chartAreaWidth = CANVAS_WIDTH - Y_AXIS_WIDTH;
     const chartAreaHeight = CANVAS_HEIGHT - X_AXIS_HEIGHT;
 
-    // Clear canvas - DO NOT fill with black for transparency support
+    // Clear canvas - transparent background
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -98,16 +98,18 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       let curOpenY = yOpen, curCloseY = yClose, curHighY = yHigh, curLowY = yLow;
 
-      // --- DUAL PHASE ANIMATION LOGIC ---
+      // --- DUAL PHASE ANIMATION LOGIC (Wick then Body) ---
       if (i === Math.floor(progressValue) && isAnimating) {
         const p = progressValue - i; // 0 to 1
         
         if (p < 0.5) {
+          // Fase 1: Sumbu Tumbuh (Wick Growth)
           const t = easeOut(p / 0.5);
           curHighY = lerp(yOpen, yHigh, t);
           curLowY = lerp(yOpen, yLow, t);
           curCloseY = yOpen;
         } else {
+          // Fase 2: Bodi Tumbuh (Body Growth)
           const t = easeOut((p - 0.5) / 0.5);
           curHighY = yHigh;
           curLowY = yLow;
@@ -148,7 +150,6 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     ctx.restore();
 
     // --- DRAW AXES (Y-Axis) ---
-    // Using a lighter color (#aaa) for better visibility on transparent backgrounds
     ctx.fillStyle = '#aaaaaa';
     ctx.font = 'bold 42px monospace';
     ctx.textAlign = 'left';
