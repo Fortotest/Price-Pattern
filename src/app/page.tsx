@@ -63,12 +63,9 @@ export default function PricePatternStudio() {
 
   const handleAddCandle = (type: 'Bullish' | 'Bearish') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
-    
-    // Logic random rapi (kelipatan 5)
-    // Body: 80 - 120, Wick: 15 - 30
-    const bodySize = (Math.floor(Math.random() * 9) + 16) * 5; 
-    const topWick = (Math.floor(Math.random() * 4) + 3) * 5;  
-    const botWick = (Math.floor(Math.random() * 4) + 3) * 5;  
+    const bodySize = (Math.floor(Math.random() * 25) + 5) * 5; 
+    const topWick = (Math.floor(Math.random() * 10) + 2) * 5;  
+    const botWick = (Math.floor(Math.random() * 10) + 2) * 5;  
     
     const newCandle: Candlestick = type === 'Bullish' 
       ? { 
@@ -186,7 +183,13 @@ export default function PricePatternStudio() {
                   <Label className="text-[9px] text-muted-foreground">Zoom Level</Label>
                   <span className="text-[9px] font-mono text-primary">{settings.zoom.toFixed(2)}x</span>
                 </div>
-                <Slider value={[settings.zoom]} min={0.3} max={1.0} step={0.01} onValueChange={([v]) => setSettings(s => ({...s, zoom: v}))} />
+                <Slider 
+                  value={[settings.zoom]} 
+                  min={0.3} 
+                  max={1.0} 
+                  step={0.01} 
+                  onValueChange={([v]) => setSettings(s => ({...s, zoom: v}))}
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -194,7 +197,13 @@ export default function PricePatternStudio() {
                   <Label className="text-[9px] text-muted-foreground">Candle Spacing</Label>
                   <span className="text-[9px] font-mono text-primary">{settings.spacing.toFixed(1)}x</span>
                 </div>
-                <Slider value={[settings.spacing]} min={0.8} max={3.0} step={0.05} onValueChange={([v]) => setSettings(s => ({...s, spacing: v}))} />
+                <Slider 
+                  value={[settings.spacing]} 
+                  min={0.8} 
+                  max={3.0} 
+                  step={0.05} 
+                  onValueChange={([v]) => setSettings(s => ({...s, spacing: v}))}
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -202,7 +211,13 @@ export default function PricePatternStudio() {
                   <Label className="text-[9px] text-muted-foreground">Anim Speed</Label>
                   <span className="text-[9px] font-mono text-primary">{settings.speed}s</span>
                 </div>
-                <Slider value={[settings.speed]} min={0.1} max={2.0} step={0.05} onValueChange={([v]) => setSettings(s => ({...s, speed: v}))} />
+                <Slider 
+                  value={[settings.speed]} 
+                  min={0.1} 
+                  max={2.0} 
+                  step={0.05} 
+                  onValueChange={([v]) => setSettings(s => ({...s, speed: v}))}
+                />
               </div>
             </div>
           </div>
@@ -217,38 +232,36 @@ export default function PricePatternStudio() {
             
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label className="text-[8px] text-muted-foreground uppercase">Bull Color</Label>
-                <div className="space-y-1">
+                <div className="flex items-center justify-center h-8 rounded bg-black border border-white/10 relative overflow-hidden">
                   <input 
                     type="color" 
                     value={settings.bullColor} 
-                    onChange={(e) => setSettings(s => ({...s, bullColor: e.target.value}))} 
-                    className="w-full h-8 rounded bg-black border border-white/10 cursor-pointer p-0 opacity-100 block" 
-                  />
-                  <Input 
-                    value={settings.bullColor} 
-                    onChange={(e) => setSettings(s => ({...s, bullColor: e.target.value}))}
-                    className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2"
-                    placeholder="#HEX"
+                    onInput={(e) => setSettings(s => ({...s, bullColor: e.currentTarget.value}))} 
+                    className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none" 
                   />
                 </div>
+                <Input 
+                  value={settings.bullColor} 
+                  onInput={(e) => setSettings(s => ({...s, bullColor: e.currentTarget.value}))}
+                  className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2 text-center"
+                  placeholder="#HEX"
+                />
               </div>
               <div className="space-y-2">
-                <Label className="text-[8px] text-muted-foreground uppercase">Bear Color</Label>
-                <div className="space-y-1">
+                <div className="flex items-center justify-center h-8 rounded bg-black border border-white/10 relative overflow-hidden">
                   <input 
                     type="color" 
                     value={settings.bearColor} 
-                    onChange={(e) => setSettings(s => ({...s, bearColor: e.target.value}))} 
-                    className="w-full h-8 rounded bg-black border border-white/10 cursor-pointer p-0 opacity-100 block" 
-                  />
-                  <Input 
-                    value={settings.bearColor} 
-                    onChange={(e) => setSettings(s => ({...s, bearColor: e.target.value}))}
-                    className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2"
-                    placeholder="#HEX"
+                    onInput={(e) => setSettings(s => ({...s, bearColor: e.currentTarget.value}))} 
+                    className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none" 
                   />
                 </div>
+                <Input 
+                  value={settings.bearColor} 
+                  onInput={(e) => setSettings(s => ({...s, bearColor: e.currentTarget.value}))}
+                  className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2 text-center"
+                  placeholder="#HEX"
+                />
               </div>
             </div>
 
@@ -257,7 +270,13 @@ export default function PricePatternStudio() {
                 <Label className="text-[9px] text-muted-foreground">Body Radius</Label>
                 <span className="text-[9px] font-mono text-primary">{settings.bodyRadius}px</span>
               </div>
-              <Slider value={[settings.bodyRadius]} min={0} max={20} step={1} onValueChange={([v]) => setSettings(s => ({...s, bodyRadius: v}))} />
+              <Slider 
+                value={[settings.bodyRadius]} 
+                min={0} 
+                max={20} 
+                step={1} 
+                onValueChange={([v]) => setSettings(s => ({...s, bodyRadius: v}))}
+              />
             </div>
 
             <div className="space-y-1.5">
@@ -265,7 +284,13 @@ export default function PricePatternStudio() {
                 <Label className="text-[9px] text-muted-foreground">Wick Rounding</Label>
                 <span className="text-[9px] font-mono text-primary">{settings.wickRadius}px</span>
               </div>
-              <Slider value={[settings.wickRadius]} min={0} max={10} step={1} onValueChange={([v]) => setSettings(s => ({...s, wickRadius: v}))} />
+              <Slider 
+                value={[settings.wickRadius]} 
+                min={0} 
+                max={10} 
+                step={1} 
+                onValueChange={([v]) => setSettings(s => ({...s, wickRadius: v}))}
+              />
             </div>
           </div>
         </div>
