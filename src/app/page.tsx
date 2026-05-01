@@ -460,32 +460,42 @@ export default function PricePattern() {
     const canvas = chartRef.current?.getCanvas();
     if (!canvas || candles.length === 0) return;
     
-    const stream = canvas.captureStream(60);
-    const recorder = new MediaRecorder(stream, { 
-      mimeType: 'video/webm;codecs=vp9', 
-      videoBitsPerSecond: 30000000 
-    });
+    setIsAnimating(false);
     
-    const chunks: Blob[] = [];
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) chunks.push(e.data);
-    };
-    
-    recorder.onstop = () => {
-      const blob = new Blob(chunks, { type: 'video/webm' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `sequence-render.webm`;
-      a.click();
-      URL.revokeObjectURL(url);
-      setIsAnimating(false);
-      toast({ title: "Video Export", description: "Alpha channel video saved." });
-    };
-    
-    recorderRef.current = recorder;
-    recorder.start();
-    setIsAnimating(true);
+    setTimeout(() => {
+      const stream = canvas.captureStream(30); 
+      const recorder = new MediaRecorder(stream, { 
+        mimeType: 'video/webm;codecs=vp9', 
+        videoBitsPerSecond: 15000000 
+      });
+      
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      
+      recorder.onstop = () => {
+        if (chunks.length === 0) {
+          toast({ variant: "destructive", title: "Recording Error", description: "No data captured." });
+          return;
+        }
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `PricePattern_${Date.now()}.webm`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        setIsAnimating(false);
+        toast({ title: "Video Export", description: "Alpha channel video saved." });
+      };
+      
+      recorderRef.current = recorder;
+      recorder.start();
+      setIsAnimating(true);
+    }, 100);
   };
 
   const handleAnimationComplete = useCallback(() => {
