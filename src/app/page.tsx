@@ -51,7 +51,6 @@ export default function PricePatternStudio() {
     const template = TEMPLATES[val as keyof typeof TEMPLATES];
     if (template) {
       setCandles(template);
-      // Auto-scaling based on content length
       let newZoom = 1.0;
       if (template.length > 20) newZoom = 0.5;
       else if (template.length > 10) newZoom = 0.8;
@@ -77,7 +76,6 @@ export default function PricePatternStudio() {
   const handleUpdateCandle = (index: number, updated: Candlestick) => {
     const newCandles = [...candles];
     newCandles[index] = updated;
-    // Maintain price continuity
     for (let i = index + 1; i < newCandles.length; i++) {
       const prevClose = newCandles[i-1].close;
       const body = Math.abs(newCandles[i].close - newCandles[i].open);
@@ -141,12 +139,12 @@ export default function PricePatternStudio() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#0b0e14] text-foreground overflow-hidden font-body">
-      {/* Navigation Sidebar */}
-      <aside className={`w-[400px] flex flex-col h-full border-r border-white/5 bg-[#121212] transition-all duration-300 ${isRecording ? 'opacity-20 pointer-events-none' : ''}`}>
+    <div className="flex h-screen w-full bg-[#0b0e14] text-foreground overflow-hidden font-body">
+      {/* Sidebar: Fixed Height and Flex Layout */}
+      <aside className={`w-[400px] h-screen flex flex-col border-r border-white/5 bg-[#121212] shrink-0 transition-opacity duration-300 ${isRecording ? 'opacity-20 pointer-events-none' : ''}`}>
         
-        {/* Branding */}
-        <div className="p-6 border-b border-white/5">
+        {/* Branding (Fixed Top) */}
+        <div className="p-6 border-b border-white/5 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
               <BarChart4 className="w-6 h-6 text-white" />
@@ -158,7 +156,8 @@ export default function PricePatternStudio() {
           </div>
         </div>
 
-        <ScrollArea className="flex-1">
+        {/* Scrollable Middle Section */}
+        <ScrollArea className="flex-1 overflow-y-auto">
           <div className="p-6 space-y-8">
             
             {/* Template Market */}
@@ -222,7 +221,7 @@ export default function PricePatternStudio() {
             </section>
 
             {/* Manual Tuning */}
-            <section className="space-y-4">
+            <section className="space-y-4 pb-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
                   <MousePointer2 className="w-3.5 h-3.5" /> Manual Tuning
@@ -252,14 +251,14 @@ export default function PricePatternStudio() {
           </div>
         </ScrollArea>
 
-        {/* Global Actions */}
-        <div className="p-6 bg-[#161616] border-t border-white/5 space-y-3">
+        {/* Global Actions (Fixed Bottom) */}
+        <div className="p-6 bg-[#161616] border-t border-white/5 space-y-3 shrink-0">
           <Button 
             className="w-full h-11 font-bold gap-2 bg-slate-700 hover:bg-slate-600 text-white"
             onClick={handleReplay}
             disabled={candles.length === 0 || isAnimating}
           >
-            <Play className="w-4 h-4" /> Preview
+            <Play className="w-4 h-4" /> Preview Animation
           </Button>
           <div className="flex gap-3">
             <Button variant="outline" className="flex-1 h-12 gap-2 border-primary/20 text-primary hover:bg-primary/5 font-bold" onClick={handleExportSVG} disabled={candles.length === 0}>
@@ -273,7 +272,7 @@ export default function PricePatternStudio() {
       </aside>
 
       {/* Main Studio Viewport */}
-      <main className="flex-1 relative flex flex-col bg-[#000000]">
+      <main className="flex-1 h-screen relative flex flex-col bg-[#000000]">
         {/* Floating Toolbar */}
         <div className="absolute top-0 left-0 right-0 p-8 flex justify-between items-start pointer-events-none z-20">
           <div className="flex items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 px-5 py-2.5 rounded-full shadow-2xl">
@@ -292,7 +291,7 @@ export default function PricePatternStudio() {
         </div>
 
         {/* Dynamic Chart Area */}
-        <div className="flex-1 flex items-center justify-center p-12">
+        <div className="flex-1 flex items-center justify-center p-12 overflow-hidden">
           <div className="w-full max-w-[1600px]">
             <ChartRenderer 
               ref={chartRef}
@@ -304,7 +303,7 @@ export default function PricePatternStudio() {
           </div>
         </div>
 
-        {/* Status Bar */}
+        {/* Status Bar (Fixed Bottom of Main) */}
         <div className="h-14 border-t border-white/5 bg-[#121212] px-8 flex items-center justify-between shrink-0">
           <div className="flex gap-10">
              <div className="flex flex-col">
@@ -313,7 +312,7 @@ export default function PricePatternStudio() {
              </div>
              <div className="flex flex-col">
                <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Render Quality</span>
-               <span className="text-[10px] font-bold text-white uppercase">3840 x 2160 (Landscape Pro)</span>
+               <span className="text-[10px] font-bold text-white uppercase">3840 x 2160 (Lossless)</span>
              </div>
           </div>
           <div className="flex items-center gap-3 opacity-60">

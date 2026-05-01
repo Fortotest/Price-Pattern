@@ -22,7 +22,9 @@ interface ManualEditorProps {
 }
 
 const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove }) => {
-  const visibleCandles = [...candles].reverse().slice(0, 100);
+  // We keep all candles in sync, but only render a reasonable amount in DOM if needed.
+  // PRD suggests 200 limit for manual forms, which we follow.
+  const visibleCandles = [...candles].reverse().slice(0, 200);
 
   return (
     <div className="space-y-4">
@@ -31,11 +33,11 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
         const isBullish = c.close >= c.open;
         
         return (
-          <div key={idx} className="bg-white/5 border border-white/5 rounded-2xl p-4 group hover:bg-white/[0.08] transition-all">
+          <div key={`${idx}-${candles.length}`} className="bg-white/5 border border-white/5 rounded-2xl p-4 group hover:bg-white/[0.08] transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono font-bold text-muted-foreground">BAR #{idx + 1}</span>
-                <div className={`w-2 h-2 rounded-full ${isBullish ? 'bg-[#089981]' : 'bg-[#f23645]'}`} />
+                <div className={`w-2 h-2 rounded-full ${isBullish ? 'bg-[#00b386]' : 'bg-[#f23645]'}`} />
               </div>
               <Button 
                 variant="ghost" 
