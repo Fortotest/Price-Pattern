@@ -15,7 +15,7 @@ export function getChartBounds(candles: Candlestick[]) {
   });
 
   const range = max - min;
-  const padding = Math.max(range * 0.3, 100); 
+  const padding = Math.max(range * 0.2, 80); 
   return { min: min - padding, max: max + padding };
 }
 
@@ -26,24 +26,24 @@ export function generateSVG(candles: Candlestick[]): string {
   const width = CANVAS_WIDTH;
   
   const zoom = 1.0; 
-  const candleWidth = (width / Math.max(10, candles.length)) * zoom;
-  const spacing = candleWidth * 0.25;
+  const candleWidth = (width / Math.max(12, candles.length)) * zoom;
+  const spacing = candleWidth * 0.15;
   const realCandleWidth = candleWidth - spacing;
 
   const getY = (price: number) => {
     const midPrice = (bounds.max + bounds.min) / 2;
-    const scaledY = ((price - midPrice) / range) * (height * 0.75);
+    const scaledY = ((price - midPrice) / range) * (height * 0.85);
     return (height / 2) - scaledY;
   };
 
   let svgContent = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
-  svgContent += `<rect width="100%" height="100%" fill="#0b0e14" />`;
+  svgContent += `<rect width="100%" height="100%" fill="#000000" />`;
 
   candles.forEach((c, i) => {
     const x = (width / 2) - ((candles.length * candleWidth) / 2) + (i * candleWidth) + candleWidth / 2;
     const isBullish = c.close >= c.open;
     const isDoji = Math.abs(c.close - c.open) < 0.1;
-    const color = isDoji ? "#787b86" : isBullish ? "#089981" : "#f23645";
+    const color = isDoji ? "#787b86" : isBullish ? "#00b386" : "#f23645";
     
     const shift = (c.offsetY || 0);
     const yOpen = getY(c.open) + shift;
@@ -52,17 +52,16 @@ export function generateSVG(candles: Candlestick[]): string {
     const yLow = getY(c.low) + shift;
     
     const top = Math.min(yOpen, yClose);
-    const bodyHeight = Math.max(Math.abs(yOpen - yClose), 4);
-    // Balanced Wick for 4K
-    const wickWidth = Math.max(8, realCandleWidth * 0.15);
+    const bodyHeight = Math.max(Math.abs(yOpen - yClose), 2);
+    const wickWidth = Math.max(6, realCandleWidth * 0.18);
 
     // Wick
-    svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="round" />`;
-    // Body
+    svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickWidth}" />`;
+    // Body - Sharp corners
     if (!isDoji) {
-      svgContent += `<rect x="${x - realCandleWidth / 2}" y="${top}" width="${realCandleWidth}" height="${bodyHeight}" fill="${color}" rx="${wickWidth / 2}" />`;
+      svgContent += `<rect x="${x - realCandleWidth / 2}" y="${top}" width="${realCandleWidth}" height="${bodyHeight}" fill="${color}" />`;
     } else {
-      svgContent += `<line x1="${x - realCandleWidth / 2}" y1="${yOpen}" x2="${x + realCandleWidth / 2}" y2="${yOpen}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="round" />`;
+      svgContent += `<line x1="${x - realCandleWidth / 2}" y1="${yOpen}" x2="${x + realCandleWidth / 2}" y2="${yOpen}" stroke="${color}" stroke-width="${wickWidth}" />`;
     }
   });
 
@@ -111,16 +110,16 @@ export const TEMPLATES = {
     { open: 160, high: 195, low: 158, close: 190, offsetY: 0 }
   ],
   DOUBLE_BOTTOM: [
-    { open: 300, high: 305, low: 150, close: 160, offsetY: 0 },
-    { open: 160, high: 250, low: 155, close: 240, offsetY: 0 },
-    { open: 240, high: 245, low: 150, close: 155, offsetY: 0 },
-    { open: 155, high: 400, low: 150, close: 380, offsetY: 0 }
+    { open: 300, high: 305, low: 220, close: 230, offsetY: 0 },
+    { open: 230, high: 320, low: 225, close: 310, offsetY: 0 },
+    { open: 310, high: 315, low: 220, close: 225, offsetY: 0 },
+    { open: 225, high: 400, low: 220, close: 390, offsetY: 0 }
   ],
   DOUBLE_TOP: [
-    { open: 100, high: 350, low: 95, close: 340, offsetY: 0 },
-    { open: 340, high: 345, low: 250, close: 260, offsetY: 0 },
-    { open: 260, high: 355, low: 255, close: 345, offsetY: 0 },
-    { open: 345, high: 350, low: 50, close: 60, offsetY: 0 }
+    { open: 150, high: 350, low: 145, close: 340, offsetY: 0 },
+    { open: 340, high: 345, low: 220, close: 230, offsetY: 0 },
+    { open: 230, high: 355, low: 225, close: 345, offsetY: 0 },
+    { open: 345, high: 350, low: 140, close: 150, offsetY: 0 }
   ],
   HEAD_AND_SHOULDERS: [
     { open: 100, high: 250, low: 95, close: 240, offsetY: 0 },
@@ -128,7 +127,7 @@ export const TEMPLATES = {
     { open: 190, high: 350, low: 185, close: 340, offsetY: 0 },
     { open: 340, high: 345, low: 180, close: 190, offsetY: 0 },
     { open: 190, high: 255, low: 185, close: 245, offsetY: 0 },
-    { open: 245, high: 250, low: 50, close: 60, offsetY: 0 }
+    { open: 245, high: 250, low: 100, close: 110, offsetY: 0 }
   ],
   BULLISH_WEDGE: [
     { open: 400, high: 410, low: 300, close: 310, offsetY: 0 },

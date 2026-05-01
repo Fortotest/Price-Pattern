@@ -40,41 +40,24 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Dark Studio Background
-    const grad = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    grad.addColorStop(0, '#0b0e14');
-    grad.addColorStop(1, '#151924');
-    ctx.fillStyle = grad;
+    // Pitch Black Background as per Image
+    ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Aesthetic Vertical/Horizontal Grids
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
-    ctx.lineWidth = 3;
-    for(let i=1; i<10; i++) {
-        ctx.beginPath();
-        ctx.moveTo(0, (CANVAS_HEIGHT/10)*i);
-        ctx.lineTo(CANVAS_WIDTH, (CANVAS_HEIGHT/10)*i);
-        ctx.stroke();
-    }
-    for(let i=1; i<12; i++) {
-        ctx.beginPath();
-        ctx.moveTo((CANVAS_WIDTH/12)*i, 0);
-        ctx.lineTo((CANVAS_WIDTH/12)*i, CANVAS_HEIGHT);
-        ctx.stroke();
-    }
-
+    // Removed Grids for Clean Look as per Image
     if (currentCandles.length === 0) return;
 
     const bounds = getChartBounds(currentCandles);
     const range = bounds.max - bounds.min;
     
     const zoom = settings.zoom || 1.0;
-    const baseWidth = (CANVAS_WIDTH / Math.max(10, currentCandles.length)) * zoom;
-    const spacing = baseWidth * 0.25;
+    // Balanced width for 4K to avoid large gaps
+    const baseWidth = (CANVAS_WIDTH / Math.max(12, currentCandles.length)) * zoom;
+    const spacing = baseWidth * 0.15; // Smaller gap for tighter look
     const bodyWidth = baseWidth - spacing;
     
-    // Balanced Wick Width for 4K
-    const wickWidth = Math.max(8, bodyWidth * 0.15); 
+    // Solid thick wicks as per image
+    const wickWidth = Math.max(6, bodyWidth * 0.18); 
 
     const startX = (CANVAS_WIDTH / 2) - ((currentCandles.length * baseWidth) / 2) + (baseWidth / 2);
     const centerY = CANVAS_HEIGHT / 2;
@@ -85,7 +68,8 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
     const getY = (price: number) => {
       const midPrice = (bounds.max + bounds.min) / 2;
-      const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.75);
+      // Increased scaling to fill vertical space better
+      const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.85);
       return centerY - scaledY;
     };
 
@@ -106,9 +90,8 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       let curHighY = yHigh;
       let curLowY = yLow;
 
-      // Price Action Animation Logic
       if (i === currentIndex && isAnimating) {
-        if (c.close >= c.open) { // Bullish
+        if (c.close >= c.open) {
           if (p < 0.25) {
             const t = p / 0.25;
             curCloseY = lerp(yOpen, yLow, t);
@@ -125,7 +108,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
             curHighY = yHigh;
             curLowY = yLow;
           }
-        } else { // Bearish
+        } else {
           if (p < 0.25) {
             const t = p / 0.25;
             curCloseY = lerp(yOpen, yHigh, t);
@@ -152,27 +135,25 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       const isBullish = curCloseY <= yOpen;
       const isDoji = Math.abs(c.close - c.open) < 0.1;
-      const color = isDoji ? "#787b86" : isBullish ? "#089981" : "#f23645";
+      // High contrast colors as per image
+      const color = isDoji ? "#787b86" : isBullish ? "#00b386" : "#f23645";
 
-      // Draw Wick
+      // Draw Wick - Thick and solid
       ctx.beginPath();
       ctx.moveTo(x, curHighY);
       ctx.lineTo(x, curLowY);
       ctx.strokeStyle = color;
       ctx.lineWidth = wickWidth;
-      ctx.lineCap = "round";
+      ctx.lineCap = "butt"; // Sharp wick ends
       ctx.stroke();
 
-      // Draw Body
+      // Draw Body - Sharp corners, no rounding as per image
       const rectY = Math.min(yOpen, curCloseY);
-      const rectHeight = Math.max(wickWidth, Math.abs(yOpen - curCloseY));
+      const rectHeight = Math.max(2, Math.abs(yOpen - curCloseY));
       
       ctx.fillStyle = color;
       if (!isDoji) {
-        ctx.beginPath();
-        // Use half of wickWidth as radius for subtle rounded corners
-        ctx.roundRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight, wickWidth / 2);
-        ctx.fill();
+        ctx.fillRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight);
       } else {
         ctx.beginPath();
         ctx.moveTo(x - bodyWidth / 2, yOpen);
@@ -220,7 +201,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
         ref={canvasRef} 
         width={CANVAS_WIDTH} 
         height={CANVAS_HEIGHT}
-        className="w-full h-full object-contain rounded-2xl shadow-2xl shadow-black/50"
+        className="w-full h-full object-contain shadow-2xl"
       />
     </div>
   );

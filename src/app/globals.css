@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 222 47% 4%; /* #0b0e14 */
+    --background: 0 0% 0%; /* #000000 - Pitch Black */
     --foreground: 210 40% 98%;
-    --card: 222 24% 11%; /* #151924 */
+    --card: 0 0% 7%; /* #121212 */
     --card-foreground: 210 40% 98%;
-    --popover: 222 24% 11%;
+    --popover: 0 0% 7%;
     --popover-foreground: 210 40% 98%;
-    --primary: 221 100% 58%; /* #2962ff */
+    --primary: 161 100% 35%; /* #00b386 - Emerald Green */
     --primary-foreground: 210 40% 98%;
-    --secondary: 222 24% 18%; /* #1c212f */
+    --secondary: 0 0% 12%; /* #1f1f1f */
     --secondary-foreground: 210 40% 98%;
-    --muted: 222 24% 15%;
+    --muted: 0 0% 15%;
     --muted-foreground: 215 16% 47%;
-    --accent: 221 100% 58%;
+    --accent: 161 100% 35%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 354 89% 58%; /* #f23645 */
+    --destructive: 354 89% 58%; /* #f23645 - TradingView Red */
     --destructive-foreground: 210 40% 98%;
-    --border: 222 15% 21%; /* #2a3142 */
-    --input: 222 15% 15%;
-    --ring: 221 100% 58%;
-    --radius: 1rem;
+    --border: 0 0% 20%; /* #333333 */
+    --input: 0 0% 15%;
+    --ring: 161 100% 35%;
+    --radius: 0.5rem;
   }
 }
 
@@ -42,8 +42,8 @@
   width: 100%;
   max-width: 100%;
   position: relative;
-  background: #0b0e14;
-  border-radius: var(--radius);
+  background: #000000;
+  border-radius: 0;
   overflow: hidden;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
@@ -58,8 +58,8 @@
 }
 
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -67,10 +67,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2a3142;
+  background: #333333;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #444444;
 }
