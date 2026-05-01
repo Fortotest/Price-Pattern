@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect, forwardRef, useImperativeHandle, useState } from "react";
@@ -97,6 +98,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+    // Pitch Black Background
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -106,6 +108,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const range = Math.max(bounds.max - bounds.min, 1);
     const zoom = settings.zoom || 1.0;
     
+    // Auto-scaling logic
     const effectiveCount = Math.max(10, currentCandles.length);
     const baseWidth = (CANVAS_WIDTH / effectiveCount) * zoom;
     const spacing = baseWidth * 0.25; 
@@ -157,13 +160,16 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const isDoji = Math.abs(c.close - c.open) < 0.1;
       const color = isDoji ? "#787b86" : isBullish ? "#00b386" : "#f23645";
 
+      // Wick - Slightly rounded
       ctx.beginPath();
       ctx.moveTo(x, curHighY);
       ctx.lineTo(x, curLowY);
       ctx.strokeStyle = color;
       ctx.lineWidth = wickWidth;
+      ctx.lineCap = 'round'; // Sedikit rounded
       ctx.stroke();
 
+      // Body - Sharp (Square)
       const rectY = Math.min(yOpen, curCloseY);
       const rectHeight = Math.max(wickWidth, Math.abs(yOpen - curCloseY));
       ctx.fillStyle = color;
@@ -174,6 +180,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
         ctx.moveTo(x - bodyWidth / 2, yOpen);
         ctx.lineTo(x + bodyWidth / 2, yOpen);
         ctx.lineWidth = wickWidth;
+        ctx.lineCap = 'round';
         ctx.stroke();
       }
     }

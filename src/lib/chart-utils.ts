@@ -1,3 +1,4 @@
+
 import { Candlestick } from "./chart-types";
 
 export const CANVAS_WIDTH = 3840;
@@ -57,14 +58,14 @@ export function generateSVG(candles: Candlestick[]): string {
     const top = Math.min(yOpen, yClose);
     const bodyHeight = Math.max(Math.abs(yOpen - yClose), wickWidth);
 
-    // Wick - Matches Canvas LineCap Butt
-    svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="butt" />`;
+    // Wick - Slightly rounded in SVG
+    svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="round" />`;
     
     // Body - Sharp Corners
     if (!isDoji) {
       svgContent += `<rect x="${x - bodyWidth / 2}" y="${top}" width="${bodyWidth}" height="${bodyHeight}" fill="${color}" />`;
     } else {
-      svgContent += `<line x1="${x - bodyWidth / 2}" y1="${yOpen}" x2="${x + bodyWidth / 2}" y2="${yOpen}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="butt" />`;
+      svgContent += `<line x1="${x - bodyWidth / 2}" y1="${yOpen}" x2="${x + bodyWidth / 2}" y2="${yOpen}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="round" />`;
     }
   });
 

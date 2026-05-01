@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef } from "react";
@@ -32,7 +33,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function PricePatternStudio() {
-  const [candles, setCandles] = useState<Candlestick[]>([]);
+  const [candles, setCandles] = useState<Candlestick[]>(TEMPLATES.FULL_BULLISH_WAVE);
   const [settings, setSettings] = useState<ChartSettings>({
     zoom: 1.0,
     spacing: 1.0,
@@ -52,11 +53,8 @@ export default function PricePatternStudio() {
     const template = TEMPLATES[val as keyof typeof TEMPLATES];
     if (template) {
       setCandles(template);
-      let newZoom = 1.0;
-      if (template.length > 20) newZoom = 0.5;
-      else if (template.length > 10) newZoom = 0.8;
-      else newZoom = 1.2;
-      setSettings(prev => ({ ...prev, zoom: newZoom }));
+      // Zoom dibatasi ke 1.0
+      setSettings(prev => ({ ...prev, zoom: 1.0 }));
       toast({ title: "Template Applied", description: `Loaded professional ${val} pattern.` });
     }
   };
@@ -74,6 +72,7 @@ export default function PricePatternStudio() {
   const handleUpdateCandle = (index: number, updated: Candlestick) => {
     const newCandles = [...candles];
     newCandles[index] = updated;
+    // Maintain continuity
     for (let i = index + 1; i < newCandles.length; i++) {
       const prevClose = newCandles[i-1].close;
       const body = Math.abs(newCandles[i].close - newCandles[i].open);
@@ -126,6 +125,7 @@ export default function PricePatternStudio() {
 
   return (
     <div className="flex h-screen w-full bg-[#0b0e14] text-foreground overflow-hidden font-body">
+      {/* Sidebar */}
       <aside className={`w-[400px] h-screen flex flex-col border-r border-white/5 bg-[#121212] shrink-0 transition-opacity duration-300 ${isRecording ? 'opacity-20 pointer-events-none' : ''}`}>
         <div className="p-6 border-b border-white/5 shrink-0">
           <div className="flex items-center gap-3">
@@ -139,7 +139,7 @@ export default function PricePatternStudio() {
           </div>
         </div>
 
-        <ScrollArea className="flex-1 overflow-y-auto">
+        <ScrollArea className="flex-1">
           <div className="p-6 space-y-8">
             <section className="space-y-4">
               <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
@@ -179,7 +179,7 @@ export default function PricePatternStudio() {
                     <Label className="text-[10px] font-bold uppercase text-muted-foreground">Zoom Level</Label>
                     <span className="text-[10px] font-mono text-primary font-bold">{settings.zoom.toFixed(1)}x</span>
                   </div>
-                  <Slider value={[settings.zoom]} min={0.2} max={3} step={0.1} onValueChange={([val]) => setSettings(prev => ({ ...prev, zoom: val }))} />
+                  <Slider value={[settings.zoom]} min={0.1} max={1.0} step={0.1} onValueChange={([val]) => setSettings(prev => ({ ...prev, zoom: val }))} />
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
@@ -223,6 +223,7 @@ export default function PricePatternStudio() {
         </div>
       </aside>
 
+      {/* Main Content */}
       <main className="flex-1 h-screen relative flex flex-col bg-[#000000]">
         <div className="absolute top-0 left-0 right-0 p-8 flex justify-between items-start pointer-events-none z-20">
           <div className="flex items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 px-5 py-2.5 rounded-full shadow-2xl">
