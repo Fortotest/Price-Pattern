@@ -77,7 +77,8 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     
     const bodyWidth = (chartAreaWidth / effectiveCount) * 0.8 * zoom;
     const baseWidth = ((chartAreaWidth / effectiveCount) * 0.8) * spacingMultiplier;
-    const wickWidth = Math.max(8, bodyWidth * 0.15); 
+    // Wick width should be proportional but distinct
+    const wickWidth = Math.max(4, bodyWidth * 0.12); 
 
     const actualWidth = (currentCandles.length - 1) * baseWidth;
     const startX = (chartAreaWidth / 2) - (actualWidth / 2);
@@ -123,27 +124,36 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const yHigh = getY(c.high) + shift;
       const yLow = getY(c.low) + shift;
 
+      // In Canvas Y coordinates: yHigh (High Price) is SMALLEST, yLow (Low Price) is LARGEST
       let curOpenY = yOpen, curCloseY = yClose, curHighY = yHigh, curLowY = yLow;
 
       if (i === Math.floor(progressValue) && isAnimating) {
         const rawP = progressValue - i;
         const p = easeOut(Math.min(rawP, 1));
         
-        if (c.close >= c.open) {
-          if (p < 0.2) { const t = p / 0.2; curCloseY = lerp(yOpen, yLow, t); curHighY = yOpen; curLowY = curCloseY; }
-          else if (p < 0.7) { const t = (p - 0.2) / 0.5; curCloseY = lerp(yLow, yHigh, t); curLowY = yLow; curHighY = Math.min(yOpen, curCloseY); }
-          else { const t = (p - 0.7) / 0.3; curCloseY = lerp(yHigh, yClose, t); curHighY = yHigh; curLowY = yLow; }
+        // Stages: 0-0.3 (to Low), 0.3-0.7 (to High), 0.7-1.0 (to Close)
+        if (p < 0.3) {
+          const t = p / 0.3;
+          curLowY = lerp(yOpen, yLow, t);
+          curHighY = yOpen;
+          curCloseY = curLowY;
+        } else if (p < 0.7) {
+          const t = (p - 0.3) / 0.4;
+          curLowY = yLow;
+          curHighY = lerp(yOpen, yHigh, t);
+          curCloseY = curHighY;
         } else {
-          if (p < 0.2) { const t = p / 0.2; curCloseY = lerp(yOpen, yHigh, t); curHighY = curCloseY; curLowY = yOpen; }
-          else if (p < 0.7) { const t = (p - 0.2) / 0.5; curCloseY = lerp(yHigh, yLow, t); curHighY = yHigh; curLowY = Math.max(yOpen, curCloseY); }
-          else { const t = (p - 0.7) / 0.3; curCloseY = lerp(yLow, yClose, t); curHighY = yHigh; curLowY = yLow; }
+          const t = (p - 0.7) / 0.3;
+          curLowY = yLow;
+          curHighY = yHigh;
+          curCloseY = lerp(yHigh, yClose, t);
         }
       }
 
       const isBullish = c.close >= c.open;
       const color = isBullish ? settings.bullColor : settings.bearColor;
 
-      // Draw Wick
+      // Draw Wick - High to Low
       ctx.beginPath();
       ctx.moveTo(x, curHighY);
       ctx.lineTo(x, curLowY);
@@ -239,12 +249,12 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     requestAnimationFrame(() => {
       if (dragState.type === 'y') {
         const deltaY = e.movementY;
-        const sensitivity = 0.006;
+        const sensitivity = 0.005;
         const newZoom = Math.max(0.1, Math.min(2.0, settings.zoom - deltaY * sensitivity));
         onSettingsChange({ zoom: newZoom });
       } else if (dragState.type === 'x') {
         const deltaX = e.movementX;
-        const sensitivity = 0.012;
+        const sensitivity = 0.01;
         const newSpacing = Math.max(0.5, Math.min(5.0, settings.spacing + deltaX * sensitivity));
         onSettingsChange({ spacing: newSpacing });
       }

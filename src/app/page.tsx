@@ -14,7 +14,6 @@ import {
   Monitor,
   RefreshCw,
   Zap,
-  Maximize,
   Palette,
   Layers,
   Settings2,
