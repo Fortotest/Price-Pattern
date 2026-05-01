@@ -51,16 +51,17 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const range = Math.max(bounds.max - bounds.min, 1);
     
     const zoom = settings.zoom || 0.8;
-    const spacingMultiplier = settings.spacing || 1.2;
+    const spacingMultiplier = settings.spacing || 1.0;
     const effectiveCount = Math.max(12, currentCandles.length);
     
-    // bodyWidth murni dikontrol oleh Zoom
+    // Zoom murni kontrol ukuran lilin
     const bodyWidth = (CANVAS_WIDTH / effectiveCount) * 0.8 * zoom;
     
-    // baseWidth (jarak antar pusat lilin) dikontrol oleh Spacing
-    const baseWidth = bodyWidth * spacingMultiplier;
+    // Spacing murni kontrol jarak antar lilin (baseWidth)
+    // Jika spacing = 1.0 dan bodyWidth = (W/C)*0.8, maka ada celah 20%.
+    // Jika spacing = 0.8, baseWidth = bodyWidth, maka lilin dempet.
+    const baseWidth = ((CANVAS_WIDTH / effectiveCount) * 0.8) * spacingMultiplier;
     
-    // Wick ketebalan ditingkatkan untuk 4K (Min 8px agar terlihat jelas)
     const wickWidth = Math.max(8, bodyWidth * 0.15); 
 
     const actualWidth = (currentCandles.length - 1) * baseWidth;

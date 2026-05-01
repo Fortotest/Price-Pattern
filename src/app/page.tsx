@@ -38,7 +38,7 @@ export default function PricePatternStudio() {
   const [candles, setCandles] = useState<Candlestick[]>(TEMPLATES.FULL_BULLISH_WAVE);
   const [settings, setSettings] = useState<ChartSettings>({
     zoom: 0.8,
-    spacing: 1.2,
+    spacing: 1.0, // Default dempet/rapi
     speed: 0.8,
     autoCenter: true,
     bullColor: "#00b386",
@@ -65,9 +65,10 @@ export default function PricePatternStudio() {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
     
     // Ukuran Random tapi rapi (kelipatan 5)
-    const bodySize = (Math.floor(Math.random() * 10) + 5) * 15; // Body bervariasi
-    const topWick = (Math.floor(Math.random() * 4) + 2) * 5;  
-    const botWick = (Math.floor(Math.random() * 4) + 2) * 5;  
+    // Range body: 80 - 120 (Random & Berpengaruh)
+    const bodySize = (Math.floor(Math.random() * 9) + 16) * 5; 
+    const topWick = (Math.floor(Math.random() * 4) + 3) * 5;  
+    const botWick = (Math.floor(Math.random() * 4) + 3) * 5;  
     
     const newCandle: Candlestick = type === 'Bullish' 
       ? { 
@@ -137,7 +138,7 @@ export default function PricePatternStudio() {
     setIsAnimating(true);
   };
 
-  const LeftSidebar = () => (
+  const PropertiesPanel = () => (
     <div className="flex flex-col h-full bg-[#121212] border-r border-white/5 text-white overflow-hidden w-[280px]">
       <div className="p-3 border-b border-white/5 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -162,8 +163,8 @@ export default function PricePatternStudio() {
                 </SelectGroup>
                 <SelectGroup>
                   <SelectLabel>Multi Bar</SelectLabel>
-                  <SelectItem value="BULLISH_ENGULFING">🔥 Bullish Engulfing</SelectItem>
-                  <SelectItem value="BEARISH_ENGULFING">❄️ Bearish Engulfing</SelectItem>
+                  <SelectItem value="BULLISH_ENGULFING">🔥 Engulfing Bull</SelectItem>
+                  <SelectItem value="BEARISH_ENGULFING">❄️ Engulfing Bear</SelectItem>
                   <SelectItem value="DOUBLE_BOTTOM">🇼 Double Bottom</SelectItem>
                   <SelectItem value="DOUBLE_TOP">🇲 Double Top</SelectItem>
                 </SelectGroup>
@@ -193,7 +194,7 @@ export default function PricePatternStudio() {
                   <Label className="text-[9px] text-muted-foreground">Candle Spacing</Label>
                   <span className="text-[9px] font-mono text-primary">{settings.spacing.toFixed(1)}x</span>
                 </div>
-                <Slider value={[settings.spacing]} min={0.5} max={3.0} step={0.1} onValueChange={([v]) => setSettings(s => ({...s, spacing: v}))} />
+                <Slider value={[settings.spacing]} min={0.8} max={3.0} step={0.05} onValueChange={([v]) => setSettings(s => ({...s, spacing: v}))} />
               </div>
 
               <div className="space-y-1.5">
@@ -240,7 +241,7 @@ export default function PricePatternStudio() {
                 <Label className="text-[9px] text-muted-foreground">Body Radius</Label>
                 <span className="text-[9px] font-mono text-primary">{settings.bodyRadius}px</span>
               </div>
-              <Slider value={[settings.bodyRadius]} min={0} max={12} step={1} onValueChange={([v]) => setSettings(s => ({...s, bodyRadius: v}))} />
+              <Slider value={[settings.bodyRadius]} min={0} max={20} step={1} onValueChange={([v]) => setSettings(s => ({...s, bodyRadius: v}))} />
             </div>
 
             <div className="space-y-1.5">
@@ -266,7 +267,7 @@ export default function PricePatternStudio() {
     </div>
   );
 
-  const RightSidebar = () => (
+  const LayersPanel = () => (
     <div className="flex flex-col h-full bg-[#121212] border-l border-white/5 text-white overflow-hidden w-[260px]">
       <div className="p-3 border-b border-white/5 flex items-center gap-2">
         <Layers className="w-3.5 h-3.5 text-emerald-500" />
@@ -296,17 +297,17 @@ export default function PricePatternStudio() {
   return (
     <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none">
       <aside className="hidden lg:flex flex-col flex-shrink-0">
-        <LeftSidebar />
+        <PropertiesPanel />
       </aside>
 
       <main className="flex-1 flex flex-col relative overflow-hidden bg-black">
         <header className="lg:hidden h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#121212] z-30">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white h-9 w-9"><Menu className="w-5 h-5" /></Button>
+              <Button variant="ghost" size="icon" className="text-white h-9 w-9"><Settings2 className="w-5 h-5" /></Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-[280px] bg-[#121212] border-r border-white/10">
-              <LeftSidebar />
+              <PropertiesPanel />
             </SheetContent>
           </Sheet>
           <div className="text-[10px] font-bold uppercase tracking-[2px] text-emerald-500 flex items-center gap-2">
@@ -318,7 +319,7 @@ export default function PricePatternStudio() {
               <Button variant="ghost" size="icon" className="text-white h-9 w-9"><Layers className="w-5 h-5" /></Button>
             </SheetTrigger>
             <SheetContent side="right" className="p-0 w-[260px] bg-[#121212] border-l border-white/10">
-              <RightSidebar />
+              <LayersPanel />
             </SheetContent>
           </Sheet>
         </header>
@@ -357,7 +358,7 @@ export default function PricePatternStudio() {
       </main>
 
       <aside className="hidden lg:flex flex-col flex-shrink-0">
-        <RightSidebar />
+        <LayersPanel />
       </aside>
     </div>
   );
