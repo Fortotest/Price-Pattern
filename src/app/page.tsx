@@ -418,10 +418,15 @@ export default function PricePatternStudio() {
   const handleReplay = useCallback(() => {
     if (candles.length === 0) return;
     setIsAnimating(false);
-    setTimeout(() => setIsAnimating(true), 50);
+    // Use a tiny timeout to ensure the state transition is caught by ChartRenderer
+    setTimeout(() => setIsAnimating(true), 20);
   }, [candles.length]);
 
-  const handleRecordVideo = useCallback(async () => {
+  const handleStopAnimation = useCallback(() => {
+    setIsAnimating(false);
+  }, []);
+
+  const handleRecordVideo = async () => {
     const canvas = chartRef.current?.getCanvas();
     if (!canvas || candles.length === 0) return;
     setIsRecording(true);
@@ -442,7 +447,7 @@ export default function PricePatternStudio() {
     };
     recorder.start();
     setIsAnimating(true);
-  }, [candles.length, toast]);
+  };
 
   return (
     <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none">
@@ -532,13 +537,22 @@ export default function PricePatternStudio() {
           
           {/* Action Toolbar Below Canvas */}
           <div className="mt-6 flex items-center gap-4 bg-[#0a0a0a] p-3 rounded-xl border border-white/5 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <Button 
-              className="min-w-[120px] h-10 font-bold text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95" 
-              onClick={handleReplay} 
-              disabled={candles.length === 0 || isAnimating}
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isAnimating ? 'animate-spin' : ''}`} /> Preview
-            </Button>
+            {isAnimating ? (
+              <Button 
+                className="min-w-[120px] h-10 font-bold text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all active:scale-95" 
+                onClick={handleStopAnimation} 
+              >
+                <X className="w-3.5 h-3.5" /> Stop
+              </Button>
+            ) : (
+              <Button 
+                className="min-w-[120px] h-10 font-bold text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95" 
+                onClick={handleReplay} 
+                disabled={candles.length === 0}
+              >
+                <RefreshCw className="w-3.5 h-3.5" /> Preview
+              </Button>
+            )}
             
             <Separator orientation="vertical" className="h-6 bg-white/10" />
             

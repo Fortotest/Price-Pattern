@@ -29,7 +29,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>(null);
+  const animationRef = useRef<number | undefined>(undefined);
   const startTimeRef = useRef<number | null>(null);
   
   const [dragState, setDragState] = useState<{ type: 'y' | 'x' | null, startVal: number } | null>(null);
@@ -177,22 +177,39 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     if (isAnimating) {
       startTimeRef.current = null;
       const animate = (time: number) => {
+        if (!isAnimating) return; // Immediate bailout if stopped
+        
         if (startTimeRef.current === null) startTimeRef.current = time;
         const elapsed = time - startTimeRef.current;
         const durationPerCandle = (settings.speed || 0.8) * 1000;
         const totalDuration = candles.length * durationPerCandle;
         const progress = Math.min(elapsed / totalDuration, 1);
         const progressValue = progress * candles.length;
+        
         draw(candles, progressValue);
-        if (progress < 1) animationRef.current = requestAnimationFrame(animate);
-        else onAnimationComplete?.();
+        
+        if (progress < 1) {
+          animationRef.current = requestAnimationFrame(animate);
+        } else {
+          onAnimationComplete?.();
+        }
       };
       animationRef.current = requestAnimationFrame(animate);
     } else {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = undefined;
+      }
       requestAnimationFrame(() => draw(candles));
     }
-    return () => { if (animationRef.current) cancelAnimationFrame(animationRef.current); };
-  }, [candles, isAnimating, settings]);
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = undefined;
+      }
+    };
+  }, [candles, isAnimating, settings, onAnimationComplete]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     const rect = containerRef.current?.getBoundingClientRect();
