@@ -313,6 +313,7 @@ export default function PricePattern() {
   const playNotifSound = useCallback(() => {
     const randomUrl = NOTIF_SOUND_URLS[Math.floor(Math.random() * NOTIF_SOUND_URLS.length)];
     const audio = new Audio(randomUrl);
+    audio.volume = 1.0; // Ensure maximum volume
     audio.play().catch(e => console.warn("Audio play failed:", e));
   }, []);
 
@@ -346,7 +347,7 @@ export default function PricePattern() {
       let close, high, low;
 
       // Logic for random volatility and impulse candles
-      const isImpulsive = Math.random() < 0.15; // 15% chance for impulse
+      const isImpulsive = Math.random() < 0.15; 
 
       if (type === 'Bullish') {
         const bodySize = isImpulsive ? randomRange(250, 450) : randomRange(50, 150);
