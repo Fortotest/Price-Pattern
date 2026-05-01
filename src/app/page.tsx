@@ -217,29 +217,39 @@ interface LayersPanelProps {
   onRemoveCandle: (index: number) => void;
   onClearAll: () => void;
   onTemplateLoad: (val: string) => void;
+  onClose?: () => void;
 }
 
-const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll, onTemplateLoad }: LayersPanelProps) => (
+const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll, onTemplateLoad, onClose }: LayersPanelProps) => (
   <div className="flex flex-col h-full bg-[#0a0a0a] text-white overflow-hidden w-full">
     <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
       <div className="flex items-center gap-2">
+        {onClose && (
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 lg:hidden -ml-1">
+            <X className="w-4 h-4" />
+          </Button>
+        )}
         <Layers className="w-3.5 h-3.5 text-emerald-500" />
         <span className="text-[10px] font-bold uppercase tracking-wider">Layer Stack</span>
       </div>
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        onClick={onClearAll} 
-        disabled={candles.length === 0}
-        className="h-6 px-2 text-[8px] font-bold hover:bg-red-500/10 hover:text-red-400 text-muted-foreground gap-1.5"
-      >
-        <Trash2 className="w-2.5 h-2.5" /> CLEAR
-      </Button>
+      {/* Spacer for Sheet close button on mobile */}
+      <div className="w-8 h-6 lg:hidden" />
     </div>
     
-    <div className="p-3 bg-black/40 space-y-3">
+    <div className="p-3 bg-black/40 space-y-4">
       <div className="space-y-2">
-        <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Market Templates</Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Market Templates</Label>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onClearAll} 
+            disabled={candles.length === 0}
+            className="h-5 px-1.5 text-[8px] font-bold hover:bg-red-500/10 hover:text-red-400 text-muted-foreground gap-1"
+          >
+            <Trash2 className="w-2.5 h-2.5" /> CLEAR ALL
+          </Button>
+        </div>
         <select 
           onChange={(e) => onTemplateLoad(e.target.value)} 
           className="flex w-full items-center justify-between rounded-md border ring-offset-background h-10 text-[10px] bg-black border-white/5 font-bold p-1 px-2 focus:ring-0 text-white outline-none"
@@ -307,6 +317,8 @@ export default function PricePattern() {
   const [layersPanelWidth, setLayersPanelWidth] = useState(280);
   const [isResizing, setIsResizing] = useState(false);
   const [notification, setNotification] = useState<{title: string, emoji: string} | null>(null);
+  
+  const [isLayersOpen, setIsLayersOpen] = useState(false);
   
   const chartRef = useRef<ChartRendererHandle>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -599,7 +611,7 @@ export default function PricePattern() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Sheet>
+            <Sheet open={isLayersOpen} onOpenChange={setIsLayersOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9">
                   <Layers className="w-5 h-5" />
@@ -613,6 +625,7 @@ export default function PricePattern() {
                   onRemoveCandle={handleRemoveCandle}
                   onClearAll={handleClearAll}
                   onTemplateLoad={handleTemplateLoad}
+                  onClose={() => setIsLayersOpen(false)}
                 />
               </SheetContent>
             </Sheet>
