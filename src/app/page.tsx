@@ -222,7 +222,7 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
           onChange={(e) => onTemplateLoad(e.target.value)} 
           className="flex w-full items-center justify-between rounded-md border ring-offset-background h-10 text-[10px] bg-black border-white/5 font-bold p-1 px-2 focus:ring-0 text-white outline-none"
         >
-          <option value="custom">-- Kosongkan Layer --</option>
+          <option value="custom">Kosongkan Layer</option>
           <optgroup label="General Patterns">
             <option value="spinning_tops">Spinning Tops</option>
             <option value="shooting_star">Shooting Star</option>
@@ -326,11 +326,12 @@ export default function PricePatternStudio() {
         close = open - bodySize;
         high = open + topWick;
         low = close - botWick;
-      } else { // Doji: Body 10-25, Wick 25-50
+      } else { // Doji: Super-Random Body 10-25, Wick 25-50
         const bodySize = randomRange(10, 25); 
         const isBullish = Math.random() > 0.5;
         const topWick = randomRange(25, 50);
         const botWick = randomRange(25, 50);
+        
         close = isBullish ? open + bodySize : open - bodySize; 
         high = Math.max(open, close) + topWick;
         low = Math.min(open, close) - botWick;
