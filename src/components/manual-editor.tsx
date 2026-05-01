@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Candlestick } from "@/lib/chart-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,48 +34,49 @@ const CustomNumberInput = ({
 }) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const valueRef = useRef(value);
 
-  const startAdjusting = (delta: number) => {
-    onChange(Math.max(0, value + delta));
+  // Keep valueRef in sync with the prop
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
+
+  const handleStep = useCallback((delta: number) => {
+    const newValue = Math.max(0, Math.round(valueRef.current + delta));
+    onChange(newValue);
+  }, [onChange]);
+
+  const stopAdjusting = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    timerRef.current = null;
+    intervalRef.current = null;
+  }, []);
+
+  const startAdjusting = useCallback((delta: number) => {
+    stopAdjusting();
+    handleStep(delta);
     
     timerRef.current = setTimeout(() => {
       intervalRef.current = setInterval(() => {
-        onChange(Math.max(0, (prev: any) => {
-          // Note: In this context we don't have functional state access easily
-          // so we use a simpler approach since this is called frequently
-          return value + delta;
-        }));
-        // Since we don't have functional update here easily, 
-        // we'll just trigger the passed onChange with the calculated delta
-        // To fix "ngaco" numbers, we need to be careful with closure values
-      }, 50);
+        handleStep(delta);
+      }, 60);
     }, 400);
-  };
-
-  const stopAdjusting = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-  };
-
-  // Improved direct click handler
-  const handleStep = (delta: number) => {
-    onChange(Math.max(0, Math.round(value + delta)));
-  };
+  }, [handleStep, stopAdjusting]);
 
   return (
-    <div className="bg-[#0d0d0d] rounded-md p-1.5 flex flex-col items-center justify-between border border-white/5 h-16 w-full group/input">
+    <div className="bg-[#0d0d0d] rounded-md p-1.5 flex flex-col items-center justify-between border border-white/5 h-16 w-full group/input transition-colors hover:border-white/10">
       <span className={`text-[7px] font-bold uppercase tracking-wider ${colorClass}`}>{label}</span>
       <div className="flex items-center w-full flex-1">
         <div className="flex-1 text-center font-mono text-xs font-bold text-white">
-          {Math.round(value)}
+          {isNaN(value) ? 0 : Math.round(value)}
         </div>
         <div className="w-5 h-full flex flex-col border-l border-white/5 overflow-hidden rounded-r-sm">
           <button 
             onMouseDown={() => startAdjusting(1)}
             onMouseUp={stopAdjusting}
             onMouseLeave={stopAdjusting}
-            onClick={() => handleStep(1)}
-            className="flex-1 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] border-b border-white/5 transition-colors"
+            className="flex-1 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] border-b border-white/5 transition-colors active:bg-primary/20"
           >
             <ChevronUp className="w-2.5 h-2.5 text-white/50 group-hover/input:text-white" />
           </button>
@@ -83,8 +84,7 @@ const CustomNumberInput = ({
             onMouseDown={() => startAdjusting(-1)}
             onMouseUp={stopAdjusting}
             onMouseLeave={stopAdjusting}
-            onClick={() => handleStep(-1)}
-            className="flex-1 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] transition-colors"
+            className="flex-1 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] transition-colors active:bg-primary/20"
           >
             <ChevronDown className="w-2.5 h-2.5 text-white/50 group-hover/input:text-white" />
           </button>
@@ -103,7 +103,6 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
         const c = candles[idx];
         const isBullish = c.close > c.open;
         const isBearish = c.close < c.open;
-        const isDoji = c.close === c.open;
         
         let statusColor = "bg-[#333]";
         if (isBullish) statusColor = "bg-[#00b386]";
@@ -163,7 +162,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                   type="number" 
                   value={c.offsetY || 0} 
                   onChange={(e) => {
-                    const val = Number(e.target.value);
+                    const val = parseInt(e.target.value) || 0;
                     onChange(idx, { ...c, offsetY: val });
                   }}
                   className="h-6 text-[8px] bg-black border-white/5 font-mono px-2 focus-visible:ring-0"
@@ -177,13 +176,13 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                 value={bodySize} 
                 colorClass={isBullish ? "text-emerald-500" : (isBearish ? "text-red-500" : "text-white")}
                 onChange={(val) => {
-                  // Default to Bullish if it was a Doji and we increase body
                   const direction = isBearish ? -1 : 1;
+                  const newClose = c.open + (val * direction);
                   onChange(idx, { 
                     ...c, 
-                    close: c.open + (val * direction),
-                    high: Math.max(c.open, c.open + (val * direction)) + topWickSize,
-                    low: Math.min(c.open, c.open + (val * direction)) - botWickSize
+                    close: newClose,
+                    high: Math.max(c.open, newClose) + topWickSize,
+                    low: Math.min(c.open, newClose) - botWickSize
                   });
                 }} 
               />

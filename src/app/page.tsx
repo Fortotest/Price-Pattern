@@ -11,7 +11,6 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { 
-  Plus,
   Monitor,
   RefreshCw,
   Zap,
@@ -35,7 +34,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 
-// --- Sub-Components (Extracted to prevent remounting) ---
+// --- Sub-Components ---
 
 interface PanelProps {
   settings: ChartSettings;
@@ -178,7 +177,7 @@ const PropertiesPanel = ({
             
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <div className="flex items-center justify-center h-10 rounded bg-black border border-white/5 relative overflow-hidden">
+                <div className="flex items-center justify-center h-10 rounded bg-black border border-white/5 relative overflow-hidden group/picker transition-all hover:border-white/10">
                   <input 
                     type="color" 
                     value={settings.bullColor} 
@@ -186,7 +185,7 @@ const PropertiesPanel = ({
                       const val = e.currentTarget.value;
                       updateSettings({ bullColor: val });
                     }} 
-                    className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent" 
+                    className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-110" 
                   />
                 </div>
                 <Input 
@@ -200,7 +199,7 @@ const PropertiesPanel = ({
                 />
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-center h-10 rounded bg-black border border-white/5 relative overflow-hidden">
+                <div className="flex items-center justify-center h-10 rounded bg-black border border-white/5 relative overflow-hidden group/picker transition-all hover:border-white/10">
                   <input 
                     type="color" 
                     value={settings.bearColor} 
@@ -208,7 +207,7 @@ const PropertiesPanel = ({
                       const val = e.currentTarget.value;
                       updateSettings({ bearColor: val });
                     }} 
-                    className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent" 
+                    className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-110" 
                   />
                 </div>
                 <Input 
@@ -342,6 +341,7 @@ export default function PricePatternStudio() {
 
   const debouncedUpdateTimer = useRef<NodeJS.Timeout | null>(null);
   const updateSettings = useCallback((newSettings: Partial<ChartSettings>) => {
+    // If it's a color change, update state immediately but avoid heavy canvas update if possible
     if (newSettings.bullColor || newSettings.bearColor) {
       setSettings(prev => ({ ...prev, ...newSettings }));
       return;
