@@ -56,7 +56,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const chartAreaWidth = CANVAS_WIDTH - Y_AXIS_WIDTH;
     const chartAreaHeight = CANVAS_HEIGHT - X_AXIS_HEIGHT;
 
-    // Grid / Axis Lines
+    // Grid Lines
     ctx.strokeStyle = '#111';
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -77,21 +77,20 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     
     const bodyWidth = (chartAreaWidth / effectiveCount) * 0.8 * zoom;
     const baseWidth = ((chartAreaWidth / effectiveCount) * 0.8) * spacingMultiplier;
-    const wickWidth = Math.max(10, bodyWidth * 0.15); 
+    const wickWidth = Math.max(12, bodyWidth * 0.2); 
 
     const actualWidth = (currentCandles.length - 1) * baseWidth;
     const startX = (chartAreaWidth / 2) - (actualWidth / 2);
     const centerY = chartAreaHeight / 2;
 
-    const getY = (price: number, priceOffset: number = 0) => {
+    const getY = (price: number) => {
       const midPrice = (bounds.max + bounds.min) / 2;
-      const totalOffsetPrice = price + priceOffset;
-      const scaledY = ((totalOffsetPrice - midPrice) / range) * (chartAreaHeight * 0.85);
+      const scaledY = ((price - midPrice) / range) * (chartAreaHeight * 0.85);
       return centerY - scaledY;
     };
 
     // Draw Price Labels (Y-Axis)
-    ctx.fillStyle = '#666';
+    ctx.fillStyle = '#444';
     ctx.font = 'bold 36px monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
@@ -102,13 +101,6 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const yPos = getY(priceVal);
       if(yPos >= 0 && yPos <= chartAreaHeight) {
         ctx.fillText(priceVal.toFixed(1), chartAreaWidth + 30, yPos);
-        
-        ctx.beginPath();
-        ctx.moveTo(0, yPos);
-        ctx.lineTo(chartAreaWidth, yPos);
-        ctx.strokeStyle = '#0a0a0a';
-        ctx.lineWidth = 2;
-        ctx.stroke();
       }
     }
 
@@ -120,10 +112,10 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const x = startX + (i * baseWidth);
       const priceOffset = (c.offsetY || 0);
       
-      const yOpen = getY(c.open, priceOffset);
-      const yClose = getY(c.close, priceOffset);
-      const yHigh = getY(c.high, priceOffset);
-      const yLow = getY(c.low, priceOffset);
+      const yOpen = getY(c.open + priceOffset);
+      const yClose = getY(c.close + priceOffset);
+      const yHigh = getY(c.high + priceOffset);
+      const yLow = getY(c.low + priceOffset);
 
       let curOpenY = yOpen, curCloseY = yClose, curHighY = yHigh, curLowY = yLow;
 
@@ -152,7 +144,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const isBullish = c.close >= c.open;
       const color = isBullish ? settings.bullColor : settings.bearColor;
 
-      // Draw Wick - High to Low (Ensuring it's always drawn)
+      // 1. Draw Wick - High to Low (BACK)
       ctx.beginPath();
       ctx.moveTo(x, curHighY);
       ctx.lineTo(x, curLowY);
@@ -161,7 +153,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       ctx.lineCap = settings.wickRadius > 0 ? 'round' : 'butt';
       ctx.stroke();
 
-      // Draw Body
+      // 2. Draw Body (FRONT - Covering the middle of the wick)
       const rectY = Math.min(yOpen, curCloseY);
       const rectHeight = Math.max(4, Math.abs(yOpen - curCloseY));
       ctx.fillStyle = color;
@@ -176,17 +168,10 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       // Draw X-Axis Label
       if(x >= 0 && x <= chartAreaWidth) {
-        ctx.fillStyle = '#666';
+        ctx.fillStyle = '#444';
         ctx.font = 'bold 30px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(`Bar ${i+1}`, x, chartAreaHeight + 65);
-
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, chartAreaHeight);
-        ctx.strokeStyle = '#0a0a0a';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.fillText(`B${i+1}`, x, chartAreaHeight + 65);
       }
     }
   };

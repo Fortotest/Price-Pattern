@@ -32,7 +32,7 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
   
   const bodyWidth = (width / effectiveCount) * 0.8 * zoom;
   const baseWidth = ((width / effectiveCount) * 0.8) * spacingMultiplier;
-  const wickWidth = Math.max(12, bodyWidth * 0.15);
+  const wickWidth = Math.max(12, bodyWidth * 0.2);
 
   const getY = (price: number) => {
     const midPrice = (bounds.max + bounds.min) / 2;
@@ -52,16 +52,16 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
     const color = isBullish ? settings.bullColor : settings.bearColor;
     
     const shift = (c.offsetY || 0);
-    const yOpen = getY(c.open) + shift;
-    const yClose = getY(c.close) + shift;
-    const yHigh = getY(c.high) + shift;
-    const yLow = getY(c.low) + shift;
+    const yOpen = getY(c.open + shift);
+    const yClose = getY(c.close + shift);
+    const yHigh = getY(c.high + shift);
+    const yLow = getY(c.low + shift);
     
     const top = Math.min(yOpen, yClose);
     const bodyHeight = Math.max(Math.abs(yOpen - yClose), 4);
     const rx = settings.bodyRadius || 0;
 
-    // Wick - Drawn as a single line for better SVG performance
+    // Wick
     svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="${settings.wickRadius > 0 ? 'round' : 'butt'}" />`;
     
     // Body

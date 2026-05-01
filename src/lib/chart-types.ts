@@ -8,8 +8,6 @@ export interface Candlestick {
   offsetY?: number;
 }
 
-export type MarketPattern = 'Bullish Trend' | 'Bearish Trend' | 'Double Top' | 'Double Bottom' | 'Sideways';
-
 export interface ChartSettings {
   zoom: number;
   spacing: number; 
@@ -19,5 +17,4 @@ export interface ChartSettings {
   bearColor: string;
   bodyRadius: number;
   wickRadius: number;
-  volatility?: number;
 }

@@ -21,8 +21,7 @@ import {
   Menu,
   X,
   Download,
-  Video,
-  Dices
+  Video
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -44,7 +43,6 @@ import { cn } from "@/lib/utils";
 interface PanelProps {
   settings: ChartSettings;
   updateSettings: (newSettings: Partial<ChartSettings>) => void;
-  onApplyVolatility: () => void;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -52,21 +50,18 @@ interface PanelProps {
 const PropertiesPanel = ({ 
   settings, 
   updateSettings, 
-  onApplyVolatility,
   isOpen,
   onClose
 }: PanelProps) => {
   const [localSpeed, setLocalSpeed] = useState(settings.speed);
   const [localBodyRadius, setLocalBodyRadius] = useState(settings.bodyRadius);
   const [localWickRadius, setLocalWickRadius] = useState(settings.wickRadius);
-  const [localVolatility, setLocalVolatility] = useState(settings.volatility || 0.5);
 
   useEffect(() => {
     setLocalSpeed(settings.speed);
     setLocalBodyRadius(settings.bodyRadius);
     setLocalWickRadius(settings.wickRadius);
-    setLocalVolatility(settings.volatility || 0.5);
-  }, [settings.speed, settings.bodyRadius, settings.wickRadius, settings.volatility]);
+  }, [settings.speed, settings.bodyRadius, settings.wickRadius]);
 
   if (!isOpen) return null;
 
@@ -182,32 +177,6 @@ const PropertiesPanel = ({
                 }}
               />
             </div>
-
-            <Separator className="bg-white/5 !my-4" />
-
-            <div className="space-y-4">
-               <div className="flex justify-between items-center">
-                  <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Market Volatility</Label>
-                  <span className="text-[9px] font-mono text-primary">{(localVolatility * 100).toFixed(0)}%</span>
-               </div>
-               <Slider 
-                value={[localVolatility]} 
-                min={0.1} 
-                max={2.0} 
-                step={0.1} 
-                onValueChange={(val) => {
-                  setLocalVolatility(val[0]);
-                  updateSettings({ volatility: val[0] });
-                }}
-              />
-              <Button 
-                onClick={onApplyVolatility} 
-                className="w-full h-9 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[10px] font-bold gap-2 group transition-all"
-              >
-                <Dices className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
-                APPLY VOLATILITY
-              </Button>
-            </div>
           </div>
         </div>
       </ScrollArea>
@@ -295,8 +264,7 @@ export default function PricePatternStudio() {
     bullColor: "#00b386",
     bearColor: "#f23645",
     bodyRadius: 0, 
-    wickRadius: 0,
-    volatility: 0.5
+    wickRadius: 0
   });
   
   const [isAnimating, setIsAnimating] = useState(false);
@@ -333,7 +301,7 @@ export default function PricePatternStudio() {
         offsetY: 0 
       };
 
-      // Recalculate High/Low for Doji
+      // Recalculate High/Low
       if (isDoji) {
         newCandle.high = lastClose + 40;
         newCandle.low = lastClose - 40;
@@ -365,23 +333,6 @@ export default function PricePatternStudio() {
   const handleClearAll = useCallback(() => {
     setCandles([]);
   }, []);
-
-  const handleApplyVolatility = useCallback(() => {
-    setCandles(prev => prev.map(c => {
-      const bodyMax = Math.max(c.open, c.close);
-      const bodyMin = Math.min(c.open, c.close);
-      const noiseLevel = settings.volatility || 0.5;
-      
-      const randomTop = Math.round((Math.random() * 120 + 5) * noiseLevel);
-      const randomBot = Math.round((Math.random() * 120 + 5) * noiseLevel);
-      
-      return {
-        ...c,
-        high: Math.round(bodyMax + randomTop),
-        low: Math.round(bodyMin - randomBot)
-      };
-    }));
-  }, [settings.volatility]);
 
   const handleExportSVG = useCallback(() => {
     if (candles.length === 0) return;
@@ -429,7 +380,6 @@ export default function PricePatternStudio() {
         <PropertiesPanel 
           settings={settings}
           updateSettings={updateSettings}
-          onApplyVolatility={handleApplyVolatility}
           isOpen={showProperties}
           onClose={() => setShowProperties(false)}
         />
@@ -452,7 +402,6 @@ export default function PricePatternStudio() {
                 <PropertiesPanel 
                   settings={settings}
                   updateSettings={updateSettings}
-                  onApplyVolatility={handleApplyVolatility}
                   isOpen={true}
                   onClose={() => {}}
                 />
@@ -525,7 +474,7 @@ export default function PricePatternStudio() {
       <aside className="hidden lg:flex flex-col flex-shrink-0">
         <LayersPanel 
           candles={candles}
-          onAddAddCandle={handleAddCandle}
+          onAddCandle={handleAddCandle}
           onUpdateCandle={handleUpdateCandle}
           onRemoveCandle={handleRemoveCandle}
           onClearAll={handleClearAll}
