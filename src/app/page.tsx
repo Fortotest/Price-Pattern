@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { Candlestick, ChartSettings } from "@/lib/chart-types";
 import { generateSVG, TEMPLATES } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
@@ -18,8 +18,7 @@ import {
   Maximize,
   Palette,
   Layers,
-  Settings2,
-  Download
+  Settings2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -44,8 +43,8 @@ export default function PricePatternStudio() {
     autoCenter: true,
     bullColor: "#00b386",
     bearColor: "#f23645",
-    bodyRadius: 0,
-    wickRadius: 4
+    bodyRadius: 0, // Default kotak lancip
+    wickRadius: 0  // Default kotak lancip
   });
   
   const [isAnimating, setIsAnimating] = useState(false);
@@ -64,8 +63,9 @@ export default function PricePatternStudio() {
 
   const handleAddCandle = (type: 'Bullish' | 'Bearish') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
-    // Ukuran acak tapi rapi (kelipatan 5)
-    const bodySize = (Math.floor(Math.random() * 10) + 5) * 15; // Rentang bervariasi
+    
+    // Ukuran Random tapi rapi (kelipatan 5)
+    const bodySize = (Math.floor(Math.random() * 10) + 5) * 15; // Body bervariasi
     const topWick = (Math.floor(Math.random() * 4) + 2) * 5;  
     const botWick = (Math.floor(Math.random() * 4) + 2) * 5;  
     
@@ -85,14 +85,16 @@ export default function PricePatternStudio() {
           offsetY: 0 
         };
     
-    setCandles([...candles, newCandle]);
+    setCandles(prev => [...prev, newCandle]);
   };
 
-  const handleUpdateCandle = (index: number, updated: Candlestick) => {
-    const newCandles = [...candles];
-    newCandles[index] = updated;
-    setCandles(newCandles);
-  };
+  const handleUpdateCandle = useCallback((index: number, updated: Candlestick) => {
+    setCandles(prev => {
+      const next = [...prev];
+      next[index] = updated;
+      return next;
+    });
+  }, []);
 
   const handleExportSVG = () => {
     if (candles.length === 0) return;
@@ -146,7 +148,6 @@ export default function PricePatternStudio() {
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6 pb-12">
-          {/* Templates */}
           <div className="space-y-3">
             <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Library</Label>
             <Select onValueChange={handleTemplateLoad}>
@@ -155,9 +156,12 @@ export default function PricePatternStudio() {
               </SelectTrigger>
               <SelectContent className="bg-[#1c212f] border-white/10 text-white">
                 <SelectGroup>
-                  <SelectLabel>Patterns</SelectLabel>
+                  <SelectLabel>Single Patterns</SelectLabel>
                   <SelectItem value="HAMMER">🔨 Hammer</SelectItem>
                   <SelectItem value="SHOOTING_STAR">💫 Shooting Star</SelectItem>
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel>Multi Bar</SelectLabel>
                   <SelectItem value="BULLISH_ENGULFING">🔥 Bullish Engulfing</SelectItem>
                   <SelectItem value="BEARISH_ENGULFING">❄️ Bearish Engulfing</SelectItem>
                   <SelectItem value="DOUBLE_BOTTOM">🇼 Double Bottom</SelectItem>
@@ -169,7 +173,6 @@ export default function PricePatternStudio() {
 
           <Separator className="bg-white/5" />
 
-          {/* View Controls */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Maximize className="w-3 h-3 text-primary" />
@@ -205,7 +208,6 @@ export default function PricePatternStudio() {
 
           <Separator className="bg-white/5" />
 
-          {/* Visual Styles */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Palette className="w-3 h-3 text-primary" />
@@ -215,17 +217,27 @@ export default function PricePatternStudio() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-[8px] text-muted-foreground uppercase">Bull Color</Label>
-                <input type="color" value={settings.bullColor} onChange={(e) => setSettings(s => ({...s, bullColor: e.target.value}))} className="w-full h-6 rounded bg-black border border-white/10 cursor-pointer" />
+                <input 
+                  type="color" 
+                  value={settings.bullColor} 
+                  onChange={(e) => setSettings(s => ({...s, bullColor: e.target.value}))} 
+                  className="w-full h-8 rounded bg-black border border-white/10 cursor-pointer p-0 opacity-100 block" 
+                />
               </div>
               <div className="space-y-1">
                 <Label className="text-[8px] text-muted-foreground uppercase">Bear Color</Label>
-                <input type="color" value={settings.bearColor} onChange={(e) => setSettings(s => ({...s, bearColor: e.target.value}))} className="w-full h-6 rounded bg-black border border-white/10 cursor-pointer" />
+                <input 
+                  type="color" 
+                  value={settings.bearColor} 
+                  onChange={(e) => setSettings(s => ({...s, bearColor: e.target.value}))} 
+                  className="w-full h-8 rounded bg-black border border-white/10 cursor-pointer p-0 opacity-100 block" 
+                />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <div className="flex justify-between items-center px-0.5">
-                <Label className="text-[9px] text-muted-foreground">Body Radius (Sudut)</Label>
+                <Label className="text-[9px] text-muted-foreground">Body Radius</Label>
                 <span className="text-[9px] font-mono text-primary">{settings.bodyRadius}px</span>
               </div>
               <Slider value={[settings.bodyRadius]} min={0} max={12} step={1} onValueChange={([v]) => setSettings(s => ({...s, bodyRadius: v}))} />
@@ -242,7 +254,6 @@ export default function PricePatternStudio() {
         </div>
       </ScrollArea>
 
-      {/* Export Actions */}
       <div className="p-3 bg-[#161616] border-t border-white/5 space-y-2">
         <Button className="w-full h-8 font-bold text-[10px] gap-2 bg-slate-800 hover:bg-slate-700 border border-white/5" onClick={handleReplay} disabled={candles.length === 0 || isAnimating}>
           <RefreshCw className={`w-3 h-3 ${isAnimating ? 'animate-spin' : ''}`} /> Preview Animation
@@ -259,7 +270,7 @@ export default function PricePatternStudio() {
     <div className="flex flex-col h-full bg-[#121212] border-l border-white/5 text-white overflow-hidden w-[260px]">
       <div className="p-3 border-b border-white/5 flex items-center gap-2">
         <Layers className="w-3.5 h-3.5 text-emerald-500" />
-        <span className="text-[10px] font-bold uppercase tracking-wider">Layers</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider">Layers Panel</span>
       </div>
       
       <div className="p-3 bg-black/40 space-y-2">
@@ -275,7 +286,7 @@ export default function PricePatternStudio() {
           <ManualEditor 
             candles={candles} 
             onChange={handleUpdateCandle} 
-            onRemove={(idx) => setCandles(candles.filter((_, i) => i !== idx))} 
+            onRemove={(idx) => setCandles(prev => prev.filter((_, i) => i !== idx))} 
           />
         </div>
       </ScrollArea>
@@ -284,14 +295,11 @@ export default function PricePatternStudio() {
 
   return (
     <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none">
-      {/* Sidebar Kiri (Properties) */}
       <aside className="hidden lg:flex flex-col flex-shrink-0">
         <LeftSidebar />
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 flex flex-col relative overflow-hidden bg-black">
-        {/* Mobile Header */}
         <header className="lg:hidden h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#121212] z-30">
           <Sheet>
             <SheetTrigger asChild>
@@ -315,17 +323,15 @@ export default function PricePatternStudio() {
           </Sheet>
         </header>
 
-        {/* Rendering Overlay */}
         {isRecording && (
           <div className="absolute top-6 left-6 z-20 pointer-events-none">
             <div className="bg-red-500/20 backdrop-blur-md border border-red-500/30 px-4 py-1.5 rounded-full flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-red-500 recording-pulse" />
-              <span className="text-[9px] font-bold text-red-400 uppercase tracking-wider">Rendering 4K Lossless...</span>
+              <span className="text-[9px] font-bold text-red-400 uppercase tracking-wider">Rendering 4K...</span>
             </div>
           </div>
         )}
 
-        {/* Chart Viewport */}
         <div className="flex-1 flex items-center justify-center p-4 lg:p-8 overflow-hidden">
           <div className="w-full max-w-[1600px] h-full flex items-center justify-center">
             <ChartRenderer 
@@ -338,21 +344,18 @@ export default function PricePatternStudio() {
           </div>
         </div>
 
-        {/* Global Footer */}
         <footer className="h-8 bg-[#121212] border-t border-white/5 px-4 flex items-center justify-between text-[8px] font-bold text-muted-foreground uppercase tracking-[1px]">
           <div className="flex gap-6">
             <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-primary" /> Active Candles: {candles.length}</span>
             <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-primary" /> Zoom: {settings.zoom.toFixed(2)}x</span>
-            <span className="hidden sm:flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-primary" /> Quality: 4K 2160p</span>
           </div>
           <div className="flex items-center gap-3">
             <Monitor className="w-3 h-3" />
-            <span className="hidden sm:inline">Professional Rendering Engine</span>
+            <span className="hidden sm:inline">Engine Active</span>
           </div>
         </footer>
       </main>
 
-      {/* Sidebar Kanan (Layers) */}
       <aside className="hidden lg:flex flex-col flex-shrink-0">
         <RightSidebar />
       </aside>

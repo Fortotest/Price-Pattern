@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -21,7 +22,7 @@ interface ManualEditorProps {
 }
 
 const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove }) => {
-  // Menampilkan bar terbaru di paling atas (seperti layer Photoshop)
+  // Menampilkan bar terbaru di paling atas (reversed visual only)
   const reversedIndices = Array.from({ length: candles.length }, (_, i) => candles.length - 1 - i);
 
   return (
@@ -76,7 +77,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                     type="number" 
                     value={c.offsetY || 0} 
                     onChange={(e) => onChange(idx, { ...c, offsetY: Number(e.target.value) })}
-                    className="h-8 text-[10px] bg-black border-white/5 font-mono text-center"
+                    className="h-8 text-[10px] bg-black border-white/5 font-mono text-center px-6"
                   />
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[8px] font-bold text-primary">Y</span>
                 </div>
@@ -85,7 +86,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
 
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-black/60 rounded-md p-2 text-center border border-white/5">
-                <span className="text-[7px] text-muted-foreground uppercase font-bold block mb-1">Body</span>
+                <Label className="text-[7px] text-muted-foreground uppercase font-bold block mb-1">Body</Label>
                 <Input 
                   type="number" 
                   value={Math.abs(c.close - c.open)} 
@@ -97,7 +98,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                 />
               </div>
               <div className="bg-black/60 rounded-md p-2 text-center border border-primary/10">
-                <span className="text-[7px] text-primary uppercase font-bold block mb-1">Top Wick</span>
+                <Label className="text-[7px] text-primary uppercase font-bold block mb-1">Top Wick</Label>
                 <Input 
                   type="number" 
                   value={Math.max(0, Math.round(c.high - Math.max(c.open, c.close)))} 
@@ -109,7 +110,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                 />
               </div>
               <div className="bg-black/60 rounded-md p-2 text-center border border-destructive/10">
-                <span className="text-[7px] text-destructive uppercase font-bold block mb-1">Bot Wick</span>
+                <Label className="text-[7px] text-destructive uppercase font-bold block mb-1">Bot Wick</Label>
                 <Input 
                   type="number" 
                   value={Math.round(Math.min(c.open, c.close) - c.low)} 
