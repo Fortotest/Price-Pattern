@@ -27,6 +27,8 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
+const NOTIF_SOUND_URL = "https://raw.githubusercontent.com/Fortotest/Market.ai/87fd35bb95da94bd9a80e34a80b08498639b5eb7/Notif%20iphone%20ting%20whatsapp.mp3?raw=true";
+
 // --- Sub-Components ---
 
 interface PanelProps {
@@ -257,8 +259,8 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
           </optgroup>
           <optgroup label="Advanced Price Action">
             <option value="trend_reversal_v_shape">🔄 V-Shape Reversal</option>
-            <option value="bullish_fakeout_trap">🪤 Fakeout / Bull Trap</option>
-            <option value="valid_breakout_retest">🚀 Breakout & Retest</option>
+            <option value="bullish_fakeout_trap">🤡 Fakeout / Bull Trap</option>
+            <option value="valid_breakout_retest">🧐 Breakout & Retest</option>
             <option value="strong_momentum_run">🥵 Strong Momentum</option>
           </optgroup>
         </select>
@@ -304,10 +306,19 @@ export default function PricePattern() {
   
   const chartRef = useRef<ChartRendererHandle>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playNotifSound = useCallback(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio(NOTIF_SOUND_URL);
+    }
+    audioRef.current.currentTime = 0;
+    audioRef.current.play().catch(e => console.warn("Audio play failed:", e));
+  }, []);
 
   const showNotification = (title: string, emoji: string) => {
     setNotification({ title, emoji });
-    // Menghilangkan notifikasi otomatis setelah 5 detik
+    playNotifSound();
     setTimeout(() => setNotification(null), 5000);
   };
 
@@ -445,10 +456,13 @@ export default function PricePattern() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `price-pattern-vector.svg`;
+    a.download = `PricePattern_Vector_${Date.now()}.svg`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
     showNotification("Berhasil di unduh", "✅");
-  }, [candles, settings]);
+  }, [candles, settings, showNotification]);
 
   const handleReplay = useCallback(() => {
     if (candles.length === 0) return;
@@ -584,9 +598,9 @@ export default function PricePattern() {
           <div className="w-full h-full flex items-center justify-center relative">
             {notification && (
               <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in slide-in-from-top-4 duration-500">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl">
-                  <span className="text-sm">{notification.emoji}</span>
-                  <span className="text-[10px] font-bold tracking-wider text-white/80 uppercase">{notification.title}</span>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl">
+                  <span className="text-lg">{notification.emoji}</span>
+                  <span className="text-xs font-bold tracking-wider text-white uppercase">{notification.title}</span>
                 </div>
               </div>
             )}
