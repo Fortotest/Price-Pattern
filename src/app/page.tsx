@@ -236,9 +236,9 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
       </div>
 
       <div className="grid grid-cols-3 gap-1.5">
-        <Button onClick={() => onAddCandle('Bullish')} className="bg-[#00b386] hover:bg-[#00b386]/90 h-7 text-[8px] font-bold border-none">BULL</Button>
-        <Button onClick={() => onAddCandle('Bearish')} variant="destructive" className="bg-[#f23645] hover:bg-[#f23645]/90 h-7 text-[8px] font-bold border-none">BEAR</Button>
-        <Button onClick={() => onAddCandle('Doji')} variant="outline" className="bg-[#333] hover:bg-[#444] h-7 text-[8px] font-bold border-none">DOJI</Button>
+        <Button onClick={() => onAddCandle('Bullish')} className="bg-[#00b386] hover:bg-[#00b386]/90 h-7 text-[8px] font-bold border-none uppercase">Bull</Button>
+        <Button onClick={() => onAddCandle('Bearish')} variant="destructive" className="bg-[#f23645] hover:bg-[#f23645]/90 h-7 text-[8px] font-bold border-none uppercase">Bear</Button>
+        <Button onClick={() => onAddCandle('Doji')} variant="outline" className="bg-[#333] hover:bg-[#444] h-7 text-[8px] font-bold border-none uppercase">Doji</Button>
       </div>
     </div>
 
@@ -290,29 +290,43 @@ export default function PricePatternStudio() {
   const handleAddCandle = useCallback((type: 'Bullish' | 'Bearish' | 'Doji') => {
     setCandles(prev => {
       const lastClose = prev.length > 0 ? prev[prev.length - 1].close : 300;
-      const isDoji = type === 'Doji';
-      const bodySize = isDoji ? 10 : 50; 
-      const wickSize = 25;
+      const randomRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
       
+      let open = lastClose;
+      let close, high, low;
+
+      if (type === 'Bullish') {
+        const bodySize = randomRange(25, 65);
+        const topWick = randomRange(5, 25);
+        const botWick = randomRange(5, 25);
+        close = open + bodySize;
+        high = close + topWick;
+        low = open - botWick;
+      } else if (type === 'Bearish') {
+        const bodySize = randomRange(25, 65);
+        const topWick = randomRange(5, 25);
+        const botWick = randomRange(5, 25);
+        close = open - bodySize;
+        high = open + topWick;
+        low = close - botWick;
+      } else { // Doji
+        const bodySize = randomRange(4, 12); // Reference image shows slight bodies even in dojis
+        const topWick = randomRange(30, 60);
+        const botWick = randomRange(30, 60);
+        const isBullishDoji = Math.random() > 0.5;
+        close = isBullishDoji ? open + bodySize : open - bodySize;
+        high = Math.max(open, close) + topWick;
+        low = Math.min(open, close) - botWick;
+      }
+
       const newCandle: Candlestick = { 
         id: createId(),
-        open: lastClose, 
-        close: isDoji ? lastClose + 10 : (type === 'Bullish' ? lastClose + bodySize : lastClose - bodySize), 
-        high: lastClose + bodySize + wickSize, 
-        low: lastClose - bodySize - wickSize, 
+        open, 
+        close, 
+        high, 
+        low, 
         offsetY: 0 
       };
-
-      if (isDoji) {
-        newCandle.high = lastClose + 40;
-        newCandle.low = lastClose - 40;
-      } else if (type === 'Bearish') {
-        newCandle.high = lastClose + wickSize;
-        newCandle.low = lastClose - bodySize - wickSize;
-      } else {
-        newCandle.high = lastClose + bodySize + wickSize;
-        newCandle.low = lastClose - wickSize;
-      }
 
       return [...prev, newCandle];
     });
