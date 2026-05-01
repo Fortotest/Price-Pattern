@@ -57,17 +57,21 @@ const PropertiesPanel = ({
   candles, 
   isAnimating 
 }: PanelProps) => {
-  // Local state for smooth slider dragging
+  // Local states for 60fps interaction
   const [localZoom, setLocalZoom] = useState(settings.zoom);
   const [localSpacing, setLocalSpacing] = useState(settings.spacing);
   const [localSpeed, setLocalSpeed] = useState(settings.speed);
+  const [localBodyRadius, setLocalBodyRadius] = useState(settings.bodyRadius);
+  const [localWickRadius, setLocalWickRadius] = useState(settings.wickRadius);
 
-  // Sync local state when external settings change (e.g. on mount)
+  // Sync local states when external settings change (e.g. template load)
   useEffect(() => {
     setLocalZoom(settings.zoom);
     setLocalSpacing(settings.spacing);
     setLocalSpeed(settings.speed);
-  }, [settings.zoom, settings.spacing, settings.speed]);
+    setLocalBodyRadius(settings.bodyRadius);
+    setLocalWickRadius(settings.wickRadius);
+  }, [settings.zoom, settings.spacing, settings.speed, settings.bodyRadius, settings.wickRadius]);
 
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] border-r border-[#1a1a1a] text-white overflow-hidden w-[280px]">
@@ -223,28 +227,34 @@ const PropertiesPanel = ({
             <div className="space-y-1.5">
               <div className="flex justify-between items-center px-0.5">
                 <Label className="text-[9px] text-muted-foreground">Body Radius</Label>
-                <span className="text-[9px] font-mono text-primary">{settings.bodyRadius}px</span>
+                <span className="text-[9px] font-mono text-primary">{localBodyRadius}px</span>
               </div>
               <Slider 
-                value={[settings.bodyRadius]} 
+                value={[localBodyRadius]} 
                 min={0} 
                 max={20} 
                 step={1} 
-                onValueChange={(val) => updateSettings({ bodyRadius: val[0] })}
+                onValueChange={(val) => {
+                  setLocalBodyRadius(val[0]);
+                  updateSettings({ bodyRadius: val[0] });
+                }}
               />
             </div>
 
             <div className="space-y-1.5">
               <div className="flex justify-between items-center px-0.5">
                 <Label className="text-[9px] text-muted-foreground">Wick Rounding</Label>
-                <span className="text-[9px] font-mono text-primary">{settings.wickRadius}px</span>
+                <span className="text-[9px] font-mono text-primary">{localWickRadius}px</span>
               </div>
               <Slider 
-                value={[settings.wickRadius]} 
+                value={[localWickRadius]} 
                 min={0} 
                 max={10} 
                 step={1} 
-                onValueChange={(val) => updateSettings({ wickRadius: val[0] })}
+                onValueChange={(val) => {
+                  setLocalWickRadius(val[0]);
+                  updateSettings({ wickRadius: val[0] });
+                }}
               />
             </div>
           </div>
@@ -318,7 +328,7 @@ export default function PricePatternStudio() {
   const chartRef = useRef<ChartRendererHandle>(null);
   const { toast } = useToast();
 
-  // Debounced settings update to prevent main thread blocking
+  // Debounced settings update to prevent main thread blocking during 4K render
   const debouncedUpdateTimer = useRef<NodeJS.Timeout | null>(null);
   const updateSettings = useCallback((newSettings: Partial<ChartSettings>) => {
     // If it's a color change, update immediately for responsive picker
@@ -327,11 +337,11 @@ export default function PricePatternStudio() {
       return;
     }
 
-    // Otherwise debounce (for Zoom, Spacing, Speed)
+    // Otherwise debounce (for Slider-based interactions)
     if (debouncedUpdateTimer.current) clearTimeout(debouncedUpdateTimer.current);
     debouncedUpdateTimer.current = setTimeout(() => {
       setSettings(prev => ({ ...prev, ...newSettings }));
-    }, 40); // 40ms debounce to balance responsiveness and performance
+    }, 40); 
   }, []);
 
   const handleTemplateLoad = useCallback((val: string) => {
