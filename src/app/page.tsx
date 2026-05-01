@@ -307,7 +307,7 @@ export default function PricePattern() {
 
   const showNotification = (title: string, icon: any) => {
     setNotification({ title, icon });
-    setTimeout(() => setNotification(null), 3000);
+    setTimeout(() => setNotification(null), 2500);
   };
 
   const updateSettings = useCallback((newSettings: Partial<ChartSettings>) => {
@@ -446,7 +446,7 @@ export default function PricePattern() {
     a.href = url;
     a.download = `price-pattern-vector.svg`;
     a.click();
-    showNotification("Vector Export Saved", FileCode);
+    showNotification("Vektor HD Berhasil Diciduk! ⚡", FileCode);
   }, [candles, settings]);
 
   const handleReplay = useCallback(() => {
@@ -485,7 +485,7 @@ export default function PricePattern() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         setIsAnimating(false);
-        showNotification("Alpha Video Saved", Video);
+        showNotification("Video Estetik Udah Ready Nih! 🔥", Video);
       };
       
       recorderRef.current = recorder;
