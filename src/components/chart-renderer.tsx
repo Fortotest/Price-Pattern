@@ -50,15 +50,12 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     // Aesthetic Vertical/Horizontal Grids
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
     ctx.lineWidth = 3;
-    
-    // Horizontal Grids
     for(let i=1; i<10; i++) {
         ctx.beginPath();
         ctx.moveTo(0, (CANVAS_HEIGHT/10)*i);
         ctx.lineTo(CANVAS_WIDTH, (CANVAS_HEIGHT/10)*i);
         ctx.stroke();
     }
-    // Vertical Grids
     for(let i=1; i<12; i++) {
         ctx.beginPath();
         ctx.moveTo((CANVAS_WIDTH/12)*i, 0);
@@ -76,8 +73,8 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const spacing = baseWidth * 0.25;
     const bodyWidth = baseWidth - spacing;
     
-    // Pro Wick Sharpness
-    const wickWidth = Math.max(5, 4 * zoom * (CANVAS_WIDTH / 3840)); 
+    // Balanced Wick Width for 4K
+    const wickWidth = Math.max(8, bodyWidth * 0.15); 
 
     const startX = (CANVAS_WIDTH / 2) - ((currentCandles.length * baseWidth) / 2) + (baseWidth / 2);
     const centerY = CANVAS_HEIGHT / 2;
@@ -88,7 +85,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
     const getY = (price: number) => {
       const midPrice = (bounds.max + bounds.min) / 2;
-      const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.7);
+      const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.75);
       return centerY - scaledY;
     };
 
@@ -97,7 +94,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       const c = currentCandles[i];
       const x = startX + (i * baseWidth);
-      const shift = (c.offsetY || 0) * zoom;
+      const shift = (c.offsetY || 0);
       
       const yOpen = getY(c.open) + shift;
       const yClose = getY(c.close) + shift;
@@ -109,7 +106,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       let curHighY = yHigh;
       let curLowY = yLow;
 
-      // Price Action Animation
+      // Price Action Animation Logic
       if (i === currentIndex && isAnimating) {
         if (c.close >= c.open) { // Bullish
           if (p < 0.25) {
@@ -172,9 +169,9 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       
       ctx.fillStyle = color;
       if (!isDoji) {
-        const radius = Math.min(wickWidth, bodyWidth / 4);
         ctx.beginPath();
-        ctx.roundRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight, radius);
+        // Use half of wickWidth as radius for subtle rounded corners
+        ctx.roundRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight, wickWidth / 2);
         ctx.fill();
       } else {
         ctx.beginPath();
