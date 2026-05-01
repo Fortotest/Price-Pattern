@@ -50,7 +50,7 @@ const PropertiesPanel = ({
       <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-primary" />
-          <span className="text-[10px] font-bold uppercase tracking-wider">Properties</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider">Chart Configuration</span>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5">
           <X className="w-3 h-3" />
@@ -62,12 +62,12 @@ const PropertiesPanel = ({
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Monitor className="w-3 h-3 text-primary" />
-              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Viewport & Scale</Label>
+              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Viewport & Layout</Label>
             </div>
             
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] text-white/70 font-medium">Zoom Level</span>
+                <span className="text-[10px] text-white/70 font-medium">Viewport Scale</span>
                 <span className="text-[10px] font-mono text-primary">{(settings.zoom || 0.8).toFixed(2)}x</span>
               </div>
               <Slider 
@@ -82,7 +82,7 @@ const PropertiesPanel = ({
 
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] text-white/70 font-medium">Candle Spacing</span>
+                <span className="text-[10px] text-white/70 font-medium">Horizontal Density</span>
                 <span className="text-[10px] font-mono text-primary">{(settings.spacing || 1.2).toFixed(2)}x</span>
               </div>
               <Slider 
@@ -101,11 +101,11 @@ const PropertiesPanel = ({
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Zap className="w-3 h-3 text-primary" />
-              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Animation</Label>
+              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Motion Sequence</Label>
             </div>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] text-white/70 font-medium">Speed (sec/candle)</span>
+                <span className="text-[10px] text-white/70 font-medium">Sequence Duration</span>
                 <span className="text-[10px] font-mono text-primary">{(settings.speed || 0.8).toFixed(1)}s</span>
               </div>
               <Slider 
@@ -124,37 +124,46 @@ const PropertiesPanel = ({
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Palette className="w-3 h-3 text-primary" />
-              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Visual Styles</Label>
+              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Aesthetic Presets</Label>
             </div>
             
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label className="text-[8px] text-muted-foreground font-bold">BULLISH</Label>
-                <div className="flex items-center justify-center h-10 rounded bg-black border border-white/5 relative overflow-hidden transition-all hover:border-white/10">
-                  <input 
-                    type="color" 
-                    value={settings.bullColor} 
-                    onChange={(e) => updateSettings({ bullColor: e.target.value })}
-                    className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-110" 
-                  />
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 gap-2">
+                <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded border border-white/10 relative overflow-hidden">
+                      <input 
+                        type="color" 
+                        value={settings.bullColor} 
+                        onChange={(e) => updateSettings({ bullColor: e.target.value })}
+                        className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-150" 
+                      />
+                    </div>
+                    <span className="text-[9px] font-bold text-emerald-500">BULLISH</span>
+                  </div>
+                  <span className="text-[9px] font-mono text-white/40 uppercase">{settings.bullColor}</span>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[8px] text-muted-foreground font-bold">BEARISH</Label>
-                <div className="flex items-center justify-center h-10 rounded bg-black border border-white/5 relative overflow-hidden transition-all hover:border-white/10">
-                  <input 
-                    type="color" 
-                    value={settings.bearColor} 
-                    onChange={(e) => updateSettings({ bearColor: e.target.value })}
-                    className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-110" 
-                  />
+
+                <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded border border-white/10 relative overflow-hidden">
+                      <input 
+                        type="color" 
+                        value={settings.bearColor} 
+                        onChange={(e) => updateSettings({ bearColor: e.target.value })}
+                        className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-150" 
+                      />
+                    </div>
+                    <span className="text-[9px] font-bold text-red-500">BEARISH</span>
+                  </div>
+                  <span className="text-[9px] font-mono text-white/40 uppercase">{settings.bearColor}</span>
                 </div>
               </div>
             </div>
 
             <div className="space-y-3 pt-2">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] text-white/70 font-medium">Body Radius</span>
+                <span className="text-[10px] text-white/70 font-medium">Body Corner Radius</span>
                 <span className="text-[10px] font-mono text-primary">{settings.bodyRadius}px</span>
               </div>
               <Slider 
@@ -169,13 +178,13 @@ const PropertiesPanel = ({
 
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] text-white/70 font-medium">Wick Rounding</span>
-                <span className="text-[10px] font-mono text-primary">{settings.wickRadius > 0 ? 'Rounded' : 'Sharp'}</span>
+                <span className="text-[10px] text-white/70 font-medium">Wick Corner Radius</span>
+                <span className="text-[10px] font-mono text-primary">{settings.wickRadius}px</span>
               </div>
               <Slider 
                 value={[settings.wickRadius || 0]} 
                 min={0} 
-                max={1} 
+                max={10} 
                 step={1} 
                 onValueChange={([v]) => updateSettings({ wickRadius: v })}
                 className="py-2"
@@ -202,7 +211,7 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
     <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
       <div className="flex items-center gap-2">
         <Layers className="w-3.5 h-3.5 text-emerald-500" />
-        <span className="text-[10px] font-bold uppercase tracking-wider">Layers</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider">Layer Stack</span>
       </div>
       <Button 
         variant="ghost" 
@@ -211,13 +220,13 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
         disabled={candles.length === 0}
         className="h-6 px-2 text-[8px] font-bold hover:bg-red-500/10 hover:text-red-400 text-muted-foreground gap-1.5"
       >
-        <Trash2 className="w-2.5 h-2.5" /> CLEAR
+        <Trash2 className="w-2.5 h-2.5" /> PURGE
       </Button>
     </div>
     
     <div className="p-3 bg-black/40 space-y-3">
       <div className="space-y-2">
-        <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Templates Library</Label>
+        <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Logic Presets</Label>
         <select 
           onChange={(e) => onTemplateLoad(e.target.value)} 
           className="flex w-full items-center justify-between rounded-md border ring-offset-background h-10 text-[10px] bg-black border-white/5 font-bold p-1 px-2 focus:ring-0 text-white outline-none"
@@ -283,7 +292,7 @@ export default function PricePatternStudio() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [showProperties, setShowProperties] = useState(true);
-  const [layersPanelWidth, setLayersPanelWidth] = useState(260);
+  const [layersPanelWidth, setLayersPanelWidth] = useState(280);
   const [isResizing, setIsResizing] = useState(false);
   
   const chartRef = useRef<ChartRendererHandle>(null);
@@ -326,7 +335,7 @@ export default function PricePatternStudio() {
         close = open - bodySize;
         high = open + topWick;
         low = close - botWick;
-      } else { // Doji: Super-Random Body 10-25, Wick 25-50
+      } else { // Super-Random Doji: Bodi (10-25), Wick (25-50)
         const bodySize = randomRange(10, 25); 
         const isBullish = Math.random() > 0.5;
         const topWick = randomRange(25, 50);
@@ -394,7 +403,7 @@ export default function PricePatternStudio() {
 
     let svgContent = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" viewBox="0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}" fill="none" xmlns="http://www.w3.org/2000/svg">`;
     
-    // Background is transparent by default
+    // Background transparent
     
     candles.forEach((c, i) => {
       const x = startX + (i * baseWidth);
@@ -406,23 +415,21 @@ export default function PricePatternStudio() {
       
       const isBullish = c.close >= c.open;
       const color = isBullish ? settings.bullColor : settings.bearColor;
-      const wickStrokeWidth = Math.max(10, bodyWidth * 0.15);
+      const wickWidth = Math.max(10, bodyWidth * 0.15);
       const rectY = Math.min(yOpen, yClose);
       const rectHeight = Math.max(2, Math.abs(yOpen - yClose));
+      const wickRectY = Math.min(yHigh, yLow);
+      const wickRectHeight = Math.abs(yHigh - yLow);
       
-      // Draw Wick
-      svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickStrokeWidth}" stroke-linecap="${settings.wickRadius > 0 ? 'round' : 'butt'}" />`;
+      // Draw Wick as Rect for Radius support
+      svgContent += `<rect x="${x - wickWidth / 2}" y="${wickRectY}" width="${wickWidth}" height="${wickRectHeight}" rx="${settings.wickRadius}" fill="${color}" />`;
       
       // Draw Body
-      if (settings.bodyRadius > 0) {
-        svgContent += `<rect x="${x - bodyWidth / 2}" y="${rectY}" width="${bodyWidth}" height="${rectHeight}" rx="${settings.bodyRadius}" fill="${color}" />`;
-      } else {
-        svgContent += `<rect x="${x - bodyWidth / 2}" y="${rectY}" width="${bodyWidth}" height="${rectHeight}" fill="${color}" />`;
-      }
+      svgContent += `<rect x="${x - bodyWidth / 2}" y="${rectY}" width="${bodyWidth}" height="${rectHeight}" rx="${settings.bodyRadius}" fill="${color}" />`;
     });
 
-    // Add Axes Labels (Simple implementation for SVG)
-    svgContent += `<text x="${chartAreaWidth + 40}" y="${chartAreaHeight / 2}" fill="#aaaaaa" font-family="monospace" font-size="42" font-weight="bold">PRICE AXIS</text>`;
+    // Add Axes Labels
+    svgContent += `<text x="${chartAreaWidth + 40}" y="${chartAreaHeight / 2}" fill="#888888" font-family="monospace" font-size="42" font-weight="bold">PRICE TICKER</text>`;
     
     svgContent += `</svg>`;
 
@@ -430,9 +437,9 @@ export default function PricePatternStudio() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `price-chart-vector.svg`;
+    a.download = `price-pattern-vector.svg`;
     a.click();
-    toast({ title: "Export Success", description: "SVG Vector saved." });
+    toast({ title: "Vector Export", description: "Professional SVG saved successfully." });
   }, [candles, settings, toast]);
 
   const handleReplay = useCallback(() => {
@@ -454,11 +461,11 @@ export default function PricePatternStudio() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `chart-render-4k.webm`;
+      a.download = `sequence-render.webm`;
       a.click();
       setIsRecording(false);
       setIsAnimating(false);
-      toast({ title: "Render Success", description: "Transparent 4K Video saved." });
+      toast({ title: "Video Export", description: "Alpha channel video saved." });
     };
     recorder.start();
     setIsAnimating(true);
@@ -527,7 +534,7 @@ export default function PricePatternStudio() {
           <div className="absolute top-16 left-6 z-20 pointer-events-none">
             <div className="bg-red-500/20 backdrop-blur-md border border-red-500/30 px-4 py-1.5 rounded-full flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-red-500 recording-pulse" />
-              <span className="text-[9px] font-bold text-red-400 uppercase tracking-wider">Rendering 4K...</span>
+              <span className="text-[9px] font-bold text-red-400 uppercase tracking-wider">Rendering Motion...</span>
             </div>
           </div>
         )}
@@ -570,11 +577,11 @@ export default function PricePatternStudio() {
         <footer className="h-8 bg-[#0a0a0a] border-t border-white/5 px-4 flex items-center justify-between text-[8px] font-bold text-muted-foreground uppercase tracking-[1px]">
           <div className="flex gap-6">
             <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Bars: {candles.length}</span>
-            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Vector Active</span>
+            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Vector Protocol Active</span>
           </div>
           <div className="flex items-center gap-3">
             <Monitor className="w-3 h-3" />
-            <span className="hidden sm:inline text-emerald-500/50">Core 4K Active</span>
+            <span className="hidden sm:inline text-emerald-500/50">Core 4K Precision Active</span>
           </div>
         </footer>
       </main>

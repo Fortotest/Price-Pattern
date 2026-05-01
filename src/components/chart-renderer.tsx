@@ -77,7 +77,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       return centerY - scaledY;
     };
 
-    // --- RENDER AREA CLIP (Prevent Bleeding) ---
+    // --- PROTECTIVE VIEWPORT CLIPPING ---
     ctx.save();
     ctx.beginPath();
     ctx.rect(0, 0, chartAreaWidth, chartAreaHeight);
@@ -98,18 +98,18 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       let curOpenY = yOpen, curCloseY = yClose, curHighY = yHigh, curLowY = yLow;
 
-      // --- DUAL PHASE ANIMATION LOGIC (Wick then Body) ---
+      // --- DUAL-PHASE KINETIC ANIMATION ---
       if (i === Math.floor(progressValue) && isAnimating) {
         const p = progressValue - i; // 0 to 1
         
         if (p < 0.5) {
-          // Fase 1: Sumbu Tumbuh (Wick Growth)
+          // Fase 1: Wick (Sumbu) Development
           const t = easeOut(p / 0.5);
           curHighY = lerp(yOpen, yHigh, t);
           curLowY = lerp(yOpen, yLow, t);
           curCloseY = yOpen;
         } else {
-          // Fase 2: Bodi Tumbuh (Body Growth)
+          // Fase 2: Body (Bodi) Expansion
           const t = easeOut((p - 0.5) / 0.5);
           curHighY = yHigh;
           curLowY = yLow;
@@ -120,37 +120,31 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const isBullish = c.close >= c.open;
       const color = isBullish ? settings.bullColor : settings.bearColor;
 
-      // Draw Wick FIRST (BACK)
+      // Draw Wick as Solid Rounded Rect (REAR)
+      const wickRectY = Math.min(curHighY, curLowY);
+      const wickRectHeight = Math.abs(curHighY - curLowY);
+      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.moveTo(x, curHighY);
-      ctx.lineTo(x, curLowY);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = wickWidth;
-      ctx.lineCap = settings.wickRadius > 0 ? 'round' : 'butt';
-      ctx.stroke();
+      ctx.roundRect(x - wickWidth / 2, wickRectY, wickWidth, wickRectHeight, settings.wickRadius);
+      ctx.fill();
 
-      // Draw Body SECOND (FRONT)
+      // Draw Body as Solid Rounded Rect (FRONT)
       const bodyDiff = Math.abs(curOpenY - curCloseY);
       const isVisible = i < Math.floor(progressValue) || (i === Math.floor(progressValue) && progressValue - i >= 0.5);
       
       if (isVisible) {
         const rectY = Math.min(curOpenY, curCloseY);
         const rectHeight = Math.max(2, bodyDiff);
-        ctx.fillStyle = color;
         
-        if (settings.bodyRadius > 0) {
-          ctx.beginPath();
-          ctx.roundRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight, settings.bodyRadius);
-          ctx.fill();
-        } else {
-          ctx.fillRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight);
-        }
+        ctx.beginPath();
+        ctx.roundRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight, settings.bodyRadius);
+        ctx.fill();
       }
     }
     ctx.restore();
 
     // --- DRAW AXES (Y-Axis) ---
-    ctx.fillStyle = '#aaaaaa';
+    ctx.fillStyle = '#888888';
     ctx.font = 'bold 42px monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
@@ -168,7 +162,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     for (let i = 0; i < limit; i++) {
       const x = startX + (i * baseWidth);
       if(x >= 0 && x <= chartAreaWidth) {
-        ctx.fillStyle = '#aaaaaa';
+        ctx.fillStyle = '#888888';
         ctx.font = 'bold 36px monospace';
         ctx.textAlign = 'center';
         ctx.fillText(`BAR ${i+1}`, x, chartAreaHeight + 80);
