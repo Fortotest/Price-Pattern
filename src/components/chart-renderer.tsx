@@ -62,10 +62,17 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const bounds = getChartBounds(currentCandles);
     const range = bounds.max - bounds.min;
     
-    const candleWidth = (CANVAS_WIDTH / Math.max(10, currentCandles.length)) * settings.zoom;
+    // Zoom affecting scale
+    const zoom = settings.zoom || 1.0;
+    const scaleMultiplier = CANVAS_WIDTH / 900; // Scaling logic to maintain 4K sharpness
+    
+    const baseCandleWidth = (CANVAS_WIDTH / Math.max(10, currentCandles.length)) * zoom;
+    const candleWidth = baseCandleWidth;
     const spacing = candleWidth * 0.25;
     const bodyWidth = candleWidth - spacing;
-    const wickWidth = Math.max(4, 5 * settings.zoom);
+    
+    // Pro Wick Thickness (TradingView standard)
+    const wickWidth = Math.max(4, 3 * zoom * (CANVAS_WIDTH / 3840)); 
 
     const startX = (CANVAS_WIDTH / 2) - ((currentCandles.length * candleWidth) / 2) + (candleWidth / 2);
     const centerY = CANVAS_HEIGHT / 2;
@@ -85,7 +92,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       const c = currentCandles[i];
       const x = startX + (i * candleWidth);
-      const shift = (c.offsetY || 0);
+      const shift = (c.offsetY || 0) * zoom * scaleMultiplier;
       
       const yOpen = getY(c.open) + shift;
       const yClose = getY(c.close) + shift;
@@ -104,10 +111,12 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
             const t = p / 0.25;
             curCloseY = lerp(yOpen, yLow, t);
             curHighY = yOpen;
+            curLowY = curCloseY;
           } else if (p < 0.7) {
             const t = (p - 0.25) / 0.45;
             curCloseY = lerp(yLow, yHigh, t);
             curLowY = yLow;
+            curHighY = Math.min(yOpen, curCloseY);
           } else {
             const t = (p - 0.7) / 0.3;
             curCloseY = lerp(yHigh, yClose, t);
@@ -118,11 +127,13 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
           if (p < 0.25) {
             const t = p / 0.25;
             curCloseY = lerp(yOpen, yHigh, t);
+            curHighY = curCloseY;
             curLowY = yOpen;
           } else if (p < 0.7) {
             const t = (p - 0.25) / 0.45;
             curCloseY = lerp(yHigh, yLow, t);
             curHighY = yHigh;
+            curLowY = Math.max(yOpen, curCloseY);
           } else {
             const t = (p - 0.7) / 0.3;
             curCloseY = lerp(yLow, yClose, t);
@@ -141,7 +152,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const isDoji = Math.abs(c.close - c.open) < 0.1;
       const color = isDoji ? "#787b86" : isBullish ? "#089981" : "#f23645";
 
-      // Draw Wick
+      // Draw Wick (Garis Ekor) - High Sharpness
       ctx.beginPath();
       ctx.moveTo(x, curHighY);
       ctx.lineTo(x, curLowY);
@@ -156,11 +167,13 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       
       ctx.fillStyle = color;
       if (!isDoji) {
-        const radius = wickWidth / 2;
+        // Border-radius for pro look
+        const radius = Math.min(wickWidth / 2, bodyWidth / 4);
         ctx.beginPath();
         ctx.roundRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight, radius);
         ctx.fill();
       } else {
+        // Doji Body Line
         ctx.beginPath();
         ctx.moveTo(x - bodyWidth / 2, yOpen);
         ctx.lineTo(x + bodyWidth / 2, yOpen);
@@ -185,7 +198,10 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
         if (progress < 1) {
           animationRef.current = requestAnimationFrame(animate);
         } else {
-          onAnimationComplete?.();
+          // Animation complete
+          setTimeout(() => {
+            onAnimationComplete?.();
+          }, 500);
         }
       };
       animationRef.current = requestAnimationFrame(animate);
@@ -199,7 +215,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   }, [candles, isAnimating, settings]);
 
   return (
-    <div className="canvas-container">
+    <div className="canvas-container shadow-2xl">
       <canvas 
         ref={canvasRef} 
         width={CANVAS_WIDTH} 

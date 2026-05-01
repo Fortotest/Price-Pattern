@@ -59,6 +59,7 @@ export default function PricePatternStudio() {
     const template = TEMPLATES[val as keyof typeof TEMPLATES];
     if (template) {
       setCandles(template);
+      // Auto adjust zoom for clarity
       setSettings(prev => ({ ...prev, zoom: template.length > 10 ? 0.7 : 1.2 }));
       toast({ title: "Template Loaded", description: `Applied ${val} structure.` });
     }
@@ -79,11 +80,17 @@ export default function PricePatternStudio() {
   const handleUpdateCandle = (index: number, updated: Candlestick) => {
     const newCandles = [...candles];
     newCandles[index] = updated;
-    // Continuity logic
+    // Continuity logic: Next candle's open must match previous' close
     for (let i = index + 1; i < newCandles.length; i++) {
+      const prevClose = newCandles[i-1].close;
+      const body = Math.abs(newCandles[i].close - newCandles[i].open);
+      const isUp = newCandles[i].close >= newCandles[i].open;
       newCandles[i] = {
         ...newCandles[i],
-        open: newCandles[i-1].close,
+        open: prevClose,
+        close: isUp ? prevClose + body : prevClose - body,
+        // Also adjust high/low roughly to keep proportions if needed, 
+        // but for now just fix the open to maintain the chain.
       };
     }
     setCandles(newCandles);
@@ -104,6 +111,7 @@ export default function PricePatternStudio() {
   const handleReplay = () => {
     if (candles.length === 0) return;
     setIsAnimating(false);
+    // Use a small timeout to ensure the state reset is caught before restarting
     setTimeout(() => {
       setIsAnimating(true);
       toast({ title: "Replaying Animation", description: "Watching the price action build..." });
@@ -145,6 +153,7 @@ export default function PricePatternStudio() {
       const result = await generatePattern(aiParams);
       if (result && result.candlesticks) {
         setCandles(result.candlesticks);
+        // Smart zoom based on count
         let newZoom = 1.0;
         const n = result.candlesticks.length;
         if (n > 100) newZoom = 0.3;
@@ -297,6 +306,17 @@ export default function PricePatternStudio() {
                         <SelectItem value="Sideways">Sideways</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Volatility</Label>
+                      <span className="text-[10px] font-mono text-primary font-bold">{aiParams.volatility.toFixed(1)}</span>
+                    </div>
+                    <Slider 
+                      value={[aiParams.volatility]} 
+                      min={0.1} max={2.0} step={0.1}
+                      onValueChange={([val]) => setAiParams(prev => ({ ...prev, volatility: val }))}
+                    />
                   </div>
                   <div className="flex gap-2">
                     <Button 

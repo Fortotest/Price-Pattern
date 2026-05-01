@@ -23,6 +23,7 @@ interface ManualEditorProps {
 }
 
 const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onAdd, onRemove, onClear }) => {
+  // We reverse the list for the editor UI (most recent at top) but keep original indices for logic
   const visibleCandles = [...candles].reverse().slice(0, 200);
 
   return (
