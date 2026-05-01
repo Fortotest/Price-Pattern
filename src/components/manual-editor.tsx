@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React from "react";
 import { Candlestick } from "@/lib/chart-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,45 +20,6 @@ interface ManualEditorProps {
   onChange: (index: number, candle: Candlestick) => void;
   onRemove: (index: number) => void;
 }
-
-const RepeatButton = ({ 
-  onClick, 
-  icon: Icon, 
-  className 
-}: { 
-  onClick: () => void, 
-  icon: any, 
-  className?: string 
-}) => {
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const startRepeating = () => {
-    onClick(); // Initial click
-    timerRef.current = setTimeout(() => {
-      intervalRef.current = setInterval(() => {
-        onClick();
-      }, 50); // Repeat every 50ms
-    }, 400); // Wait 400ms before repeating
-  };
-
-  const stopRepeating = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-  };
-
-  return (
-    <button
-      onMouseDown={startRepeating}
-      onMouseUp={stopRepeating}
-      onMouseLeave={stopRepeating}
-      onBlur={stopRepeating}
-      className={`flex items-center justify-center w-full h-1/2 bg-[#2a2a2a] hover:bg-[#3a3a3a] transition-colors ${className}`}
-    >
-      <Icon className="w-3 h-3 text-white/70" />
-    </button>
-  );
-};
 
 const CustomNumberInput = ({ 
   label, 
@@ -79,15 +40,18 @@ const CustomNumberInput = ({
           {Math.round(value)}
         </div>
         <div className="w-6 h-full flex flex-col border-l border-white/5 overflow-hidden rounded-r-sm">
-          <RepeatButton 
-            icon={ChevronUp} 
-            onClick={() => onChange(value + 1)} 
-            className="border-b border-white/5"
-          />
-          <RepeatButton 
-            icon={ChevronDown} 
-            onClick={() => onChange(Math.max(0, value - 1))} 
-          />
+          <button 
+            onClick={() => onChange(value + 1)}
+            className="flex-1 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] border-b border-white/5"
+          >
+            <ChevronUp className="w-3 h-3 text-white/50" />
+          </button>
+          <button 
+            onClick={() => onChange(Math.max(0, value - 1))}
+            className="flex-1 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222]"
+          >
+            <ChevronDown className="w-3 h-3 text-white/50" />
+          </button>
         </div>
       </div>
     </div>
@@ -108,7 +72,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <GripVertical className="w-3 h-3 text-muted-foreground/30" />
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight">Layer Bar #{idx + 1}</span>
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight">Bar #{idx + 1}</span>
                 <div className={`w-1.5 h-1.5 rounded-full ${isBullish ? 'bg-[#00b386]' : 'bg-[#f23645]'}`} />
               </div>
               <Button 
@@ -143,12 +107,12 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
               </div>
 
               <div className="space-y-1">
-                <Label className="text-[7px] uppercase text-muted-foreground tracking-widest font-bold">Vertical Offset</Label>
+                <Label className="text-[7px] uppercase text-muted-foreground tracking-widest font-bold">Offset Y</Label>
                 <Input 
                   type="number" 
                   value={c.offsetY || 0} 
-                  onInput={(e) => {
-                    const val = Number(e.currentTarget.value);
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
                     onChange(idx, { ...c, offsetY: val });
                   }}
                   className="h-7 text-[9px] bg-black border-white/5 font-mono"
