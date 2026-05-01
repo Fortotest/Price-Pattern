@@ -7,15 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, Zap, ArrowUpCircle, ArrowDownCircle, MoveHorizontal } from "lucide-react";
+import { Plus, Trash2, Zap, ArrowUpCircle, ArrowDownCircle, MoveVertical } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface ManualEditorProps {
   candles: Candlestick[];
@@ -26,19 +19,22 @@ interface ManualEditorProps {
 }
 
 const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onAdd, onRemove, onClear }) => {
+  // Only render up to 200 forms for performance as per PRD
+  const visibleCandles = [...candles].reverse().slice(0, 200);
+
   return (
     <div className="flex flex-col h-full">
       <Card className="border-none shadow-none bg-transparent">
         <CardHeader className="px-0 pt-0 pb-4 flex flex-row items-center justify-between">
           <CardTitle className="text-sm font-bold flex items-center gap-2 text-[#2D3E50]">
             <Zap className="w-4 h-4 text-[#61D4BD] fill-current" />
-            Live Structure
+            Manual Override
           </CardTitle>
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={onClear} 
-            className="h-8 text-[10px] font-bold text-destructive hover:bg-destructive/5 hover:text-destructive"
+            className="h-8 text-[10px] font-bold text-destructive hover:bg-destructive/5"
             disabled={candles.length === 0}
           >
             CLEAR ALL
@@ -46,18 +42,18 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onAdd, o
         </CardHeader>
         <CardContent className="px-0 space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <Button onClick={() => onAdd('Bullish')} className="bg-[#61D4BD] hover:bg-[#61D4BD]/90 text-white font-bold h-10 shadow-sm">
-              <Plus className="w-4 h-4 mr-2" /> BUY
+            <Button onClick={() => onAdd('Bullish')} className="bg-[#089981] hover:bg-[#089981]/90 text-white font-bold h-10 shadow-sm">
+              <Plus className="w-4 h-4 mr-2" /> ➕ Bullish
             </Button>
-            <Button onClick={() => onAdd('Bearish')} variant="destructive" className="font-bold h-10 shadow-sm bg-[#EF5350]">
-              <Plus className="w-4 h-4 mr-2" /> SELL
+            <Button onClick={() => onAdd('Bearish')} variant="destructive" className="font-bold h-10 shadow-sm bg-[#f23645]">
+              <Plus className="w-4 h-4 mr-2" /> ➕ Bearish
             </Button>
           </div>
           <Separator className="bg-primary/5" />
           
-          <ScrollArea className="h-[450px] -mr-4 pr-4">
+          <ScrollArea className="h-[500px] -mr-4 pr-4">
             <div className="space-y-4">
-              {[...candles].reverse().map((c, i) => {
+              {visibleCandles.map((c, i) => {
                 const idx = candles.length - 1 - i;
                 const isBullish = c.close >= c.open;
                 
@@ -66,12 +62,13 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onAdd, o
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-mono font-bold text-primary/40">#{idx + 1}</span>
-                        <div className={`w-2 h-2 rounded-full ${isBullish ? 'bg-[#61D4BD]' : 'bg-[#EF5350]'}`} />
+                        <div className={`w-2.5 h-2.5 rounded-full ${isBullish ? 'bg-[#089981]' : 'bg-[#f23645]'}`} />
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground">{isBullish ? 'Bullish' : 'Bearish'}</span>
                       </div>
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-6 w-6 text-muted-foreground hover:text-destructive transition-colors"
+                        className="h-6 w-6 text-muted-foreground hover:text-destructive"
                         onClick={() => onRemove(idx)}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -79,14 +76,30 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onAdd, o
                     </div>
                     
                     <div className="space-y-4">
+                      {/* Offset Y Control */}
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <Label className="text-[10px] font-bold text-[#2D3E50]/70 uppercase tracking-wider">Body Length</Label>
+                          <Label className="text-[10px] font-bold text-[#2D3E50]/70 uppercase tracking-wider">Vertical Offset (Y)</Label>
+                          <span className="text-[10px] font-mono font-bold text-primary">{c.offsetY?.toFixed(0) || 0}</span>
+                        </div>
+                        <Slider 
+                          value={[c.offsetY || 0]} 
+                          min={-200}
+                          max={200} 
+                          step={1} 
+                          onValueChange={([val]) => onChange(idx, { ...c, offsetY: val })}
+                        />
+                      </div>
+
+                      {/* Body Control */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <Label className="text-[10px] font-bold text-[#2D3E50]/70 uppercase tracking-wider">Body Height</Label>
                           <span className="text-[10px] font-mono font-bold text-primary">{Math.abs(c.close - c.open).toFixed(1)}</span>
                         </div>
                         <Slider 
                           value={[Math.abs(c.close - c.open)]} 
-                          max={50} 
+                          max={100} 
                           step={0.5} 
                           onValueChange={([val]) => {
                             const newClose = isBullish ? c.open + val : c.open - val;
@@ -95,6 +108,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onAdd, o
                         />
                       </div>
 
+                      {/* Wick Controls */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <div className="flex justify-between">
@@ -103,7 +117,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onAdd, o
                           </div>
                           <Slider 
                             value={[Math.max(0, c.high - Math.max(c.open, c.close))]} 
-                            max={30} 
+                            max={50} 
                             step={0.5} 
                             onValueChange={([val]) => {
                               const bodyTop = Math.max(c.open, c.close);
@@ -113,12 +127,12 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onAdd, o
                         </div>
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <Label className="text-[9px] font-bold text-[#2D3E50]/70 uppercase">Wick Btm</Label>
+                            <Label className="text-[9px] font-bold text-[#2D3E50]/70 uppercase">Wick Bottom</Label>
                             <span className="text-[9px] font-mono font-bold">{(Math.min(c.open, c.close) - c.low).toFixed(1)}</span>
                           </div>
                           <Slider 
                             value={[Math.min(c.open, c.close) - c.low]} 
-                            max={30} 
+                            max={50} 
                             step={0.5} 
                             onValueChange={([val]) => {
                               const bodyBtm = Math.min(c.open, c.close);
@@ -131,6 +145,11 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onAdd, o
                   </div>
                 );
               })}
+              {candles.length > 200 && (
+                <p className="text-[10px] text-center text-muted-foreground font-medium py-4">
+                  Showing latest 200 candles. Canvas renders all {candles.length}.
+                </p>
+              )}
             </div>
           </ScrollArea>
         </CardContent>

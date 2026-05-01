@@ -44,34 +44,34 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const chartHeight = CANVAS_HEIGHT * 0.8;
     const chartTop = CANVAS_HEIGHT * 0.1;
 
-    const getY = (price: number) => chartTop + chartHeight - ((price - bounds.min) / range) * chartHeight;
+    // Center Logic
+    const midPrice = (bounds.max + bounds.min) / 2;
+    const getY = (price: number) => {
+      const scaledY = ((price - midPrice) / range) * chartHeight;
+      return (CANVAS_HEIGHT / 2) - scaledY;
+    };
 
     const candleWidth = (CANVAS_WIDTH / Math.max(10, currentCandles.length)) * settings.zoom;
-    const totalSpacing = candleWidth * 0.15;
+    const totalSpacing = candleWidth * 0.2;
     const realCandleWidth = candleWidth - totalSpacing;
     const startX = (CANVAS_WIDTH - (candleWidth * currentCandles.length)) / 2;
 
     currentCandles.forEach((c, i) => {
-      // Logic for animating last candle
       const isLast = i === currentCandles.length - 1;
       let displayCandle = { ...c };
       
       if (isLast && isAnimating) {
-        // Simple tick simulation: Open -> Low -> High -> Close
         if (progress < 0.25) {
-          // Open to Low
           const p = progress / 0.25;
           displayCandle.high = c.open;
           displayCandle.low = c.open - (c.open - c.low) * p;
           displayCandle.close = displayCandle.low;
         } else if (progress < 0.75) {
-          // Low to High
           const p = (progress - 0.25) / 0.5;
           displayCandle.high = c.low + (c.high - c.low) * p;
           displayCandle.low = c.low;
           displayCandle.close = displayCandle.high;
         } else {
-          // High to Close
           const p = (progress - 0.75) / 0.25;
           displayCandle.high = c.high;
           displayCandle.low = c.low;
@@ -79,19 +79,20 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
         }
       }
 
+      const offsetShift = (c.offsetY || 0) * settings.zoom;
       const x = startX + i * candleWidth + totalSpacing / 2;
-      const yOpen = getY(displayCandle.open);
-      const yClose = getY(displayCandle.close);
-      const yHigh = getY(displayCandle.high);
-      const yLow = getY(displayCandle.low);
+      const yOpen = getY(displayCandle.open) + offsetShift;
+      const yClose = getY(displayCandle.close) + offsetShift;
+      const yHigh = getY(displayCandle.high) + offsetShift;
+      const yLow = getY(displayCandle.low) + offsetShift;
 
       const isBullish = displayCandle.close > displayCandle.open;
-      const isDoji = Math.abs(displayCandle.close - displayCandle.open) < 0.01;
-      const color = isDoji ? "#888888" : isBullish ? "#61D4BD" : "#EF5350";
+      const isDoji = Math.abs(displayCandle.close - displayCandle.open) < 0.1;
+      const color = isDoji ? "#787b86" : isBullish ? "#089981" : "#f23645";
 
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
-      ctx.lineWidth = Math.max(2, 4 * settings.zoom);
+      ctx.lineWidth = Math.max(1.5, 2 * settings.zoom);
 
       // Draw Wick
       ctx.beginPath();
@@ -101,7 +102,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       // Draw Body
       const bodyTop = Math.min(yOpen, yClose);
-      const bodyHeight = Math.max(Math.abs(yOpen - yClose), 4);
+      const bodyHeight = Math.max(Math.abs(yOpen - yClose), 1.5 * settings.zoom);
       ctx.fillRect(x, bodyTop, realCandleWidth, bodyHeight);
     });
   };
@@ -134,7 +135,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   }, [candles, isAnimating, settings]);
 
   return (
-    <div className="canvas-container bg-white dark:bg-zinc-900 border-2 border-primary/10">
+    <div className="canvas-container bg-[#131722] border-2 border-primary/20 shadow-2xl">
       <canvas 
         ref={canvasRef} 
         width={CANVAS_WIDTH} 

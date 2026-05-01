@@ -1,58 +1,61 @@
 'use server';
 /**
- * @fileOverview This file defines a Genkit flow for generating candlestick chart data based on a natural language description.
- *
- * - generatePatternFromDescription - A function that takes a market scenario description and returns candlestick data.
- * - GeneratePatternFromDescriptionInput - The input type for the generatePatternFromDescription function.
- * - GeneratePatternFromDescriptionOutput - The return type for the generatePatternFromDescription function.
+ * @fileOverview This file defines a Genkit flow for generating candlestick chart data based on structured market parameters.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const CandlestickSchema = z.object({
-  open: z.number().min(0).describe("The opening price of the candlestick. Must be a non-negative number."),
-  high: z.number().min(0).describe("The highest price of the candlestick. Must be greater than or equal to open, close, and low."),
-  low: z.number().min(0).describe("The lowest price of the candlestick. Must be less than or equal to open, close, and high."),
-  close: z.number().min(0).describe("The closing price of the candlestick. Must be a non-negative number."),
-}).describe("Represents a single candlestick with Open, High, Low, and Close prices.");
-
-const GeneratePatternFromDescriptionInputSchema = z.object({
-  description: z.string().describe("A natural language description of a market scenario or candlestick pattern."),
+  open: z.number().describe("The opening price."),
+  high: z.number().describe("The highest price."),
+  low: z.number().describe("The lowest price."),
+  close: z.number().describe("The closing price."),
+  offsetY: z.number().optional().describe("A vertical offset for the candle."),
 });
-export type GeneratePatternFromDescriptionInput = z.infer<typeof GeneratePatternFromDescriptionInputSchema>;
 
-const GeneratePatternFromDescriptionOutputSchema = z.object({
-  candlesticks: z.array(CandlestickSchema).describe("An array of candlestick data, representing the described market pattern."),
+const GeneratePatternInputSchema = z.object({
+  count: z.number().min(2).max(200).describe("Number of candlesticks to generate."),
+  pattern: z.enum(['Bullish Trend', 'Bearish Trend', 'Double Top', 'Double Bottom', 'Sideways']).describe("The market structure pattern."),
+  volatility: z.number().min(0.1).max(2.0).describe("The noise/volatility level (0.1 to 2.0)."),
+  description: z.string().optional().describe("Additional optional context."),
 });
-export type GeneratePatternFromDescriptionOutput = z.infer<typeof GeneratePatternFromDescriptionOutputSchema>;
+export type GeneratePatternInput = z.infer<typeof GeneratePatternInputSchema>;
 
-export async function generatePatternFromDescription(input: GeneratePatternFromDescriptionInput): Promise<GeneratePatternFromDescriptionOutput> {
-  return generatePatternFromDescriptionFlow(input);
+const GeneratePatternOutputSchema = z.object({
+  candlesticks: z.array(CandlestickSchema).describe("The generated array of candlestick data."),
+});
+export type GeneratePatternOutput = z.infer<typeof GeneratePatternOutputSchema>;
+
+export async function generatePattern(input: GeneratePatternInput): Promise<GeneratePatternOutput> {
+  return generatePatternFlow(input);
 }
 
 const generateCandlestickPatternPrompt = ai.definePrompt({
   name: 'generateCandlestickPatternPrompt',
-  input: {schema: GeneratePatternFromDescriptionInputSchema},
-  output: {schema: GeneratePatternFromDescriptionOutputSchema},
-  prompt: `You are an expert financial analyst assistant. Your task is to generate a realistic sequence of candlestick data based on a user's natural language description of a market scenario or pattern.
+  input: {schema: GeneratePatternInputSchema},
+  output: {schema: GeneratePatternOutputSchema},
+  prompt: `You are an expert financial analyst. Generate a sequence of exactly {{count}} candlesticks for a {{pattern}} market pattern.
 
-Each candlestick in the sequence must follow these rules:
-1.  **OHLC Consistency**: 'low' must be less than or equal to 'open' and 'close', and 'high' must be greater than or equal to 'open' and 'close'.
-2.  **Auto-Snap**: For all candlesticks after the first one, the 'open' price of the current candlestick MUST be exactly equal to the 'close' price of the IMMEDIATELY preceding candlestick. This ensures a continuous price action without unnatural gaps.
-3.  **Realism**: The generated OHLC values should reflect a plausible market movement for the described pattern.
-4.  **Quantity**: Generate a sufficient number of candlesticks (typically between 10 to 30 candles) to clearly represent the described pattern or market scenario.
+Rules:
+1. Volatility Level: {{volatility}}. Use this to scale the size of wicks and price fluctuations.
+2. Continuity: The 'open' of candle N must equal the 'close' of candle N-1.
+3. Pattern Accuracy: The overall sequence must clearly represent a {{pattern}}. 
+   - Bullish Trend: Higher highs and higher lows.
+   - Bearish Trend: Lower highs and lower lows.
+   - Double Top: Two prominent peaks at similar price levels.
+   - Double Bottom: Two prominent troughs at similar price levels.
+   - Sideways: Price oscillating within a tight range.
+4. Scale: Use a price range around 100-500.
 
-Generate the candlestick data in a JSON array format, where each object has 'open', 'high', 'low', and 'close' numerical values.
-
-Market Scenario Description: {{{description}}}`,
+Output the data as a JSON array of candlesticks with open, high, low, and close values.`,
 });
 
-const generatePatternFromDescriptionFlow = ai.defineFlow(
+const generatePatternFlow = ai.defineFlow(
   {
-    name: 'generatePatternFromDescriptionFlow',
-    inputSchema: GeneratePatternFromDescriptionInputSchema,
-    outputSchema: GeneratePatternFromDescriptionOutputSchema,
+    name: 'generatePatternFlow',
+    inputSchema: GeneratePatternInputSchema,
+    outputSchema: GeneratePatternOutputSchema,
   },
   async (input) => {
     const {output} = await generateCandlestickPatternPrompt(input);
