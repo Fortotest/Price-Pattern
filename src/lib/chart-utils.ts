@@ -4,6 +4,114 @@ import { Candlestick, ChartSettings } from "./chart-types";
 export const CANVAS_WIDTH = 3840;
 export const CANVAS_HEIGHT = 2160;
 
+export const createId = () => Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+
+// === RAW TEMPLATES DEFINITION ===
+const patternTemplates = {
+  // === BASIC CANDLES ===
+  spinning_tops: [
+    { type: 'bullish', body: 15, wickTop: 25, wickBottom: 25 },
+    { type: 'bearish', body: 15, wickTop: 25, wickBottom: 25 }
+  ],
+  shooting_star: [
+    { type: 'bearish', body: 20, wickTop: 60, wickBottom: 5 }
+  ],
+  hammer: [
+    { type: 'bullish', body: 20, wickTop: 5, wickBottom: 60 }
+  ],
+  doji: [
+    { type: 'doji', body: 2, wickTop: 35, wickBottom: 35 }
+  ],
+
+  // === DUAL CANDLE PATTERNS ===
+  bullish_engulfing: [
+    { type: 'bearish', body: 30, wickTop: 10, wickBottom: 15 },
+    { type: 'bullish', body: 80, wickTop: 5, wickBottom: 5 }
+  ],
+  bearish_engulfing: [
+    { type: 'bullish', body: 30, wickTop: 15, wickBottom: 10 },
+    { type: 'bearish', body: 80, wickTop: 5, wickBottom: 5 }
+  ],
+
+  // === TRIPLE CANDLE PATTERNS ===
+  evening_star: [
+    { type: 'bullish', body: 70, wickTop: 15, wickBottom: 5 },
+    { type: 'doji', body: 5, wickTop: 25, wickBottom: 20 },
+    { type: 'bearish', body: 65, wickTop: 5, wickBottom: 15 }
+  ],
+  morning_star: [
+    { type: 'bearish', body: 70, wickTop: 5, wickBottom: 15 },
+    { type: 'doji', body: 5, wickTop: 20, wickBottom: 25 },
+    { type: 'bullish', body: 65, wickTop: 15, wickBottom: 5 }
+  ],
+  three_soldiers: [
+    { type: 'bullish', body: 40, wickTop: 5, wickBottom: 15 },
+    { type: 'bullish', body: 55, wickTop: 10, wickBottom: 5 },
+    { type: 'bullish', body: 70, wickTop: 15, wickBottom: 2 }
+  ],
+  three_crows: [
+    { type: 'bearish', body: 40, wickTop: 15, wickBottom: 5 },
+    { type: 'bearish', body: 55, wickTop: 5, wickBottom: 10 },
+    { type: 'bearish', body: 70, wickTop: 2, wickBottom: 15 }
+  ],
+
+  // === MACRO SNR STRUCTURES ===
+  bullish_snr_3_valleys: [
+    { type: 'bearish', body: 60, wickTop: 10, wickBottom: 5 },
+    { type: 'bearish', body: 40, wickTop: 5, wickBottom: 15 },
+    { type: 'bullish', body: 20, wickTop: 5, wickBottom: 45 },
+    { type: 'bullish', body: 35, wickTop: 10, wickBottom: 5 },
+    { type: 'bearish', body: 30, wickTop: 5, wickBottom: 10 },
+    { type: 'doji', body: 4, wickTop: 15, wickBottom: 40 },
+    { type: 'bullish', body: 45, wickTop: 15, wickBottom: 5 },
+    { type: 'bearish', body: 40, wickTop: 10, wickBottom: 5 },
+    { type: 'bullish', body: 75, wickTop: 10, wickBottom: 10 },
+    { type: 'bullish', body: 60, wickTop: 15, wickBottom: 5 },
+    { type: 'bullish', body: 90, wickTop: 20, wickBottom: 5 }
+  ],
+
+  bearish_snr_3_peaks: [
+    { type: 'bullish', body: 60, wickTop: 5, wickBottom: 10 },
+    { type: 'bullish', body: 40, wickTop: 15, wickBottom: 5 },
+    { type: 'bearish', body: 20, wickTop: 45, wickBottom: 5 },
+    { type: 'bearish', body: 35, wickTop: 5, wickBottom: 10 },
+    { type: 'bullish', body: 30, wickTop: 10, wickBottom: 5 },
+    { type: 'doji', body: 4, wickTop: 40, wickBottom: 15 },
+    { type: 'bearish', body: 45, wickTop: 5, wickBottom: 15 },
+    { type: 'bullish', body: 40, wickTop: 5, wickBottom: 10 },
+    { type: 'bearish', body: 75, wickTop: 10, wickBottom: 10 },
+    { type: 'bearish', body: 60, wickTop: 5, wickBottom: 15 },
+    { type: 'bearish', body: 90, wickTop: 5, wickBottom: 20 }
+  ]
+};
+
+function convertToCandlesticks(raw: any[]): Candlestick[] {
+  let prevClose = 300;
+  return raw.map(item => {
+    let open = prevClose;
+    let close, high, low;
+    if (item.type === 'bullish') {
+      close = open + item.body;
+      high = close + item.wickTop;
+      low = open - item.wickBottom;
+    } else if (item.type === 'bearish') {
+      close = open - item.body;
+      high = open + item.wickTop;
+      low = close - item.wickBottom;
+    } else { // doji
+      close = open + item.body;
+      high = Math.max(open, close) + item.wickTop;
+      low = Math.min(open, close) - item.wickBottom;
+    }
+    prevClose = close;
+    return { id: createId(), open, close, high, low, offsetY: 0 };
+  });
+}
+
+export const TEMPLATES = Object.fromEntries(
+  Object.entries(patternTemplates).map(([key, value]) => [key, convertToCandlesticks(value)])
+);
+
 export function getChartBounds(candles: Candlestick[]) {
   if (candles.length === 0) return { min: 0, max: 100 };
   let min = Infinity;
@@ -15,7 +123,7 @@ export function getChartBounds(candles: Candlestick[]) {
     if (c.high + shift > max) max = c.high + shift;
   });
 
-  const range = max - min;
+  const range = Math.max(max - min, 1);
   const padding = Math.max(range * 0.3, 150); 
   return { min: min - padding, max: max + padding };
 }
@@ -61,10 +169,7 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
     const bodyHeight = Math.max(Math.abs(yOpen - yClose), 4);
     const rx = settings.bodyRadius || 0;
 
-    // Wick (Draw First)
     svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="${settings.wickRadius > 0 ? 'round' : 'butt'}" />`;
-    
-    // Body (Draw Second to cover wick center)
     svgContent += `<rect x="${x - bodyWidth / 2}" y="${top}" width="${bodyWidth}" height="${bodyHeight}" fill="${color}" rx="${rx}" />`;
   });
 
@@ -72,46 +177,6 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
   return svgContent;
 }
 
-export const createId = () => Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
-
-export const TEMPLATES = {
-  HAMMER: [{ id: createId(), open: 300, high: 305, low: 220, close: 295, offsetY: 0 }],
-  SHOOTING_STAR: [{ id: createId(), open: 300, high: 380, low: 295, close: 290, offsetY: 0 }],
-  DOUBLE_BOTTOM: [
-    { id: createId(), open: 300, high: 305, low: 220, close: 230, offsetY: 0 },
-    { id: createId(), open: 230, high: 320, low: 225, close: 310, offsetY: 0 },
-    { id: createId(), open: 310, high: 315, low: 220, close: 225, offsetY: 0 },
-    { id: createId(), open: 225, high: 400, low: 220, close: 390, offsetY: 0 }
-  ],
-  DOUBLE_TOP: [
-    { id: createId(), open: 150, high: 350, low: 145, close: 340, offsetY: 0 },
-    { id: createId(), open: 340, high: 345, low: 220, close: 230, offsetY: 0 },
-    { id: createId(), open: 230, high: 355, low: 225, close: 345, offsetY: 0 },
-    { id: createId(), open: 345, high: 350, low: 140, close: 150, offsetY: 0 }
-  ],
-  BULLISH_ENGULFING: [
-    { id: createId(), open: 250, high: 255, low: 200, close: 210, offsetY: 0 },
-    { id: createId(), open: 210, high: 280, low: 205, close: 275, offsetY: 0 }
-  ],
-  BEARISH_ENGULFING: [
-    { id: createId(), open: 210, high: 280, low: 205, close: 275, offsetY: 0 },
-    { id: createId(), open: 275, high: 280, low: 190, close: 200, offsetY: 0 }
-  ],
-  FULL_BULLISH_WAVE: [
-    { id: createId(), open: 100, high: 110, low: 95, close: 108, offsetY: 0 },
-    { id: createId(), open: 108, high: 125, low: 105, close: 122, offsetY: 0 },
-    { id: createId(), open: 122, high: 125, low: 110, close: 112, offsetY: 0 },
-    { id: createId(), open: 112, high: 140, low: 110, close: 135, offsetY: 0 },
-    { id: createId(), open: 135, high: 145, low: 120, close: 125, offsetY: 0 },
-    { id: createId(), open: 125, high: 160, low: 122, close: 155, offsetY: 0 },
-    { id: createId(), open: 155, high: 158, low: 140, close: 142, offsetY: 0 },
-    { id: createId(), open: 142, high: 185, low: 140, close: 180, offsetY: 0 },
-    { id: createId(), open: 180, high: 210, low: 178, close: 205, offsetY: 0 },
-    { id: createId(), open: 205, high: 210, low: 185, close: 190, offsetY: 0 },
-    { id: createId(), open: 190, high: 240, low: 188, close: 235, offsetY: 0 }
-  ]
-};
-
-export const createTemplateWithNewIds = (template: any[]) => {
+export const createTemplateWithNewIds = (template: Candlestick[]) => {
   return template.map(c => ({ ...c, id: createId() }));
 };

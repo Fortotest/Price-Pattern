@@ -6,13 +6,6 @@ import { Candlestick } from "@/lib/chart-types";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Trash2, GripVertical, ChevronUp, ChevronDown } from "lucide-react";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface ManualEditorProps {
   candles: Candlestick[];
@@ -37,9 +30,8 @@ const CustomNumberInput = ({
 }) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [inputValue, setInputValue] = useState(value.toString());
+  const [inputValue, setInputValue] = useState(Math.round(value).toString());
 
-  // Sync local input state when value from prop changes
   useEffect(() => {
     setInputValue(Math.round(value).toString());
   }, [value]);
@@ -50,21 +42,17 @@ const CustomNumberInput = ({
   }, []);
 
   const handleStep = useCallback((delta: number) => {
-    // We use the current prop value to calculate the next step
-    // But since this is inside a callback, we might need a more robust way to handle sequential steps
-    // For simplicity in this functional component, we'll assume 'value' is fresh enough
-    onChange(Math.round(value + delta));
+    const nextVal = Math.round(value + delta);
+    if (Number.isFinite(nextVal)) {
+      onChange(nextVal);
+    }
   }, [onChange, value]);
 
   const startAdjusting = useCallback((delta: number) => {
     stopAdjusting();
     handleStep(delta);
-    
-    // Start auto-repeat after 300ms delay
     timerRef.current = setTimeout(() => {
       intervalRef.current = setInterval(() => {
-        // Here we use the functional update pattern if possible, 
-        // but since onChange is a parent prop, we'll rely on the re-render cycle
         handleStep(delta);
       }, 60);
     }, 300);
@@ -74,17 +62,19 @@ const CustomNumberInput = ({
     const rawValue = e.target.value;
     setInputValue(rawValue);
     const parsed = parseInt(rawValue);
-    if (!isNaN(parsed)) {
+    if (!isNaN(parsed) && Number.isFinite(parsed)) {
       onChange(Math.max(min, parsed));
     }
   };
 
   const handleBlur = () => {
     const parsed = parseInt(inputValue);
-    if (isNaN(parsed)) {
+    if (isNaN(parsed) || !Number.isFinite(parsed)) {
       setInputValue(Math.round(value).toString());
     } else {
-      setInputValue(Math.max(min, parsed).toString());
+      const finalVal = Math.max(min, parsed);
+      setInputValue(finalVal.toString());
+      onChange(finalVal);
     }
   };
 
@@ -101,17 +91,17 @@ const CustomNumberInput = ({
         />
         <div className="w-4 h-full flex flex-col border-l border-white/5 overflow-hidden rounded-r-sm">
           <button 
-            onMouseDown={() => startAdjusting(1)}
-            onMouseUp={stopAdjusting}
-            onMouseLeave={stopAdjusting}
+            onPointerDown={() => startAdjusting(1)}
+            onPointerUp={stopAdjusting}
+            onPointerLeave={stopAdjusting}
             className="flex-1 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] border-b border-white/5 transition-colors active:bg-primary/20"
           >
             <ChevronUp className="w-2 h-2 text-white/50 group-hover/input:text-white" />
           </button>
           <button 
-            onMouseDown={() => startAdjusting(-1)}
-            onMouseUp={stopAdjusting}
-            onMouseLeave={stopAdjusting}
+            onPointerDown={() => startAdjusting(-1)}
+            onPointerUp={stopAdjusting}
+            onPointerLeave={stopAdjusting}
             className="flex-1 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] transition-colors active:bg-primary/20"
           >
             <ChevronDown className="w-2 h-2 text-white/50 group-hover/input:text-white" />
@@ -163,40 +153,6 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
             
             <div className="grid grid-cols-2 gap-2 mb-2">
               <div className="space-y-1">
-                <Label className="text-[7px] uppercase text-muted-foreground tracking-widest font-bold">Type</Label>
-                <Select 
-                  value={bodyDiff > 5 ? 'bullish' : (bodyDiff < -5 ? 'bearish' : 'doji')} 
-                  onValueChange={(val) => {
-                    if (val === 'doji') {
-                      const randomBody = Math.floor(Math.random() * (25 - 10 + 1)) + 10;
-                      const newClose = c.open + randomBody;
-                      onChange(idx, { 
-                        ...c, 
-                        close: newClose,
-                        high: Math.max(c.open, newClose) + topWickSize,
-                        low: Math.min(c.open, newClose) - botWickSize
-                      });
-                    } else if (val === 'bullish') {
-                      const newClose = c.open + Math.max(25, bodySize);
-                      onChange(idx, { ...c, close: newClose, high: newClose + topWickSize, low: c.open - botWickSize });
-                    } else {
-                      const newClose = c.open - Math.max(25, bodySize);
-                      onChange(idx, { ...c, close: newClose, high: c.open + topWickSize, low: newClose - botWickSize });
-                    }
-                  }}
-                >
-                  <SelectTrigger className="h-10 text-[7px] bg-black border-white/5 font-bold p-1 px-2 focus:ring-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#1c212f] border-white/10 text-white">
-                    <SelectItem value="bullish" className="text-[8px]">🟩 BULLISH</SelectItem>
-                    <SelectItem value="bearish" className="text-[8px]">🟥 BEARISH</SelectItem>
-                    <SelectItem value="doji" className="text-[8px]">⬜ DOJI</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1">
                 <Label className="text-[7px] uppercase text-muted-foreground tracking-widest font-bold">Offset Y</Label>
                 <CustomNumberInput 
                   value={c.offsetY || 0} 
@@ -204,6 +160,24 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                   compact
                   colorClass="text-white"
                 />
+              </div>
+              <div className="space-y-1 flex flex-col justify-end">
+                <Button 
+                   variant="outline" 
+                   className="h-10 text-[7px] bg-black border-white/5 font-bold hover:bg-white/5 uppercase"
+                   onClick={() => {
+                     const isBullish = bodyDiff >= 0;
+                     const newClose = isBullish ? c.open - bodySize : c.open + bodySize;
+                     onChange(idx, { 
+                       ...c, 
+                       close: newClose,
+                       high: Math.max(c.open, newClose) + topWickSize,
+                       low: Math.min(c.open, newClose) - botWickSize
+                     });
+                   }}
+                >
+                  Flip
+                </Button>
               </div>
             </div>
 

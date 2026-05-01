@@ -17,8 +17,8 @@ export interface ChartRendererHandle {
   getCanvas: () => HTMLCanvasElement | null;
 }
 
-const Y_AXIS_WIDTH = 180; 
-const X_AXIS_HEIGHT = 120; 
+const Y_AXIS_WIDTH = 240; 
+const X_AXIS_HEIGHT = 160; 
 
 const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({ 
   candles, 
@@ -50,7 +50,6 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const chartAreaWidth = CANVAS_WIDTH - Y_AXIS_WIDTH;
     const chartAreaHeight = CANVAS_HEIGHT - X_AXIS_HEIGHT;
 
-    // 1. Clear and Background
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     ctx.fillStyle = '#000000';
@@ -67,7 +66,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     
     const bodyWidth = (chartAreaWidth / effectiveCount) * 0.8 * zoom;
     const baseWidth = ((chartAreaWidth / effectiveCount) * 0.8) * spacingMultiplier;
-    const wickWidth = Math.max(8, bodyWidth * 0.15); 
+    const wickWidth = Math.max(10, bodyWidth * 0.15); 
 
     const actualWidth = (currentCandles.length - 1) * baseWidth;
     const startX = (chartAreaWidth / 2) - (actualWidth / 2);
@@ -79,7 +78,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       return centerY - scaledY;
     };
 
-    // 2. CLIP Area for Candlesticks (Anti-Bleeding)
+    // --- RENDER AREA CLIP (Prevent Bleeding) ---
     ctx.save();
     ctx.beginPath();
     ctx.rect(0, 0, chartAreaWidth, chartAreaHeight);
@@ -147,12 +146,11 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
         ctx.fillRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight);
       }
     }
-    
-    ctx.restore(); // 3. RESTORE from Clipping
+    ctx.restore(); // --- RESTORE CLIP ---
 
-    // 4. DRAW AXES (Y-Axis Price Labels)
-    ctx.fillStyle = '#444';
-    ctx.font = 'bold 36px monospace';
+    // --- DRAW AXES (Y-Axis Price Labels) ---
+    ctx.fillStyle = '#555';
+    ctx.font = 'bold 42px monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     
@@ -161,18 +159,18 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const priceVal = bounds.min + (range * (j/stepCount));
       const yPos = getY(priceVal);
       if(yPos >= 0 && yPos <= chartAreaHeight) {
-        ctx.fillText(priceVal.toFixed(1), chartAreaWidth + 30, yPos);
+        ctx.fillText(priceVal.toFixed(1), chartAreaWidth + 40, yPos);
       }
     }
 
-    // 5. DRAW AXES (X-Axis Bar Labels)
+    // --- DRAW AXES (X-Axis Bar Labels) ---
     for (let i = 0; i < limit; i++) {
       const x = startX + (i * baseWidth);
       if(x >= 0 && x <= chartAreaWidth) {
-        ctx.fillStyle = '#444';
-        ctx.font = 'bold 30px monospace';
+        ctx.fillStyle = '#555';
+        ctx.font = 'bold 36px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(`B${i+1}`, x, chartAreaHeight + 65);
+        ctx.fillText(`BAR ${i+1}`, x, chartAreaHeight + 80);
       }
     }
   };
