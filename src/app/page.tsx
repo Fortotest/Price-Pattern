@@ -24,7 +24,8 @@ import {
   Download,
   Video,
   Sparkles,
-  Loader2
+  Loader2,
+  Dices
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -40,7 +41,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { refinePatternWithAI } from "@/ai/flows/refine-pattern-with-ai-flow";
 
 // --- Sub-Components ---
 
@@ -48,8 +48,7 @@ interface PanelProps {
   settings: ChartSettings;
   updateSettings: (newSettings: Partial<ChartSettings>) => void;
   onTemplateLoad: (val: string) => void;
-  onRefine: () => void;
-  isRefining: boolean;
+  onApplyVolatility: () => void;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -58,8 +57,7 @@ const PropertiesPanel = ({
   settings, 
   updateSettings, 
   onTemplateLoad,
-  onRefine,
-  isRefining,
+  onApplyVolatility,
   isOpen,
   onClose
 }: PanelProps) => {
@@ -293,16 +291,11 @@ const PropertiesPanel = ({
                 }}
               />
               <Button 
-                onClick={onRefine} 
-                disabled={isRefining}
+                onClick={onApplyVolatility} 
                 className="w-full h-9 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[10px] font-bold gap-2 group transition-all"
               >
-                {isRefining ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Sparkles className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
-                )}
-                REFINE WITH AI
+                <Dices className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
+                APPLY VOLATILITY
               </Button>
             </div>
           </div>
@@ -376,7 +369,6 @@ export default function PricePatternStudio() {
   
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [isRefining, setIsRefining] = useState(false);
   const [showProperties, setShowProperties] = useState(true);
   
   const chartRef = useRef<ChartRendererHandle>(null);
@@ -395,12 +387,13 @@ export default function PricePatternStudio() {
 
   const handleAddCandle = useCallback((type: 'Bullish' | 'Bearish' | 'Doji') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
-    const bodySize = type === 'Doji' ? 10 : 50; 
+    const isDoji = type === 'Doji';
+    const bodySize = isDoji ? 10 : 50; 
     const wickSize = 20;
     
     let newCandle: Candlestick;
     
-    if (type === 'Doji') {
+    if (isDoji) {
       newCandle = {
         open: lastClose,
         close: lastClose + 10,
@@ -445,24 +438,26 @@ export default function PricePatternStudio() {
     setCandles([]);
   }, []);
 
-  const handleRefineWithAI = async () => {
+  const handleApplyVolatility = useCallback(() => {
     if (candles.length === 0) return;
-    setIsRefining(true);
-    try {
-      const result = await refinePatternWithAI({
-        patternDescription: `Apply market volatility of ${settings.volatility}. Make wicks look realistic.`,
-        candlesticks: candles
-      });
-      if (result && result.refinedCandlesticks) {
-        setCandles(result.refinedCandlesticks);
-        toast({ title: "AI Refined", description: "Market noise applied successfully." });
-      }
-    } catch (e) {
-      toast({ variant: "destructive", title: "Refinement Failed", description: "Please try again." });
-    } finally {
-      setIsRefining(false);
-    }
-  };
+    
+    setCandles(prev => prev.map(c => {
+      const bodyMax = Math.max(c.open, c.close);
+      const bodyMin = Math.min(c.open, c.close);
+      const noiseLevel = settings.volatility || 0.5;
+      
+      const randomTop = (Math.random() * 60 + 5) * noiseLevel;
+      const randomBot = (Math.random() * 60 + 5) * noiseLevel;
+      
+      return {
+        ...c,
+        high: bodyMax + randomTop,
+        low: bodyMin - randomBot
+      };
+    }));
+
+    toast({ title: "Volatility Applied", description: "Wick lengths randomized based on current volatility." });
+  }, [candles.length, settings.volatility, toast]);
 
   const handleExportSVG = useCallback(() => {
     if (candles.length === 0) return;
@@ -517,8 +512,7 @@ export default function PricePatternStudio() {
           settings={settings}
           updateSettings={updateSettings}
           onTemplateLoad={handleTemplateLoad}
-          onRefine={handleRefineWithAI}
-          isRefining={isRefining}
+          onApplyVolatility={handleApplyVolatility}
           isOpen={showProperties}
           onClose={() => setShowProperties(false)}
         />
@@ -538,15 +532,16 @@ export default function PricePatternStudio() {
             
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9"><Settings2 className="w-5 h-5" /></Button>
+                <Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9">
+                  <Settings2 className="w-5 h-5" />
+                </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-[280px] bg-[#0a0a0a] border-r border-white/5">
                 <PropertiesPanel 
                   settings={settings}
                   updateSettings={updateSettings}
                   onTemplateLoad={handleTemplateLoad}
-                  onRefine={handleRefineWithAI}
-                  isRefining={isRefining}
+                  onApplyVolatility={handleApplyVolatility}
                   isOpen={true}
                   onClose={() => {}}
                 />
@@ -562,7 +557,9 @@ export default function PricePatternStudio() {
           <div className="flex items-center gap-2">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-white h-9 w-9 lg:hidden"><Layers className="w-5 h-5" /></Button>
+                <Button variant="ghost" size="icon" className="text-white h-9 w-9 lg:hidden">
+                  <Layers className="w-5 h-5" />
+                </Button>
               </SheetTrigger>
               <SheetContent side="right" className="p-0 w-[260px] bg-[#0a0a0a] border-l border-white/5">
                 <LayersPanel 
