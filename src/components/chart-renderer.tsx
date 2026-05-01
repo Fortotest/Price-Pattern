@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect, forwardRef, useImperativeHandle } from "react";
@@ -65,7 +66,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const candleWidth = (CANVAS_WIDTH / Math.max(10, currentCandles.length)) * settings.zoom;
     const spacing = candleWidth * 0.25;
     const bodyWidth = candleWidth - spacing;
-    const wickWidth = Math.max(3, 4 * settings.zoom);
+    const wickWidth = Math.max(4, 5 * settings.zoom); // Audit: Thicker wicks as requested
 
     const startX = (CANVAS_WIDTH / 2) - ((currentCandles.length * candleWidth) / 2) + (candleWidth / 2);
     const centerY = CANVAS_HEIGHT / 2;
@@ -167,6 +168,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
   useEffect(() => {
     if (isAnimating) {
+      startTimeRef.current = null; // Reset start time whenever animation is triggered
       const animate = (time: number) => {
         if (startTimeRef.current === null) startTimeRef.current = time;
         const elapsed = time - startTimeRef.current;
@@ -180,7 +182,6 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
         if (progress < 1) {
           animationRef.current = requestAnimationFrame(animate);
         } else {
-          startTimeRef.current = null;
           onAnimationComplete?.();
         }
       };

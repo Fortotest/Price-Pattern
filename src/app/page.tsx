@@ -1,7 +1,8 @@
+
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Candlestick, ChartSettings, MarketPattern, AIGeneratorParams } from "@/lib/chart-types";
+import { Candlestick, ChartSettings, AIGeneratorParams } from "@/lib/chart-types";
 import { generateSVG, TEMPLATES } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
 import ManualEditor from "@/components/manual-editor";
@@ -14,10 +15,8 @@ import {
   Sparkles, 
   BarChart4,
   RefreshCw,
-  Plus,
-  Settings2,
-  MousePointer2,
-  ChevronDown
+  Play,
+  MousePointer2
 } from "lucide-react";
 import { generatePattern } from "@/ai/flows/generate-pattern-from-description-flow";
 import { useToast } from "@/hooks/use-toast";
@@ -102,6 +101,15 @@ export default function PricePatternStudio() {
     a.download = `CandleStick_Vector_Pro.svg`;
     a.click();
     toast({ title: "SVG Exported", description: "Pro Vector format saved." });
+  };
+
+  const handleReplay = () => {
+    if (candles.length === 0) return;
+    setIsAnimating(false);
+    setTimeout(() => {
+      setIsAnimating(true);
+      toast({ title: "Replaying Animation", description: "Watching the price action build..." });
+    }, 50);
   };
 
   const handleRecordVideo = async () => {
@@ -288,6 +296,14 @@ export default function PricePatternStudio() {
 
         {/* Action Buttons */}
         <div className="space-y-3 mt-auto pt-4 shrink-0">
+          <Button 
+            variant="secondary" 
+            className="w-full h-11 font-bold gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200"
+            onClick={handleReplay}
+            disabled={candles.length === 0 || isAnimating}
+          >
+            <Play className="w-4 h-4" /> Replay Animasi
+          </Button>
           <div className="flex gap-3">
             <Button variant="outline" className="flex-1 h-12 gap-2 border-primary/20 text-primary hover:bg-primary/5 font-bold" onClick={handleExportSVG} disabled={candles.length === 0}>
               <Download className="w-4 h-4" /> Export SVG
@@ -330,7 +346,7 @@ export default function PricePatternStudio() {
             settings={settings} 
             isAnimating={isAnimating}
             onAnimationComplete={() => {
-              if(!isRecording) setIsAnimating(false);
+              setIsAnimating(false);
             }}
           />
         </div>
