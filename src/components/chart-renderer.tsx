@@ -42,7 +42,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Pitch Black Background - Pure Pro Look
+    // Pitch Black Background - Consistent Card Look
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -52,15 +52,20 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const range = Math.max(bounds.max - bounds.min, 1);
     
     const zoom = settings.zoom || 1.0;
-    // Consistent width logic: fill canvas width but keep minimum bar size
-    const baseWidth = (CANVAS_WIDTH / Math.max(12, currentCandles.length)) * zoom;
-    const spacing = baseWidth * 0.2; 
+    
+    // Dynamic horizontal adjustment: Fill space but keep spacing professional
+    // Minimum 10 bars for scaling reference to prevent huge single bar
+    const effectiveCount = Math.max(10, currentCandles.length);
+    const baseWidth = (CANVAS_WIDTH / effectiveCount) * zoom;
+    const spacing = baseWidth * 0.25; 
     const bodyWidth = Math.max(4, baseWidth - spacing);
     
-    // Solid thick wicks - Pro TradingView Style (15% of bar width)
+    // Pro Wick: Always clearly visible and proportional
     const wickWidth = Math.max(6, bodyWidth * 0.15); 
 
-    const startX = (CANVAS_WIDTH / 2) - ((currentCandles.length * baseWidth) / 2) + (baseWidth / 2);
+    // Horizontal Auto-Fit Centering
+    const actualWidth = currentCandles.length * baseWidth;
+    const startX = (CANVAS_WIDTH / 2) - (actualWidth / 2) + (baseWidth / 2);
     const centerY = CANVAS_HEIGHT / 2;
 
     const currentIndex = Math.floor(progressValue);
@@ -69,8 +74,8 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
     const getY = (price: number) => {
       const midPrice = (bounds.max + bounds.min) / 2;
-      // High vertical dynamic range (80% of canvas height)
-      const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.8);
+      // High vertical dynamic range (80% of canvas height) for clear patterns
+      const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.85);
       return centerY - scaledY;
     };
 
@@ -135,7 +140,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const isDoji = Math.abs(c.close - c.open) < 0.1;
       const color = isDoji ? "#787b86" : isBullish ? "#00b386" : "#f23645";
 
-      // Draw Wick - Thick, Solid, No Rounding
+      // Draw Wick - Thick, Solid, Sharp
       ctx.beginPath();
       ctx.moveTo(x, curHighY);
       ctx.lineTo(x, curLowY);
@@ -144,7 +149,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       ctx.lineCap = "butt"; 
       ctx.stroke();
 
-      // Draw Body - Sharp Edges
+      // Draw Body - Clean Sharp Edges
       const rectY = Math.min(yOpen, curCloseY);
       const rectHeight = Math.max(wickWidth, Math.abs(yOpen - curCloseY));
       
@@ -193,7 +198,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   }, [candles, isAnimating, settings]);
 
   return (
-    <div className="canvas-container w-full h-full flex items-center justify-center bg-black">
+    <div className="landscape-card-container">
       <canvas 
         ref={canvasRef} 
         width={CANVAS_WIDTH} 

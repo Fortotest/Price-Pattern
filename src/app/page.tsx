@@ -16,7 +16,8 @@ import {
   MousePointer2,
   Layers,
   Trash2,
-  Plus
+  Plus,
+  Monitor
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -50,14 +51,14 @@ export default function PricePatternStudio() {
     const template = TEMPLATES[val as keyof typeof TEMPLATES];
     if (template) {
       setCandles(template);
-      // Auto adjust zoom for clarity based on length
+      // Auto-scaling based on content length
       let newZoom = 1.0;
-      if (template.length > 10) newZoom = 0.5;
-      else if (template.length > 5) newZoom = 0.8;
+      if (template.length > 20) newZoom = 0.5;
+      else if (template.length > 10) newZoom = 0.8;
       else newZoom = 1.2;
       
       setSettings(prev => ({ ...prev, zoom: newZoom }));
-      toast({ title: "Pattern Applied", description: `Loaded ${val} template.` });
+      toast({ title: "Template Applied", description: `Loaded professional ${val} pattern.` });
     }
   };
 
@@ -76,7 +77,7 @@ export default function PricePatternStudio() {
   const handleUpdateCandle = (index: number, updated: Candlestick) => {
     const newCandles = [...candles];
     newCandles[index] = updated;
-    // Maintain chain continuity
+    // Maintain price continuity
     for (let i = index + 1; i < newCandles.length; i++) {
       const prevClose = newCandles[i-1].close;
       const body = Math.abs(newCandles[i].close - newCandles[i].open);
@@ -97,9 +98,9 @@ export default function PricePatternStudio() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `PricePattern_Vector.svg`;
+    a.download = `PricePattern_4K_Vector.svg`;
     a.click();
-    toast({ title: "Vector Exported", description: "SVG file ready for professional use." });
+    toast({ title: "Vector Exported", description: "Professional SVG file downloaded." });
   };
 
   const handleReplay = () => {
@@ -141,10 +142,10 @@ export default function PricePatternStudio() {
 
   return (
     <div className="min-h-screen flex bg-[#0b0e14] text-foreground overflow-hidden font-body">
-      {/* Sidebar Panel */}
-      <aside className={`w-[400px] flex flex-col h-full border-r bg-[#151924]/80 backdrop-blur-2xl transition-all duration-300 ${isRecording ? 'opacity-30 pointer-events-none' : ''}`}>
+      {/* Navigation Sidebar */}
+      <aside className={`w-[400px] flex flex-col h-full border-r border-white/5 bg-[#121212] transition-all duration-300 ${isRecording ? 'opacity-20 pointer-events-none' : ''}`}>
         
-        {/* Header Logo */}
+        {/* Branding */}
         <div className="p-6 border-b border-white/5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
@@ -160,42 +161,33 @@ export default function PricePatternStudio() {
         <ScrollArea className="flex-1">
           <div className="p-6 space-y-8">
             
-            {/* Template Market Section */}
+            {/* Template Market */}
             <section className="space-y-4">
               <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
                 <Layers className="w-3.5 h-3.5" /> Template Market
               </div>
               <Select onValueChange={handleTemplateLoad}>
-                <SelectTrigger className="bg-[#0b0e14] border-white/10 h-12 text-sm font-medium">
+                <SelectTrigger className="bg-black border-white/10 h-12 text-sm font-medium">
                   <SelectValue placeholder="Select a professional pattern..." />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1c212f] border-white/10 text-white">
                   <SelectGroup>
-                    <SelectLabel>Single Patterns</SelectLabel>
-                    <SelectItem value="HAMMER">🔨 Hammer (Bullish)</SelectItem>
-                    <SelectItem value="SHOOTING_STAR">🌠 Shooting Star (Bearish)</SelectItem>
+                    <SelectLabel>Basic Bars</SelectLabel>
                     <SelectItem value="BULLISH_MARUBOZU">🟩 Bullish Marubozu</SelectItem>
                     <SelectItem value="BEARISH_MARUBOZU">🟥 Bearish Marubozu</SelectItem>
+                    <SelectItem value="HAMMER">🔨 Bullish Hammer</SelectItem>
                   </SelectGroup>
                   <SelectGroup>
-                    <SelectLabel>Dual Patterns</SelectLabel>
-                    <SelectItem value="BULLISH_ENGULFING">🟢 Bullish Engulfing</SelectItem>
-                    <SelectItem value="BEARISH_ENGULFING">🔴 Bearish Engulfing</SelectItem>
-                    <SelectItem value="TWEEZER_BOTTOM">🔱 Tweezer Bottom</SelectItem>
-                  </SelectGroup>
-                  <SelectGroup>
-                    <SelectLabel>Three Bar Patterns</SelectLabel>
+                    <SelectLabel>Reversal Structures</SelectLabel>
                     <SelectItem value="MORNING_STAR">🌅 Morning Star</SelectItem>
-                    <SelectItem value="EVENING_STAR">🌆 Evening Star</SelectItem>
-                    <SelectItem value="THREE_WHITE_SOLDIERS">🏹 3 White Soldiers</SelectItem>
-                  </SelectGroup>
-                  <SelectGroup>
-                    <SelectLabel>Market Structure</SelectLabel>
                     <SelectItem value="DOUBLE_BOTTOM">📈 Double Bottom (W)</SelectItem>
                     <SelectItem value="DOUBLE_TOP">📉 Double Top (M)</SelectItem>
                     <SelectItem value="HEAD_AND_SHOULDERS">👤 Head & Shoulders</SelectItem>
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel>Wave Analysis</SelectLabel>
+                    <SelectItem value="FULL_BULLISH_WAVE">🌊 Wave (11 Bars)</SelectItem>
                     <SelectItem value="BULLISH_WEDGE">📐 Bullish Wedge</SelectItem>
-                    <SelectItem value="FULL_BULLISH_WAVE">🌊 Full Bullish Wave</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -229,7 +221,7 @@ export default function PricePatternStudio() {
               </div>
             </section>
 
-            {/* Manual Editor Section */}
+            {/* Manual Tuning */}
             <section className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
@@ -260,14 +252,14 @@ export default function PricePatternStudio() {
           </div>
         </ScrollArea>
 
-        {/* Action Footer */}
-        <div className="p-6 bg-[#1c212f] border-t border-white/5 space-y-3">
+        {/* Global Actions */}
+        <div className="p-6 bg-[#161616] border-t border-white/5 space-y-3">
           <Button 
             className="w-full h-11 font-bold gap-2 bg-slate-700 hover:bg-slate-600 text-white"
             onClick={handleReplay}
             disabled={candles.length === 0 || isAnimating}
           >
-            <Play className="w-4 h-4" /> Preview Animation
+            <Play className="w-4 h-4" /> Preview
           </Button>
           <div className="flex gap-3">
             <Button variant="outline" className="flex-1 h-12 gap-2 border-primary/20 text-primary hover:bg-primary/5 font-bold" onClick={handleExportSVG} disabled={candles.length === 0}>
@@ -280,13 +272,15 @@ export default function PricePatternStudio() {
         </div>
       </aside>
 
-      {/* Main View Area */}
-      <main className="flex-1 relative flex flex-col bg-[#0b0e14]">
-        {/* Floating Hud */}
+      {/* Main Studio Viewport */}
+      <main className="flex-1 relative flex flex-col bg-[#000000]">
+        {/* Floating Toolbar */}
         <div className="absolute top-0 left-0 right-0 p-8 flex justify-between items-start pointer-events-none z-20">
-          <div className="flex items-center gap-3 bg-[#151924]/80 backdrop-blur-xl border border-white/5 px-5 py-2.5 rounded-full shadow-2xl">
+          <div className="flex items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 px-5 py-2.5 rounded-full shadow-2xl">
              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.8)]" />
-             <span className="text-[10px] font-bold tracking-[0.3em] text-white uppercase">Pro Vector Chart Engine</span>
+             <span className="text-[10px] font-bold tracking-[0.3em] text-white uppercase flex items-center gap-2">
+               <Monitor className="w-3 h-3" /> Pro Vector Chart Engine
+             </span>
           </div>
           
           {isRecording && (
@@ -297,19 +291,21 @@ export default function PricePatternStudio() {
           )}
         </div>
 
-        {/* Chart Viewport */}
+        {/* Dynamic Chart Area */}
         <div className="flex-1 flex items-center justify-center p-12">
-          <ChartRenderer 
-            ref={chartRef}
-            candles={candles} 
-            settings={settings} 
-            isAnimating={isAnimating}
-            onAnimationComplete={() => setIsAnimating(false)}
-          />
+          <div className="w-full max-w-[1600px]">
+            <ChartRenderer 
+              ref={chartRef}
+              candles={candles} 
+              settings={settings} 
+              isAnimating={isAnimating}
+              onAnimationComplete={() => setIsAnimating(false)}
+            />
+          </div>
         </div>
 
-        {/* Footer Status Bar */}
-        <div className="h-14 border-t border-white/5 bg-[#151924]/40 px-8 flex items-center justify-between shrink-0">
+        {/* Status Bar */}
+        <div className="h-14 border-t border-white/5 bg-[#121212] px-8 flex items-center justify-between shrink-0">
           <div className="flex gap-10">
              <div className="flex flex-col">
                <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Active Dataset</span>
@@ -317,7 +313,7 @@ export default function PricePatternStudio() {
              </div>
              <div className="flex flex-col">
                <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Render Quality</span>
-               <span className="text-[10px] font-bold text-white uppercase">3840 x 2160 (Lossless)</span>
+               <span className="text-[10px] font-bold text-white uppercase">3840 x 2160 (Landscape Pro)</span>
              </div>
           </div>
           <div className="flex items-center gap-3 opacity-60">
