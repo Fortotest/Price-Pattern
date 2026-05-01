@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Candlestick, ChartSettings, DrawingTool } from "@/lib/chart-types";
+import { Candlestick, ChartSettings } from "@/lib/chart-types";
 import { generateSVG, TEMPLATES } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
 import ManualEditor from "@/components/manual-editor";
-import DrawingToolbar from "@/components/drawing-toolbar";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -40,7 +39,6 @@ export default function PricePatternStudio() {
     autoCenter: true
   });
   
-  const [activeTool, setActiveTool] = useState<DrawingTool>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   
@@ -60,13 +58,12 @@ export default function PricePatternStudio() {
   const handleAddCandle = (type: 'Bullish' | 'Bearish') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
     
-    // Wider variety for body sizes (Short to Long)
-    // Range: 20 to 180 (multiples of 5)
-    const bodySize = Math.floor(Math.random() * 33 + 4) * 5; 
+    // Ukuran Body Random (80 - 120)
+    const bodySize = Math.floor(Math.random() * 9 + 16) * 5; 
     
-    // Wicks are also slightly randomized
-    const topWick = Math.floor(Math.random() * 5 + 2) * 5;   // 10 to 30
-    const botWick = Math.floor(Math.random() * 5 + 2) * 5;   // 10 to 30
+    // Wick tetap tebal dan seimbang (15 - 30)
+    const topWick = Math.floor(Math.random() * 4 + 3) * 5;   
+    const botWick = Math.floor(Math.random() * 4 + 3) * 5;   
     
     const newCandle: Candlestick = type === 'Bullish' 
       ? { 
@@ -188,7 +185,7 @@ export default function PricePatternStudio() {
                     <SelectItem value="DOUBLE_BOTTOM">📈 Double Bottom (W)</SelectItem>
                     <SelectItem value="DOUBLE_TOP">📉 Double Top (M)</SelectItem>
                     <SelectItem value="HEAD_AND_SHOULDERS">👤 Head & Shoulders</SelectItem>
-                    <SelectItem value="FULL_BULLISH_WAVE">🌊 Full Bullish Wave</SelectItem>
+                    <SelectItem value="FULL_BULLISH_WAVE">🌊 Wave (11 Bars)</SelectItem>
                     <SelectItem value="BULLISH_WEDGE">📐 Bullish Wedge</SelectItem>
                   </SelectGroup>
                 </SelectContent>
@@ -220,7 +217,6 @@ export default function PricePatternStudio() {
                   <Monitor className="w-3.5 h-3.5" /> Manual Tuning
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => chartRef.current?.clearDrawings()} className="h-6 text-[10px] font-bold text-blue-400 hover:text-blue-300">Clear Drawings</Button>
                   <Button variant="ghost" size="sm" onClick={() => setCandles([])} className="h-6 text-[10px] font-bold text-red-400 hover:text-red-300">
                     <Trash2 className="w-3 h-3 mr-1" /> Reset
                   </Button>
@@ -265,17 +261,12 @@ export default function PricePatternStudio() {
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center p-12 overflow-hidden relative">
-          <div className="mb-6 z-30">
-            <DrawingToolbar activeTool={activeTool} onToolSelect={setActiveTool} />
-          </div>
-
           <div className="w-full max-w-[1600px] z-10">
             <ChartRenderer 
               ref={chartRef}
               candles={candles} 
               settings={settings} 
               isAnimating={isAnimating}
-              activeTool={activeTool}
               onAnimationComplete={() => setIsAnimating(false)}
             />
           </div>

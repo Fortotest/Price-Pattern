@@ -14,12 +14,3 @@ export interface ChartSettings {
   speed: number;
   autoCenter: boolean;
 }
-
-export type DrawingTool = 'crosshair' | 'trendline' | 'rectangle' | 'brush' | 'arrow' | null;
-
-export interface Drawing {
-  id: string;
-  type: DrawingTool;
-  points: { x: number; y: number }[];
-  color: string;
-}

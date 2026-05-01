@@ -22,8 +22,6 @@ interface ManualEditorProps {
 }
 
 const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove }) => {
-  // We keep all candles in sync, but only render a reasonable amount in DOM if needed.
-  // PRD suggests 200 limit for manual forms, which we follow.
   const visibleCandles = [...candles].reverse().slice(0, 200);
 
   return (
