@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef } from "react";
@@ -14,7 +13,6 @@ import {
   Download, 
   Video, 
   BarChart4,
-  Play,
   Layers,
   Trash2,
   Plus,
@@ -62,11 +60,13 @@ export default function PricePatternStudio() {
   const handleAddCandle = (type: 'Bullish' | 'Bearish') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
     
-    // Generate random but "neat" values (multiples of 5)
-    // Scale: Body ~100, Wicks ~15-20
-    const bodySize = Math.floor(Math.random() * 9 + 16) * 5; // 80 to 120
-    const topWick = Math.floor(Math.random() * 4 + 3) * 5;   // 15 to 30
-    const botWick = Math.floor(Math.random() * 4 + 3) * 5;   // 15 to 30
+    // Wider variety for body sizes (Short to Long)
+    // Range: 20 to 180 (multiples of 5)
+    const bodySize = Math.floor(Math.random() * 33 + 4) * 5; 
+    
+    // Wicks are also slightly randomized
+    const topWick = Math.floor(Math.random() * 5 + 2) * 5;   // 10 to 30
+    const botWick = Math.floor(Math.random() * 5 + 2) * 5;   // 10 to 30
     
     const newCandle: Candlestick = type === 'Bullish' 
       ? { 
