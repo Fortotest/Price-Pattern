@@ -18,7 +18,11 @@ import {
   Palette,
   Layers,
   Settings2,
-  Trash2
+  Trash2,
+  Menu,
+  X,
+  Download,
+  Video
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -33,6 +37,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 // --- Sub-Components ---
 
@@ -40,22 +45,16 @@ interface PanelProps {
   settings: ChartSettings;
   updateSettings: (newSettings: Partial<ChartSettings>) => void;
   onTemplateLoad: (val: string) => void;
-  onReplay: () => void;
-  onExportSVG: () => void;
-  onRecordVideo: () => void;
-  candles: Candlestick[];
-  isAnimating: boolean;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const PropertiesPanel = ({ 
   settings, 
   updateSettings, 
-  onTemplateLoad, 
-  onReplay, 
-  onExportSVG, 
-  onRecordVideo, 
-  candles, 
-  isAnimating 
+  onTemplateLoad,
+  isOpen,
+  onClose
 }: PanelProps) => {
   const [localZoom, setLocalZoom] = useState(settings.zoom);
   const [localSpacing, setLocalSpacing] = useState(settings.spacing);
@@ -77,13 +76,18 @@ const PropertiesPanel = ({
     debounceTimer.current = setTimeout(() => updateSettings(newVal), 40);
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="flex flex-col h-full bg-[#0a0a0a] border-r border-[#1a1a1a] text-white overflow-hidden w-[280px]">
-      <div className="p-3 border-b border-white/5 flex items-center justify-between">
+    <div className="flex flex-col h-full bg-[#0a0a0a] border-r border-white/5 text-white overflow-hidden w-[260px] animate-in slide-in-from-left duration-300">
+      <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-primary" />
           <span className="text-[10px] font-bold uppercase tracking-wider">Properties</span>
         </div>
+        <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5">
+          <X className="w-3 h-3" />
+        </Button>
       </div>
 
       <ScrollArea className="flex-1">
@@ -264,16 +268,6 @@ const PropertiesPanel = ({
           </div>
         </div>
       </ScrollArea>
-
-      <div className="p-3 bg-[#0d0d0d] border-t border-white/5 space-y-2">
-        <Button className="w-full h-8 font-bold text-[10px] gap-2 bg-[#1a1a1a] hover:bg-[#222] border border-white/5" onClick={onReplay} disabled={candles.length === 0 || isAnimating}>
-          <RefreshCw className={`w-3 h-3 ${isAnimating ? 'animate-spin' : ''}`} /> Preview
-        </Button>
-        <div className="flex gap-2">
-          <Button variant="outline" className="flex-1 h-8 text-[10px] font-bold border-white/5 bg-transparent" onClick={onExportSVG} disabled={candles.length === 0}>SVG</Button>
-          <Button className="flex-1 h-8 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none" onClick={onRecordVideo} disabled={candles.length === 0}>4K Video</Button>
-        </div>
-      </div>
     </div>
   );
 };
@@ -287,8 +281,8 @@ interface LayersPanelProps {
 }
 
 const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll }: LayersPanelProps) => (
-  <div className="flex flex-col h-full bg-[#0a0a0a] border-l border-[#1a1a1a] text-white overflow-hidden w-[260px]">
-    <div className="p-3 border-b border-white/5 flex items-center justify-between">
+  <div className="flex flex-col h-full bg-[#0a0a0a] border-l border-white/5 text-white overflow-hidden w-[260px]">
+    <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
       <div className="flex items-center gap-2">
         <Layers className="w-3.5 h-3.5 text-emerald-500" />
         <span className="text-[10px] font-bold uppercase tracking-wider">Layers</span>
@@ -341,6 +335,7 @@ export default function PricePatternStudio() {
   
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [showProperties, setShowProperties] = useState(true);
   
   const chartRef = useRef<ChartRendererHandle>(null);
   const { toast } = useToast();
@@ -353,13 +348,11 @@ export default function PricePatternStudio() {
     const template = TEMPLATES[val as keyof typeof TEMPLATES];
     if (template) {
       setCandles(template);
-      // Notifikasi toast dihapus sesuai permintaan
     }
   }, []);
 
   const handleAddCandle = useCallback((type: 'Bullish' | 'Bearish' | 'Doji') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
-    // Set Doji default body to 10
     const bodySize = type === 'Doji' ? 10 : 50; 
     const wickSize = 20;
     
@@ -454,60 +447,70 @@ export default function PricePatternStudio() {
 
   return (
     <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none">
-      <aside className="hidden lg:flex flex-col flex-shrink-0">
+      {/* Desktop Properties Sidebar */}
+      <aside className={cn("hidden lg:flex flex-col flex-shrink-0 transition-all duration-300", !showProperties && "w-0 overflow-hidden")}>
         <PropertiesPanel 
           settings={settings}
           updateSettings={updateSettings}
           onTemplateLoad={handleTemplateLoad}
-          onReplay={handleReplay}
-          onExportSVG={handleExportSVG}
-          onRecordVideo={handleRecordVideo}
-          candles={candles}
-          isAnimating={isAnimating}
+          isOpen={showProperties}
+          onClose={() => setShowProperties(false)}
         />
       </aside>
 
       <main className="flex-1 flex flex-col relative overflow-hidden bg-black">
-        <header className="lg:hidden h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#0a0a0a] z-30">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white h-9 w-9"><Settings2 className="w-5 h-5" /></Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-[280px] bg-[#0a0a0a] border-r border-white/5">
-              <PropertiesPanel 
-                settings={settings}
-                updateSettings={updateSettings}
-                onTemplateLoad={handleTemplateLoad}
-                onReplay={handleReplay}
-                onExportSVG={handleExportSVG}
-                onRecordVideo={handleRecordVideo}
-                candles={candles}
-                isAnimating={isAnimating}
-              />
-            </SheetContent>
-          </Sheet>
-          <div className="text-[10px] font-bold uppercase tracking-[2px] text-emerald-500 flex items-center gap-2">
-            <Zap className="w-3 h-3 text-emerald-500 fill-emerald-500" />
-            Studio
+        <header className="h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#0a0a0a] z-30">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setShowProperties(!showProperties)}
+              className="hidden lg:flex text-white hover:bg-white/5"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+            
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9"><Settings2 className="w-5 h-5" /></Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-[280px] bg-[#0a0a0a] border-r border-white/5">
+                <PropertiesPanel 
+                  settings={settings}
+                  updateSettings={updateSettings}
+                  onTemplateLoad={handleTemplateLoad}
+                  isOpen={true}
+                  onClose={() => {}}
+                />
+              </SheetContent>
+            </Sheet>
+            
+            <div className="text-[10px] font-bold uppercase tracking-[2px] text-emerald-500 flex items-center gap-2">
+              <Zap className="w-3 h-3 text-emerald-500 fill-emerald-500" />
+              Studio
+            </div>
           </div>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white h-9 w-9"><Layers className="w-5 h-5" /></Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="p-0 w-[260px] bg-[#0a0a0a] border-l border-white/5">
-              <LayersPanel 
-                candles={candles}
-                onAddCandle={handleAddCandle}
-                onUpdateCandle={handleUpdateCandle}
-                onRemoveCandle={handleRemoveCandle}
-                onClearAll={handleClearAll}
-              />
-            </SheetContent>
-          </Sheet>
+
+          <div className="flex items-center gap-2">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white h-9 w-9 lg:hidden"><Layers className="w-5 h-5" /></Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="p-0 w-[260px] bg-[#0a0a0a] border-l border-white/5">
+                <LayersPanel 
+                  candles={candles}
+                  onAddCandle={handleAddCandle}
+                  onUpdateCandle={handleUpdateCandle}
+                  onRemoveCandle={handleRemoveCandle}
+                  onClearAll={handleClearAll}
+                />
+              </SheetContent>
+            </Sheet>
+          </div>
         </header>
 
         {isRecording && (
-          <div className="absolute top-6 left-6 z-20 pointer-events-none">
+          <div className="absolute top-16 left-6 z-20 pointer-events-none">
             <div className="bg-red-500/20 backdrop-blur-md border border-red-500/30 px-4 py-1.5 rounded-full flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-red-500 recording-pulse" />
               <span className="text-[9px] font-bold text-red-400 uppercase tracking-wider">Rendering 4K...</span>
@@ -515,8 +518,9 @@ export default function PricePatternStudio() {
           </div>
         )}
 
-        <div className="flex-1 flex items-center justify-center p-4 lg:p-8 overflow-hidden bg-[#000]">
-          <div className="w-full h-full flex items-center justify-center">
+        {/* Chart Area */}
+        <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden bg-[#000]">
+          <div className="w-full h-full flex items-center justify-center relative">
             <ChartRenderer 
               ref={chartRef}
               candles={candles} 
@@ -524,6 +528,36 @@ export default function PricePatternStudio() {
               isAnimating={isAnimating}
               onAnimationComplete={() => setIsAnimating(false)}
             />
+          </div>
+          
+          {/* Action Toolbar Below Canvas */}
+          <div className="mt-6 flex items-center gap-4 bg-[#0a0a0a] p-3 rounded-xl border border-white/5 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <Button 
+              className="min-w-[120px] h-10 font-bold text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95" 
+              onClick={handleReplay} 
+              disabled={candles.length === 0 || isAnimating}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isAnimating ? 'animate-spin' : ''}`} /> Preview
+            </Button>
+            
+            <Separator orientation="vertical" className="h-6 bg-white/10" />
+            
+            <Button 
+              variant="outline" 
+              className="h-10 px-6 text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" 
+              onClick={handleExportSVG} 
+              disabled={candles.length === 0}
+            >
+              <Download className="w-3.5 h-3.5" /> SVG
+            </Button>
+            
+            <Button 
+              className="min-w-[140px] h-10 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2 shadow-lg shadow-emerald-900/20" 
+              onClick={handleRecordVideo} 
+              disabled={candles.length === 0}
+            >
+              <Video className="w-3.5 h-3.5" /> Render 4K Video
+            </Button>
           </div>
         </div>
 
@@ -539,6 +573,7 @@ export default function PricePatternStudio() {
         </footer>
       </main>
 
+      {/* Desktop Layers Sidebar */}
       <aside className="hidden lg:flex flex-col flex-shrink-0">
         <LayersPanel 
           candles={candles}
