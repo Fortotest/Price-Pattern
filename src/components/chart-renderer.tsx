@@ -48,14 +48,21 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
     const bounds = getChartBounds(currentCandles);
     const range = Math.max(bounds.max - bounds.min, 1);
-    const zoom = settings.zoom || 1.0;
+    
+    // Zoom & Spacing Logic Separation
+    const zoom = settings.zoom || 0.8;
     const spacingMultiplier = settings.spacing || 1.2;
     
     const effectiveCount = Math.max(12, currentCandles.length);
-    const baseWidth = (CANVAS_WIDTH / effectiveCount) * zoom * spacingMultiplier;
-    const spacing = baseWidth * 0.35; 
-    const bodyWidth = Math.max(6, baseWidth - spacing);
-    const wickWidth = Math.max(8, bodyWidth * 0.16); 
+    
+    // bodyBaseWidth is strictly tied to ZOOM
+    const bodyWidth = (CANVAS_WIDTH / effectiveCount) * 0.8 * zoom;
+    
+    // baseWidth (distance between candles) is tied to SPACING multiplier of bodyWidth
+    // If spacingMultiplier is 1.0, they are "dempet"
+    const baseWidth = bodyWidth * spacingMultiplier;
+    
+    const wickWidth = Math.max(4, bodyWidth * 0.12); 
 
     const actualWidth = (currentCandles.length - 1) * baseWidth;
     const startX = (CANVAS_WIDTH / 2) - (actualWidth / 2);
@@ -63,8 +70,9 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
     const getY = (price: number) => {
       const midPrice = (bounds.max + bounds.min) / 2;
+      // Vertical scale also affected by zoom for proportionality
       const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.85);
-      return centerY - scaledY;
+      return centerY - (scaledY);
     };
 
     for (let i = 0; i < Math.ceil(progressValue); i++) {
@@ -110,7 +118,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       // Body
       const rectY = Math.min(yOpen, curCloseY);
-      const rectHeight = Math.max(wickWidth, Math.abs(yOpen - curCloseY));
+      const rectHeight = Math.max(2, Math.abs(yOpen - curCloseY));
       ctx.fillStyle = color;
       
       if (settings.bodyRadius > 0) {
