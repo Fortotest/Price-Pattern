@@ -15,32 +15,35 @@ export function getChartBounds(candles: Candlestick[]) {
   });
 
   const range = max - min;
-  const padding = Math.max(range * 0.2, 80); 
+  const padding = Math.max(range * 0.25, 100); 
   return { min: min - padding, max: max + padding };
 }
 
 export function generateSVG(candles: Candlestick[]): string {
   const bounds = getChartBounds(candles);
-  const range = bounds.max - bounds.min;
+  const range = Math.max(bounds.max - bounds.min, 1);
   const height = CANVAS_HEIGHT;
   const width = CANVAS_WIDTH;
   
   const zoom = 1.0; 
-  const candleWidth = (width / Math.max(12, candles.length)) * zoom;
-  const spacing = candleWidth * 0.15;
-  const realCandleWidth = candleWidth - spacing;
+  const baseWidth = (width / Math.max(12, candles.length)) * zoom;
+  const spacing = baseWidth * 0.2;
+  const bodyWidth = Math.max(4, baseWidth - spacing);
+  const wickWidth = Math.max(6, bodyWidth * 0.15);
 
   const getY = (price: number) => {
     const midPrice = (bounds.max + bounds.min) / 2;
-    const scaledY = ((price - midPrice) / range) * (height * 0.85);
+    const scaledY = ((price - midPrice) / range) * (height * 0.8);
     return (height / 2) - scaledY;
   };
 
   let svgContent = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
   svgContent += `<rect width="100%" height="100%" fill="#000000" />`;
 
+  const startX = (width / 2) - ((candles.length * baseWidth) / 2) + (baseWidth / 2);
+
   candles.forEach((c, i) => {
-    const x = (width / 2) - ((candles.length * candleWidth) / 2) + (i * candleWidth) + candleWidth / 2;
+    const x = startX + (i * baseWidth);
     const isBullish = c.close >= c.open;
     const isDoji = Math.abs(c.close - c.open) < 0.1;
     const color = isDoji ? "#787b86" : isBullish ? "#00b386" : "#f23645";
@@ -52,16 +55,16 @@ export function generateSVG(candles: Candlestick[]): string {
     const yLow = getY(c.low) + shift;
     
     const top = Math.min(yOpen, yClose);
-    const bodyHeight = Math.max(Math.abs(yOpen - yClose), 2);
-    const wickWidth = Math.max(6, realCandleWidth * 0.18);
+    const bodyHeight = Math.max(Math.abs(yOpen - yClose), wickWidth);
 
-    // Wick
-    svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickWidth}" />`;
-    // Body - Sharp corners
+    // Wick - Matches Canvas LineCap Butt
+    svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="butt" />`;
+    
+    // Body - Sharp Corners
     if (!isDoji) {
-      svgContent += `<rect x="${x - realCandleWidth / 2}" y="${top}" width="${realCandleWidth}" height="${bodyHeight}" fill="${color}" />`;
+      svgContent += `<rect x="${x - bodyWidth / 2}" y="${top}" width="${bodyWidth}" height="${bodyHeight}" fill="${color}" />`;
     } else {
-      svgContent += `<line x1="${x - realCandleWidth / 2}" y1="${yOpen}" x2="${x + realCandleWidth / 2}" y2="${yOpen}" stroke="${color}" stroke-width="${wickWidth}" />`;
+      svgContent += `<line x1="${x - bodyWidth / 2}" y1="${yOpen}" x2="${x + bodyWidth / 2}" y2="${yOpen}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="butt" />`;
     }
   });
 
@@ -71,10 +74,10 @@ export function generateSVG(candles: Candlestick[]): string {
 
 export const TEMPLATES = {
   HAMMER: [
-    { open: 150, high: 155, low: 100, close: 148, offsetY: 0 }
+    { open: 150, high: 155, low: 80, close: 148, offsetY: 0 }
   ],
   SHOOTING_STAR: [
-    { open: 140, high: 200, low: 138, close: 142, offsetY: 0 }
+    { open: 140, high: 220, low: 138, close: 135, offsetY: 0 }
   ],
   BULLISH_MARUBOZU: [
     { open: 100, high: 200, low: 100, close: 200, offsetY: 0 }

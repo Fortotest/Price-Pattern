@@ -38,26 +38,27 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Reset transform and clear
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Pitch Black Background as per Image
+    // Pitch Black Background - Pure Pro Look
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Removed Grids for Clean Look as per Image
     if (currentCandles.length === 0) return;
 
     const bounds = getChartBounds(currentCandles);
-    const range = bounds.max - bounds.min;
+    const range = Math.max(bounds.max - bounds.min, 1);
     
     const zoom = settings.zoom || 1.0;
-    // Balanced width for 4K to avoid large gaps
+    // Consistent width logic: fill canvas width but keep minimum bar size
     const baseWidth = (CANVAS_WIDTH / Math.max(12, currentCandles.length)) * zoom;
-    const spacing = baseWidth * 0.15; // Smaller gap for tighter look
-    const bodyWidth = baseWidth - spacing;
+    const spacing = baseWidth * 0.2; 
+    const bodyWidth = Math.max(4, baseWidth - spacing);
     
-    // Solid thick wicks as per image
-    const wickWidth = Math.max(6, bodyWidth * 0.18); 
+    // Solid thick wicks - Pro TradingView Style (15% of bar width)
+    const wickWidth = Math.max(6, bodyWidth * 0.15); 
 
     const startX = (CANVAS_WIDTH / 2) - ((currentCandles.length * baseWidth) / 2) + (baseWidth / 2);
     const centerY = CANVAS_HEIGHT / 2;
@@ -68,8 +69,8 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
     const getY = (price: number) => {
       const midPrice = (bounds.max + bounds.min) / 2;
-      // Increased scaling to fill vertical space better
-      const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.85);
+      // High vertical dynamic range (80% of canvas height)
+      const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.8);
       return centerY - scaledY;
     };
 
@@ -90,41 +91,38 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       let curHighY = yHigh;
       let curLowY = yLow;
 
+      // Price Action Animation Logic
       if (i === currentIndex && isAnimating) {
         if (c.close >= c.open) {
-          if (p < 0.25) {
-            const t = p / 0.25;
-            curCloseY = lerp(yOpen, yLow, t);
-            curHighY = yOpen;
-            curLowY = curCloseY;
-          } else if (p < 0.7) {
-            const t = (p - 0.25) / 0.45;
-            curCloseY = lerp(yLow, yHigh, t);
-            curLowY = yLow;
-            curHighY = Math.min(yOpen, curCloseY);
-          } else {
-            const t = (p - 0.7) / 0.3;
-            curCloseY = lerp(yHigh, yClose, t);
-            curHighY = yHigh;
-            curLowY = yLow;
-          }
+            // Bullish Animation Path
+            if (p < 0.2) {
+                const t = p / 0.2;
+                curCloseY = lerp(yOpen, yLow, t);
+                curHighY = yOpen; curLowY = curCloseY;
+            } else if (p < 0.7) {
+                const t = (p - 0.2) / 0.5;
+                curCloseY = lerp(yLow, yHigh, t);
+                curLowY = yLow; curHighY = Math.min(yOpen, curCloseY);
+            } else {
+                const t = (p - 0.7) / 0.3;
+                curCloseY = lerp(yHigh, yClose, t);
+                curHighY = yHigh; curLowY = yLow;
+            }
         } else {
-          if (p < 0.25) {
-            const t = p / 0.25;
-            curCloseY = lerp(yOpen, yHigh, t);
-            curHighY = curCloseY;
-            curLowY = yOpen;
-          } else if (p < 0.7) {
-            const t = (p - 0.25) / 0.45;
-            curCloseY = lerp(yHigh, yLow, t);
-            curHighY = yHigh;
-            curLowY = Math.max(yOpen, curCloseY);
-          } else {
-            const t = (p - 0.7) / 0.3;
-            curCloseY = lerp(yLow, yClose, t);
-            curHighY = yHigh;
-            curLowY = yLow;
-          }
+            // Bearish Animation Path
+            if (p < 0.2) {
+                const t = p / 0.2;
+                curCloseY = lerp(yOpen, yHigh, t);
+                curHighY = curCloseY; curLowY = yOpen;
+            } else if (p < 0.7) {
+                const t = (p - 0.2) / 0.5;
+                curCloseY = lerp(yHigh, yLow, t);
+                curHighY = yHigh; curLowY = Math.max(yOpen, curCloseY);
+            } else {
+                const t = (p - 0.7) / 0.3;
+                curCloseY = lerp(yLow, yClose, t);
+                curHighY = yHigh; curLowY = yLow;
+            }
         }
       } else {
         curOpenY = yOpen;
@@ -133,23 +131,22 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
         curLowY = yLow;
       }
 
-      const isBullish = curCloseY <= yOpen;
+      const isBullish = c.close >= c.open;
       const isDoji = Math.abs(c.close - c.open) < 0.1;
-      // High contrast colors as per image
       const color = isDoji ? "#787b86" : isBullish ? "#00b386" : "#f23645";
 
-      // Draw Wick - Thick and solid
+      // Draw Wick - Thick, Solid, No Rounding
       ctx.beginPath();
       ctx.moveTo(x, curHighY);
       ctx.lineTo(x, curLowY);
       ctx.strokeStyle = color;
       ctx.lineWidth = wickWidth;
-      ctx.lineCap = "butt"; // Sharp wick ends
+      ctx.lineCap = "butt"; 
       ctx.stroke();
 
-      // Draw Body - Sharp corners, no rounding as per image
+      // Draw Body - Sharp Edges
       const rectY = Math.min(yOpen, curCloseY);
-      const rectHeight = Math.max(2, Math.abs(yOpen - curCloseY));
+      const rectHeight = Math.max(wickWidth, Math.abs(yOpen - curCloseY));
       
       ctx.fillStyle = color;
       if (!isDoji) {
@@ -196,12 +193,12 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   }, [candles, isAnimating, settings]);
 
   return (
-    <div className="canvas-container w-full h-full flex items-center justify-center">
+    <div className="canvas-container w-full h-full flex items-center justify-center bg-black">
       <canvas 
         ref={canvasRef} 
         width={CANVAS_WIDTH} 
         height={CANVAS_HEIGHT}
-        className="w-full h-full object-contain shadow-2xl"
+        className="w-full h-full object-contain"
       />
     </div>
   );
