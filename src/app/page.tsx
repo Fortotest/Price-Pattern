@@ -332,20 +332,21 @@ export default function PricePattern() {
       let close, high, low;
 
       if (type === 'Bullish') {
-        const bodySize = randomRange(25, 65);
-        const topWick = randomRange(5, 30);
-        const botWick = randomRange(5, 30);
+        const bodySize = randomRange(50, 150);
+        const topWick = randomRange(25, 60);
+        const botWick = randomRange(20, 70);
         close = open + bodySize;
         high = close + topWick;
         low = open - botWick;
       } else if (type === 'Bearish') {
-        const bodySize = randomRange(25, 65);
-        const topWick = randomRange(5, 30);
-        const botWick = randomRange(5, 30);
+        const bodySize = randomRange(50, 150);
+        const topWick = randomRange(25, 60);
+        const botWick = randomRange(20, 70);
         close = open - bodySize;
         high = open + topWick;
         low = close - botWick;
       } else { 
+        // Doji remains highly random with subtle body and long wicks
         const bodySize = randomRange(10, 25); 
         const isBullish = Math.random() > 0.5;
         const topWick = randomRange(25, 50);
