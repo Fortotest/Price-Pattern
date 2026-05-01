@@ -99,19 +99,19 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       let curOpenY = yOpen, curCloseY = yClose, curHighY = yHigh, curLowY = yLow;
 
+      // --- DUAL PHASE ANIMATION LOGIC ---
       if (i === Math.floor(progressValue) && isAnimating) {
-        const rawP = progressValue - i;
-        const p = easeOut(Math.min(rawP, 1));
+        const p = progressValue - i; // 0 to 1
         
         if (p < 0.5) {
-          // Phase 1: Wicks grow from Open
-          const t = p / 0.5;
+          // Phase 1: Wicks grow from Open (0% to 50% of total candle time)
+          const t = easeOut(p / 0.5);
           curHighY = lerp(yOpen, yHigh, t);
           curLowY = lerp(yOpen, yLow, t);
-          curCloseY = yOpen; // Body stays flat at open
+          curCloseY = yOpen;
         } else {
-          // Phase 2: Body grows from Open to Close
-          const t = (p - 0.5) / 0.5;
+          // Phase 2: Body grows from Open to Close (50% to 100% of total candle time)
+          const t = easeOut((p - 0.5) / 0.5);
           curHighY = yHigh;
           curLowY = yLow;
           curCloseY = lerp(yOpen, yClose, t);
@@ -132,7 +132,9 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       // Draw Body SECOND (FRONT)
       const bodyDiff = Math.abs(curOpenY - curCloseY);
-      if (bodyDiff > 0 || i < Math.floor(progressValue)) {
+      const isVisible = i < Math.floor(progressValue) || (i === Math.floor(progressValue) && progressValue - i >= 0.5);
+      
+      if (isVisible) {
         const rectY = Math.min(curOpenY, curCloseY);
         const rectHeight = Math.max(2, bodyDiff);
         ctx.fillStyle = color;
