@@ -10,59 +10,49 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-// Define the schema for a single candlestick
 const CandlestickSchema = z.object({
-  type: z.enum(['Bullish', 'Bearish', 'Doji']).describe("Type of the candle: 'Bullish' (green), 'Bearish' (red), or 'Doji' (gray)."),
-  body: z.number().min(0).describe('The thickness/length of the candle body. A larger value indicates a stronger price movement.'),
-  wickTop: z.number().min(0).describe('The length of the upper wick (shadow). Represents the highest price reached above the body.'),
-  wickBottom: z.number().min(0).describe('The length of the lower wick (shadow). Represents the lowest price reached below the body.'),
-  offsetY: z.number().describe('The absolute Y-axis position of the candle on the chart. Influences the overall price level of the candle.'),
-});
+  open: z.number().min(0).describe("The opening price."),
+  high: z.number().min(0).describe("The highest price."),
+  low: z.number().min(0).describe("The lowest price."),
+  close: z.number().min(0).describe("The closing price."),
+}).describe("Represents a single candlestick with Open, High, Low, and Close prices.");
 
-// Define the input schema for the flow, which is an array of candlesticks
 const RefinePatternWithAIInputSchema = z.object({
-  patternDescription: z.string().optional().describe('An optional natural language description of the market scenario or pattern, to guide the AI in making more realistic adjustments.'),
-  candlesticks: z.array(CandlestickSchema).min(1).describe('An array of candlestick objects representing the pattern to be refined.'),
+  patternDescription: z.string().optional().describe('Context for refinement.'),
+  candlesticks: z.array(CandlestickSchema).min(1).describe('The pattern to be refined.'),
 });
 export type RefinePatternWithAIInput = z.infer<typeof RefinePatternWithAIInputSchema>;
 
-// The output schema will be the refined array of candlesticks
 const RefinePatternWithAIOutputSchema = z.object({
-  refinedCandlesticks: z.array(CandlestickSchema).min(1).describe('The array of candlesticks with subtly adjusted parameters for more realistic and dynamic appearance.'),
+  refinedCandlesticks: z.array(CandlestickSchema).min(1).describe('The refined array of candlesticks.'),
 });
 export type RefinePatternWithAIOutput = z.infer<typeof RefinePatternWithAIOutputSchema>;
 
-// Exported wrapper function
 export async function refinePatternWithAI(input: RefinePatternWithAIInput): Promise<RefinePatternWithAIOutput> {
   return refinePatternWithAIFlow(input);
 }
 
-// Define the prompt for the AI model
 const refinePatternPrompt = ai.definePrompt({
   name: 'refinePatternPrompt',
   input: { schema: RefinePatternWithAIInputSchema },
   output: { schema: RefinePatternWithAIOutputSchema },
-  prompt: `You are an expert financial market analyst specializing in candlestick patterns. Your task is to take a given candlestick pattern and subtly adjust its parameters (body, wickTop, wickBottom, offsetY) to make it appear more realistic and dynamic, suitable for educational demonstrations.
+  prompt: `You are an expert financial market analyst. Your task is to take a given candlestick pattern and subtly adjust its parameters to make it appear more realistic and dynamic for educational purposes.
 
-Here's what each parameter represents:
-- 'type': The type of candle ('Bullish' for rising price, 'Bearish' for falling price, 'Doji' for indecision). Do not change this unless explicitly instructed or if it contradicts the general trend implied by offsetY changes.
-- 'body': The size of the candle's main body. A larger body indicates a stronger price movement. Subtly vary this to show market strength or weakness.
-- 'wickTop': The length of the upper wick (shadow). Represents the highest price reached above the body. Vary this to add dynamism, showing price rejection or probing higher levels.
-- 'wickBottom': The length of the lower wick (shadow). Represents the lowest price reached below the body. Representing price rejection or probing lower levels.
-- 'offsetY': The absolute Y-axis position of the candle on the chart. This dictates the overall price level. Adjust this subtly to introduce natural price fluctuations while generally preserving the pattern's overall shape and trend. Ensure that 'offsetY' adjustments maintain a logical flow; for example, a Bullish candle should generally have a higher 'offsetY' range than the previous candle, and vice versa for Bearish candles, unless the pattern explicitly depicts a strong reversal. The actual Open/Close/High/Low values are implicitly determined by body, wicks, and offsetY.
+Rules:
+1. **Maintain Continuity**: For each candle (except the first), the 'open' price MUST equal the 'close' price of the previous candle.
+2. **Subtle Variations**: Adjust wicks (high/low) and bodies (open/close) to add realistic "noise" and price action nuance.
+3. **Preserve Intent**: Keep the general trend and shape of the input pattern.
+4. **OHLC Consistency**: Ensure 'high' is always the maximum and 'low' is the minimum for each candle.
 
-Consider the following input pattern and optional description. Make only subtle adjustments to the 'body', 'wickTop', 'wickBottom', and 'offsetY' values to enhance realism and dynamism without distorting the core pattern. Ensure 'offsetY' adjustments are relative and keep the candles visually connected and logical within the overall trend. Provide the output in JSON format, strictly adhering to the RefinePatternWithAIOutputSchema.
+Input Context: {{{patternDescription}}}
 
-Input Pattern Description: {{{patternDescription}}}
-
-Input Candlesticks:
+Input Candlesticks (OHLC):
 {{#each candlesticks}}
-  Candle {{ @index }}: Type: {{this.type}}, Body: {{this.body}}, Wick Top: {{this.wickTop}}, Wick Bottom: {{this.wickBottom}}, Offset Y: {{this.offsetY}}
+  Candle {{ @index }}: O:{{this.open}}, H:{{this.high}}, L:{{this.low}}, C:{{this.close}}
 {{/each}}
 `,
 });
 
-// Define the Genkit flow
 const refinePatternWithAIFlow = ai.defineFlow(
   {
     name: 'refinePatternWithAIFlow',
@@ -72,7 +62,7 @@ const refinePatternWithAIFlow = ai.defineFlow(
   async (input) => {
     const { output } = await refinePatternPrompt(input);
     if (!output) {
-      throw new Error('Failed to refine candlestick pattern: No output received from AI.');
+      throw new Error('Failed to refine candlestick pattern.');
     }
     return output;
   }

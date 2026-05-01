@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { Candlestick, ChartSettings } from "@/lib/chart-types";
-import { generateSVG, CANVAS_WIDTH, CANVAS_HEIGHT } from "@/lib/chart-utils";
+import { generateSVG } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
 import ManualEditor from "@/components/manual-editor";
 import PatternLibrary from "@/components/pattern-library";
@@ -19,9 +19,11 @@ import {
   Maximize, 
   MousePointer2,
   FileCode,
-  Layout
+  Layout,
+  Wand2
 } from "lucide-react";
 import { generatePatternFromDescription } from "@/ai/flows/generate-pattern-from-description-flow";
+import { refinePatternWithAI } from "@/ai/flows/refine-pattern-with-ai-flow";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 
@@ -37,19 +39,19 @@ export default function PricePatternStudio() {
   const [isRecording, setIsRecording] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isRefining, setIsRefining] = useState(false);
   
   const chartRef = useRef<ChartRendererHandle>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const { toast } = useToast();
 
   const handleAddCandle = (type: 'Bullish' | 'Bearish') => {
-    const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 50;
-    const bodySize = 5 + Math.random() * 5;
-    const wickSize = 2 + Math.random() * 3;
+    const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 100;
+    const bodySize = 10;
+    const wickSize = 5;
     
     const newCandle: Candlestick = type === 'Bullish' 
-      ? { open: lastClose, close: lastClose + bodySize, high: lastClose + bodySize + wickSize, low: lastClose - wickSize }
-      : { open: lastClose, close: lastClose - bodySize, high: lastClose + wickSize, low: lastClose - bodySize - wickSize };
+      ? { open: lastClose, close: lastClose + bodySize, high: lastClose + bodySize + wickSize, low: lastClose - 2 }
+      : { open: lastClose, close: lastClose - bodySize, high: lastClose + 2, low: lastClose - bodySize - wickSize };
     
     setCandles([...candles, newCandle]);
   };
@@ -57,6 +59,16 @@ export default function PricePatternStudio() {
   const handleUpdateCandle = (index: number, updated: Candlestick) => {
     const newCandles = [...candles];
     newCandles[index] = updated;
+    // Auto-snap following candles
+    for (let i = index + 1; i < newCandles.length; i++) {
+      const diff = newCandles[i-1].close - newCandles[i].open;
+      newCandles[i] = {
+        open: newCandles[i-1].close,
+        close: newCandles[i].close + diff,
+        high: newCandles[i].high + diff,
+        low: newCandles[i].low + diff
+      };
+    }
     setCandles(newCandles);
   };
 
@@ -67,9 +79,9 @@ export default function PricePatternStudio() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `chart-pattern-${Date.now()}.svg`;
+    a.download = `price-pattern-${Date.now()}.svg`;
     a.click();
-    toast({ title: "SVG Exported", description: "Your pattern is ready for professional use." });
+    toast({ title: "SVG Exported", description: "Infinite resolution vector saved." });
   };
 
   const handleRecordVideo = async () => {
@@ -80,7 +92,7 @@ export default function PricePatternStudio() {
     const stream = canvas.captureStream(60);
     const recorder = new MediaRecorder(stream, {
       mimeType: 'video/webm;codecs=vp9',
-      videoBitsPerSecond: 30000000 // 30 Mbps
+      videoBitsPerSecond: 30000000 
     });
 
     const chunks: Blob[] = [];
@@ -90,25 +102,24 @@ export default function PricePatternStudio() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `price-action-${Date.now()}.webm`;
+      a.download = `price-action-replay-${Date.now()}.webm`;
       a.click();
       setIsRecording(false);
-      toast({ title: "Recording Complete", description: "High-quality video saved." });
+      toast({ title: "Video Exported", description: "4K cinematic replay saved." });
     };
 
     recorder.start();
     
-    // Animate candles one by one
     const originalCandles = [...candles];
     setCandles([]);
     
     for (const c of originalCandles) {
       setCandles(prev => [...prev, c]);
       setIsAnimating(true);
-      await new Promise(resolve => setTimeout(resolve, settings.speed * 1000 + 100));
+      await new Promise(resolve => setTimeout(resolve, settings.speed * 1000 + 50));
     }
     
-    recorder.stop();
+    setTimeout(() => recorder.stop(), 1000);
   };
 
   const handleAiGenerate = async () => {
@@ -117,52 +128,69 @@ export default function PricePatternStudio() {
     try {
       const result = await generatePatternFromDescription({ description: aiPrompt });
       setCandles(result.candlesticks);
-      toast({ title: "Pattern Generated", description: "AI suggested a realistic scenario based on your prompt." });
+      toast({ title: "Pattern Generated", description: "AI has synthesized a new market scenario." });
     } catch (error) {
-      toast({ variant: "destructive", title: "AI Error", description: "Failed to generate pattern." });
+      toast({ variant: "destructive", title: "AI Generation Failed" });
     } finally {
       setIsGenerating(false);
     }
   };
 
+  const handleRefinePattern = async () => {
+    if (candles.length === 0) return;
+    setIsRefining(true);
+    try {
+      const result = await refinePatternWithAI({ 
+        candlesticks: candles,
+        patternDescription: "Enhance realism while keeping the core structure."
+      });
+      setCandles(result.refinedCandlesticks);
+      toast({ title: "Pattern Refined", description: "AI added realistic price action nuances." });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Refinement Failed" });
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-background font-body">
+    <div className="min-h-screen flex flex-col bg-[#EBF1F4] font-body selection:bg-primary/20">
       {/* Header */}
-      <header className="h-16 border-b bg-white dark:bg-zinc-950 flex items-center justify-between px-6 shrink-0 z-10">
+      <header className="h-16 border-b bg-white/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-10 sticky top-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-            <Layout className="w-6 h-6" />
+          <div className="w-10 h-10 bg-[#5590C0] rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+            <Layout className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="font-bold text-lg tracking-tight">PricePattern Studio</h1>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">4K Candlestick Generator Pro</p>
+            <h1 className="font-bold text-lg tracking-tight text-[#2D3E50]">PricePattern Studio</h1>
+            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">High-Resolution Price Designer</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center bg-secondary rounded-lg p-1">
-             <Button variant="ghost" size="sm" onClick={() => setIsAnimating(true)} disabled={candles.length === 0 || isAnimating}>
-               <Play className="w-4 h-4 mr-2" /> Play
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-secondary/50 rounded-lg p-1 border">
+             <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold" onClick={() => setIsAnimating(true)} disabled={candles.length === 0 || isAnimating}>
+               <Play className="w-3.5 h-3.5 mr-2 fill-current" /> Replay
              </Button>
-             <Button variant={isRecording ? "destructive" : "ghost"} size="sm" onClick={handleRecordVideo} disabled={candles.length === 0 || isRecording}>
-               <Video className="w-4 h-4 mr-2" /> {isRecording ? "Recording..." : "Export 4K Video"}
+             <Button variant={isRecording ? "destructive" : "ghost"} size="sm" className="h-8 text-xs font-semibold" onClick={handleRecordVideo} disabled={candles.length === 0 || isRecording}>
+               <Video className="w-3.5 h-3.5 mr-2" /> {isRecording ? "Recording..." : "Export 4K Video"}
              </Button>
           </div>
-          <Button variant="outline" className="gap-2 border-primary/20 hover:border-primary/50" onClick={handleExportSVG} disabled={candles.length === 0}>
-            <FileCode className="w-4 h-4 text-primary" /> SVG Vector
+          <Button variant="outline" className="h-10 gap-2 border-[#5590C0]/20 hover:border-[#5590C0]/50 text-[#5590C0]" onClick={handleExportSVG} disabled={candles.length === 0}>
+            <FileCode className="w-4 h-4" /> SVG Vector
           </Button>
         </div>
       </header>
 
       <main className="flex-1 flex overflow-hidden">
         {/* Left Sidebar */}
-        <aside className="w-[320px] border-r bg-white/50 dark:bg-zinc-950/50 backdrop-blur-xl flex flex-col p-6 gap-8 overflow-y-auto">
+        <aside className="w-[340px] border-r bg-white/40 backdrop-blur-xl flex flex-col p-6 gap-6 overflow-y-auto">
           <Tabs defaultValue="manual" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="manual" className="text-xs">
+            <TabsList className="grid w-full grid-cols-2 mb-6 h-11 p-1 bg-secondary/50 border">
+              <TabsTrigger value="manual" className="text-xs font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">
                 <MousePointer2 className="w-3.5 h-3.5 mr-2" /> Manual
               </TabsTrigger>
-              <TabsTrigger value="templates" className="text-xs">
+              <TabsTrigger value="templates" className="text-xs font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">
                 <Maximize className="w-3.5 h-3.5 mr-2" /> Patterns
               </TabsTrigger>
             </TabsList>
@@ -183,13 +211,13 @@ export default function PricePatternStudio() {
           <div className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <Settings2 className="w-3 h-3" /> Chart Settings
+                <Settings2 className="w-3 h-3" /> Rendering Config
               </h3>
-              <div className="space-y-4 px-1">
-                <div className="space-y-2">
+              <div className="space-y-5 px-1">
+                <div className="space-y-2.5">
                   <div className="flex justify-between">
-                    <Label className="text-[11px] font-semibold">Visual Zoom</Label>
-                    <span className="text-[11px] font-mono">{(settings.zoom * 100).toFixed(0)}%</span>
+                    <Label className="text-[11px] font-bold text-[#2D3E50]">Visual Zoom</Label>
+                    <span className="text-[11px] font-mono text-primary">{(settings.zoom * 100).toFixed(0)}%</span>
                   </div>
                   <Slider 
                     value={[settings.zoom]} 
@@ -197,47 +225,62 @@ export default function PricePatternStudio() {
                     onValueChange={([val]) => setSettings({ ...settings, zoom: val })}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <div className="flex justify-between">
-                    <Label className="text-[11px] font-semibold">Animation Speed</Label>
-                    <span className="text-[11px] font-mono">{settings.speed}s / candle</span>
+                    <Label className="text-[11px] font-bold text-[#2D3E50]">Anim. Speed</Label>
+                    <span className="text-[11px] font-mono text-primary">{settings.speed}s</span>
                   </div>
                   <Slider 
                     value={[settings.speed]} 
-                    min={0.2} max={2.5} step={0.1}
+                    min={0.1} max={2.0} step={0.1}
                     onValueChange={([val]) => setSettings({ ...settings, speed: val })}
                   />
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t">
-              <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 space-y-3">
-                <div className="flex items-center gap-2 text-primary">
-                  <Sparkles className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider">AI Generation</span>
+            <div className="pt-4 border-t space-y-3">
+              <div className="p-4 rounded-2xl bg-white border border-primary/10 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-primary">
+                    <Sparkles className="w-4 h-4" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Pattern AI</span>
+                  </div>
+                  {candles.length > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-[10px] font-bold px-2 hover:bg-primary/5 text-primary"
+                      onClick={handleRefinePattern}
+                      disabled={isRefining}
+                    >
+                      <Wand2 className="w-3 h-3 mr-1" /> {isRefining ? "Refining..." : "Refine"}
+                    </Button>
+                  )}
                 </div>
-                <Input 
-                  placeholder="Describe a market trend..." 
-                  className="bg-white text-xs border-primary/20 h-9" 
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                />
-                <Button 
-                  className="w-full h-9 text-xs font-semibold gap-2" 
-                  onClick={handleAiGenerate}
-                  disabled={isGenerating || !aiPrompt}
-                >
-                  {isGenerating ? "Synthesizing..." : "Generate Scenario"}
-                </Button>
+                <div className="space-y-3">
+                  <Input 
+                    placeholder="E.g. Bullish trend with pullback" 
+                    className="bg-secondary/20 text-xs border-transparent h-10 focus:bg-white" 
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                  />
+                  <Button 
+                    className="w-full h-10 text-xs font-bold gap-2 bg-[#5590C0] hover:bg-[#5590C0]/90 shadow-md shadow-blue-500/10" 
+                    onClick={handleAiGenerate}
+                    disabled={isGenerating || !aiPrompt}
+                  >
+                    {isGenerating ? "Synthesizing..." : "Generate Scenario"}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         </aside>
 
         {/* Canvas Area */}
-        <section className="flex-1 bg-background flex flex-col p-8 overflow-hidden">
-          <div className="flex-1 flex items-center justify-center min-h-0 relative">
+        <section className="flex-1 bg-white/20 flex flex-col p-8 overflow-hidden">
+          <div className="flex-1 flex items-center justify-center min-h-0 relative group">
             <ChartRenderer 
               ref={chartRef}
               candles={candles} 
@@ -247,23 +290,41 @@ export default function PricePatternStudio() {
             />
             
             {candles.length === 0 && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-12 pointer-events-none opacity-40">
-                <Layout className="w-16 h-16 mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-bold">Studio Canvas Empty</h3>
-                <p className="max-w-xs text-sm">Use the library or manual editor on the left to start building your price action pattern.</p>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-12 pointer-events-none">
+                <div className="w-20 h-20 bg-white/50 rounded-3xl flex items-center justify-center mb-6 shadow-xl border border-white">
+                   <Layout className="w-10 h-10 text-muted-foreground/40" />
+                </div>
+                <h3 className="text-xl font-extrabold text-[#2D3E50] mb-2">Studio Canvas Empty</h3>
+                <p className="max-w-xs text-sm text-muted-foreground font-medium">Use the pattern library or describe a market trend to start building your visual analysis.</p>
+              </div>
+            )}
+
+            {isRecording && (
+              <div className="absolute top-6 right-6 flex items-center gap-3 bg-destructive/10 border border-destructive/20 text-destructive px-4 py-2 rounded-full backdrop-blur-md animate-pulse">
+                <div className="w-2.5 h-2.5 rounded-full bg-destructive" />
+                <span className="text-[10px] font-bold uppercase tracking-widest">Recording 4K UHD</span>
               </div>
             )}
           </div>
           
-          <div className="h-12 flex items-center justify-between px-4 mt-4 bg-white/50 border rounded-lg">
-             <div className="flex items-center gap-6 text-[10px] font-bold text-muted-foreground tracking-widest uppercase">
-               <span>Resolution: 3840 x 2160 (4K)</span>
-               <span>FPS: 60 (Native)</span>
-               <span>Count: {candles.length} Candles</span>
+          <div className="h-14 flex items-center justify-between px-6 mt-6 bg-white/80 border rounded-2xl shadow-sm backdrop-blur-md">
+             <div className="flex items-center gap-8 text-[10px] font-bold text-muted-foreground tracking-widest uppercase">
+               <div className="flex flex-col">
+                 <span className="text-[9px] opacity-60">Resolution</span>
+                 <span className="text-[#2D3E50]">3840 x 2160 (4K)</span>
+               </div>
+               <div className="flex flex-col">
+                 <span className="text-[9px] opacity-60">Engine</span>
+                 <span className="text-[#2D3E50]">60 FPS Canvas v2</span>
+               </div>
+               <div className="flex flex-col">
+                 <span className="text-[9px] opacity-60">Structure</span>
+                 <span className="text-[#2D3E50]">{candles.length} Candles</span>
+               </div>
              </div>
-             <div className="flex items-center gap-2">
-               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-               <span className="text-[10px] font-bold text-accent uppercase tracking-widest">Live Renderer Ready</span>
+             <div className="flex items-center gap-3">
+               <span className="text-[10px] font-bold text-[#61D4BD] uppercase tracking-widest">Renderer Ready</span>
+               <div className="w-2 h-2 rounded-full bg-[#61D4BD] shadow-[0_0_10px_rgba(97,212,189,0.5)]" />
              </div>
           </div>
         </section>
