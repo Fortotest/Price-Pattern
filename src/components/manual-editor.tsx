@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useEffect, useCallback, useMemo } from "react";
 import { Candlestick } from "@/lib/chart-types";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,7 @@ const CustomNumberInput = ({
   value, 
   onChange, 
   colorClass = "text-primary",
-  min = -10000,
+  min = -5000,
   compact = false
 }: { 
   label?: string, 
@@ -40,7 +40,7 @@ const CustomNumberInput = ({
   const valueRef = useRef(value);
 
   useEffect(() => {
-    valueRef.current = Number.isFinite(value) ? value : 0;
+    valueRef.current = Number.isFinite(value) ? Math.round(value) : 0;
   }, [value]);
 
   const stopAdjusting = useCallback(() => {
@@ -49,11 +49,9 @@ const CustomNumberInput = ({
   }, []);
 
   const handleStep = useCallback((delta: number) => {
-    const newVal = Math.max(min, Math.round(valueRef.current + delta));
-    if (Number.isFinite(newVal)) {
-      valueRef.current = newVal;
-      onChange(newVal);
-    }
+    const newVal = Math.max(min, valueRef.current + delta);
+    valueRef.current = newVal;
+    onChange(newVal);
   }, [onChange, min]);
 
   const startAdjusting = useCallback((delta: number) => {
@@ -97,12 +95,16 @@ const CustomNumberInput = ({
 };
 
 const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove }) => {
-  const reversedIndices = Array.from({ length: candles.length }, (_, i) => candles.length - 1 - i);
+  const items = useMemo(() => {
+    return [...candles].reverse().map((c, i) => ({
+      candle: c,
+      originalIndex: candles.length - 1 - i
+    }));
+  }, [candles]);
 
   return (
     <div className="space-y-2">
-      {reversedIndices.map((idx) => {
-        const c = candles[idx];
+      {items.map(({ candle: c, originalIndex: idx }) => {
         const bodyDiff = c.close - c.open;
         const bodySize = Math.abs(bodyDiff);
         const topWickSize = Math.max(0, c.high - Math.max(c.open, c.close));
@@ -114,7 +116,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
         else statusColor = "bg-slate-400";
 
         return (
-          <div key={c.id || idx} className="bg-[#0a0a0a] border border-white/5 rounded-lg p-2 group transition-all hover:border-white/10">
+          <div key={c.id} className="bg-[#0a0a0a] border border-white/5 rounded-lg p-2 group transition-all hover:border-white/10">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
                 <GripVertical className="w-2 h-2 text-muted-foreground/30" />

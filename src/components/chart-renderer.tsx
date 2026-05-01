@@ -58,7 +58,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
     // Grid / Axis Lines
     ctx.strokeStyle = '#111';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(chartAreaWidth, 0);
     ctx.lineTo(chartAreaWidth, CANVAS_HEIGHT);
@@ -77,7 +77,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     
     const bodyWidth = (chartAreaWidth / effectiveCount) * 0.8 * zoom;
     const baseWidth = ((chartAreaWidth / effectiveCount) * 0.8) * spacingMultiplier;
-    const wickWidth = Math.max(4, bodyWidth * 0.12); 
+    const wickWidth = Math.max(10, bodyWidth * 0.15); 
 
     const actualWidth = (currentCandles.length - 1) * baseWidth;
     const startX = (chartAreaWidth / 2) - (actualWidth / 2);
@@ -91,22 +91,23 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     };
 
     // Draw Price Labels (Y-Axis)
-    ctx.fillStyle = '#444';
+    ctx.fillStyle = '#666';
     ctx.font = 'bold 36px monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     
-    const stepCount = 10;
+    const stepCount = 12;
     for(let j=0; j<=stepCount; j++) {
       const priceVal = bounds.min + (range * (j/stepCount));
       const yPos = getY(priceVal);
       if(yPos >= 0 && yPos <= chartAreaHeight) {
-        ctx.fillText(priceVal.toFixed(1), chartAreaWidth + 25, yPos);
+        ctx.fillText(priceVal.toFixed(1), chartAreaWidth + 30, yPos);
         
         ctx.beginPath();
         ctx.moveTo(0, yPos);
         ctx.lineTo(chartAreaWidth, yPos);
         ctx.strokeStyle = '#0a0a0a';
+        ctx.lineWidth = 2;
         ctx.stroke();
       }
     }
@@ -151,13 +152,10 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const isBullish = c.close >= c.open;
       const color = isBullish ? settings.bullColor : settings.bearColor;
 
-      // Draw Wick - High to Low
-      const wickTop = Math.min(curHighY, curLowY);
-      const wickBottom = Math.max(curHighY, curLowY);
-      
+      // Draw Wick - High to Low (Ensuring it's always drawn)
       ctx.beginPath();
-      ctx.moveTo(x, wickTop);
-      ctx.lineTo(x, wickBottom);
+      ctx.moveTo(x, curHighY);
+      ctx.lineTo(x, curLowY);
       ctx.strokeStyle = color;
       ctx.lineWidth = wickWidth;
       ctx.lineCap = settings.wickRadius > 0 ? 'round' : 'butt';
@@ -165,7 +163,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       // Draw Body
       const rectY = Math.min(yOpen, curCloseY);
-      const rectHeight = Math.max(2, Math.abs(yOpen - curCloseY));
+      const rectHeight = Math.max(4, Math.abs(yOpen - curCloseY));
       ctx.fillStyle = color;
       
       if (settings.bodyRadius > 0) {
@@ -178,7 +176,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       // Draw X-Axis Label
       if(x >= 0 && x <= chartAreaWidth) {
-        ctx.fillStyle = '#444';
+        ctx.fillStyle = '#666';
         ctx.font = 'bold 30px monospace';
         ctx.textAlign = 'center';
         ctx.fillText(`Bar ${i+1}`, x, chartAreaHeight + 65);
@@ -187,6 +185,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
         ctx.moveTo(x, 0);
         ctx.lineTo(x, chartAreaHeight);
         ctx.strokeStyle = '#0a0a0a';
+        ctx.lineWidth = 2;
         ctx.stroke();
       }
     }
@@ -244,19 +243,17 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!dragState || !onSettingsChange) return;
 
-    requestAnimationFrame(() => {
-      if (dragState.type === 'y') {
-        const deltaY = e.movementY;
-        const sensitivity = 0.005;
-        const newZoom = Math.max(0.1, Math.min(2.0, settings.zoom - deltaY * sensitivity));
-        onSettingsChange({ zoom: newZoom });
-      } else if (dragState.type === 'x') {
-        const deltaX = e.movementX;
-        const sensitivity = 0.01;
-        const newSpacing = Math.max(0.5, Math.min(5.0, settings.spacing + deltaX * sensitivity));
-        onSettingsChange({ spacing: newSpacing });
-      }
-    });
+    if (dragState.type === 'y') {
+      const deltaY = e.movementY;
+      const sensitivity = 0.005;
+      const newZoom = Math.max(0.1, Math.min(2.0, settings.zoom - deltaY * sensitivity));
+      onSettingsChange({ zoom: newZoom });
+    } else if (dragState.type === 'x') {
+      const deltaX = e.movementX;
+      const sensitivity = 0.01;
+      const newSpacing = Math.max(0.5, Math.min(5.0, settings.spacing + deltaX * sensitivity));
+      onSettingsChange({ spacing: newSpacing });
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
@@ -284,4 +281,3 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
 ChartRenderer.displayName = "ChartRenderer";
 export default ChartRenderer;
-

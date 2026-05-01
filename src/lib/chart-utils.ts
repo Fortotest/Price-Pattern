@@ -16,7 +16,7 @@ export function getChartBounds(candles: Candlestick[]) {
   });
 
   const range = max - min;
-  const padding = Math.max(range * 0.25, 100); 
+  const padding = Math.max(range * 0.3, 150); 
   return { min: min - padding, max: max + padding };
 }
 
@@ -32,7 +32,7 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
   
   const bodyWidth = (width / effectiveCount) * 0.8 * zoom;
   const baseWidth = ((width / effectiveCount) * 0.8) * spacingMultiplier;
-  const wickWidth = Math.max(8, bodyWidth * 0.15);
+  const wickWidth = Math.max(12, bodyWidth * 0.15);
 
   const getY = (price: number) => {
     const midPrice = (bounds.max + bounds.min) / 2;
@@ -58,10 +58,10 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
     const yLow = getY(c.low) + shift;
     
     const top = Math.min(yOpen, yClose);
-    const bodyHeight = Math.max(Math.abs(yOpen - yClose), 2);
+    const bodyHeight = Math.max(Math.abs(yOpen - yClose), 4);
     const rx = settings.bodyRadius || 0;
 
-    // Wick
+    // Wick - Drawn as a single line for better SVG performance
     svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="${settings.wickRadius > 0 ? 'round' : 'butt'}" />`;
     
     // Body
@@ -72,7 +72,7 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
   return svgContent;
 }
 
-const createId = () => Math.random().toString(36).substr(2, 9);
+export const createId = () => Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
 
 export const TEMPLATES = {
   HAMMER: [{ id: createId(), open: 150, high: 155, low: 80, close: 148, offsetY: 0 }],

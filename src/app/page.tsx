@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Candlestick, ChartSettings } from "@/lib/chart-types";
-import { generateSVG, TEMPLATES, createTemplateWithNewIds } from "@/lib/chart-utils";
+import { generateSVG, TEMPLATES, createTemplateWithNewIds, createId } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
 import ManualEditor from "@/components/manual-editor";
 import { Button } from "@/components/ui/button";
@@ -68,12 +68,6 @@ const PropertiesPanel = ({
     setLocalVolatility(settings.volatility || 0.5);
   }, [settings.speed, settings.bodyRadius, settings.wickRadius, settings.volatility]);
 
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
-  const syncSettings = (newVal: Partial<ChartSettings>) => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => updateSettings(newVal), 40);
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -96,23 +90,21 @@ const PropertiesPanel = ({
               <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Animation</Label>
             </div>
             
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center px-0.5">
-                  <Label className="text-[9px] text-muted-foreground">Speed</Label>
-                  <span className="text-[9px] font-mono text-primary">{localSpeed}s</span>
-                </div>
-                <Slider 
-                  value={[localSpeed]} 
-                  min={0.1} 
-                  max={2.0} 
-                  step={0.05} 
-                  onValueChange={(val) => {
-                    setLocalSpeed(val[0]);
-                    syncSettings({ speed: val[0] });
-                  }}
-                />
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center px-0.5">
+                <Label className="text-[9px] text-muted-foreground">Speed</Label>
+                <span className="text-[9px] font-mono text-primary">{localSpeed}s</span>
               </div>
+              <Slider 
+                value={[localSpeed]} 
+                min={0.1} 
+                max={2.0} 
+                step={0.05} 
+                onValueChange={(val) => {
+                  setLocalSpeed(val[0]);
+                  updateSettings({ speed: val[0] });
+                }}
+              />
             </div>
           </div>
 
@@ -169,7 +161,7 @@ const PropertiesPanel = ({
                 step={1} 
                 onValueChange={(val) => {
                   setLocalBodyRadius(val[0]);
-                  syncSettings({ bodyRadius: val[0] });
+                  updateSettings({ bodyRadius: val[0] });
                 }}
               />
             </div>
@@ -186,7 +178,7 @@ const PropertiesPanel = ({
                 step={1} 
                 onValueChange={(val) => {
                   setLocalWickRadius(val[0]);
-                  syncSettings({ wickRadius: val[0] });
+                  updateSettings({ wickRadius: val[0] });
                 }}
               />
             </div>
@@ -205,7 +197,7 @@ const PropertiesPanel = ({
                 step={0.1} 
                 onValueChange={(val) => {
                   setLocalVolatility(val[0]);
-                  syncSettings({ volatility: val[0] });
+                  updateSettings({ volatility: val[0] });
                 }}
               />
               <Button 
@@ -330,38 +322,29 @@ export default function PricePatternStudio() {
       const lastClose = prev.length > 0 ? prev[prev.length - 1].close : 300;
       const isDoji = type === 'Doji';
       const bodySize = isDoji ? 10 : 50; 
-      const wickSize = 20;
+      const wickSize = 25;
       
-      const id = Math.random().toString(36).substr(2, 9);
-      let newCandle: Candlestick;
-      if (type === 'Bullish') {
-        newCandle = { 
-          id,
-          open: lastClose, 
-          close: lastClose + bodySize, 
-          high: lastClose + bodySize + wickSize, 
-          low: lastClose - wickSize, 
-          offsetY: 0 
-        };
+      const newCandle: Candlestick = { 
+        id: createId(),
+        open: lastClose, 
+        close: isDoji ? lastClose + 10 : (type === 'Bullish' ? lastClose + bodySize : lastClose - bodySize), 
+        high: lastClose + bodySize + wickSize, 
+        low: lastClose - bodySize - wickSize, 
+        offsetY: 0 
+      };
+
+      // Recalculate High/Low for Doji
+      if (isDoji) {
+        newCandle.high = lastClose + 40;
+        newCandle.low = lastClose - 40;
       } else if (type === 'Bearish') {
-        newCandle = { 
-          id,
-          open: lastClose, 
-          close: lastClose - bodySize, 
-          high: lastClose + wickSize, 
-          low: lastClose - bodySize - wickSize, 
-          offsetY: 0 
-        };
+        newCandle.high = lastClose + wickSize;
+        newCandle.low = lastClose - bodySize - wickSize;
       } else {
-        newCandle = {
-          id,
-          open: lastClose,
-          close: lastClose + 10,
-          high: lastClose + 30,
-          low: lastClose - 20,
-          offsetY: 0
-        };
+        newCandle.high = lastClose + bodySize + wickSize;
+        newCandle.low = lastClose - wickSize;
       }
+
       return [...prev, newCandle];
     });
   }, []);
@@ -370,14 +353,7 @@ export default function PricePatternStudio() {
     setCandles(prev => {
       const next = [...prev];
       if (!next[index]) return prev;
-      next[index] = {
-        ...updated,
-        open: Math.round(updated.open),
-        high: Math.round(updated.high),
-        low: Math.round(updated.low),
-        close: Math.round(updated.close),
-        offsetY: Math.round(updated.offsetY || 0)
-      };
+      next[index] = { ...updated };
       return next;
     });
   }, []);
@@ -396,9 +372,8 @@ export default function PricePatternStudio() {
       const bodyMin = Math.min(c.open, c.close);
       const noiseLevel = settings.volatility || 0.5;
       
-      // Real market volatility: Wicks can be very random
-      const randomTop = Math.round((Math.random() * 80 + 2) * noiseLevel);
-      const randomBot = Math.round((Math.random() * 80 + 2) * noiseLevel);
+      const randomTop = Math.round((Math.random() * 120 + 5) * noiseLevel);
+      const randomBot = Math.round((Math.random() * 120 + 5) * noiseLevel);
       
       return {
         ...c,
@@ -422,7 +397,7 @@ export default function PricePatternStudio() {
   const handleReplay = useCallback(() => {
     if (candles.length === 0) return;
     setIsAnimating(false);
-    setTimeout(() => setIsAnimating(true), 20);
+    setTimeout(() => setIsAnimating(true), 50);
   }, [candles.length]);
 
   const handleRecordVideo = async () => {
@@ -449,7 +424,7 @@ export default function PricePatternStudio() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none">
+    <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none text-white">
       <aside className={cn("hidden lg:flex flex-col flex-shrink-0 transition-all duration-300", !showProperties && "w-0 overflow-hidden")}>
         <PropertiesPanel 
           settings={settings}
@@ -550,7 +525,7 @@ export default function PricePatternStudio() {
       <aside className="hidden lg:flex flex-col flex-shrink-0">
         <LayersPanel 
           candles={candles}
-          onAddCandle={handleAddCandle}
+          onAddAddCandle={handleAddCandle}
           onUpdateCandle={handleUpdateCandle}
           onRemoveCandle={handleRemoveCandle}
           onClearAll={handleClearAll}
@@ -560,4 +535,3 @@ export default function PricePatternStudio() {
     </div>
   );
 }
-
