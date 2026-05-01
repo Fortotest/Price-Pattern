@@ -1,13 +1,14 @@
 
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { Candlestick, ChartSettings } from "@/lib/chart-types";
-import { generateSVG, TEMPLATES, createTemplateWithNewIds, createId } from "@/lib/chart-utils";
+import { TEMPLATES, createTemplateWithNewIds, createId } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
 import ManualEditor from "@/components/manual-editor";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { 
   Monitor,
   RefreshCw,
@@ -45,7 +46,7 @@ const PropertiesPanel = ({
   if (!isOpen) return null;
 
   return (
-    <div className="flex flex-col h-full bg-[#0a0a0a] border-r border-white/5 text-white overflow-hidden w-[260px] animate-in slide-in-from-left duration-300">
+    <div className="flex flex-col h-full bg-[#0a0a0a] border-r border-white/5 text-white overflow-hidden w-[280px] animate-in slide-in-from-left duration-300">
       <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-primary" />
@@ -60,12 +61,75 @@ const PropertiesPanel = ({
         <div className="p-4 space-y-6 pb-12">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
+              <Monitor className="w-3 h-3 text-primary" />
+              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Viewport & Scale</Label>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-white/70 font-medium">Zoom Level</span>
+                <span className="text-[10px] font-mono text-primary">{(settings.zoom || 0.8).toFixed(2)}x</span>
+              </div>
+              <Slider 
+                value={[settings.zoom || 0.8]} 
+                min={0.1} 
+                max={2.0} 
+                step={0.01} 
+                onValueChange={([v]) => updateSettings({ zoom: v })}
+                className="py-2"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-white/70 font-medium">Candle Spacing</span>
+                <span className="text-[10px] font-mono text-primary">{(settings.spacing || 1.2).toFixed(2)}x</span>
+              </div>
+              <Slider 
+                value={[settings.spacing || 1.2]} 
+                min={0.5} 
+                max={5.0} 
+                step={0.1} 
+                onValueChange={([v]) => updateSettings({ spacing: v })}
+                className="py-2"
+              />
+            </div>
+          </div>
+
+          <Separator className="bg-white/5" />
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Zap className="w-3 h-3 text-primary" />
+              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Animation</Label>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-white/70 font-medium">Speed (sec/candle)</span>
+                <span className="text-[10px] font-mono text-primary">{(settings.speed || 0.8).toFixed(1)}s</span>
+              </div>
+              <Slider 
+                value={[settings.speed || 0.8]} 
+                min={0.1} 
+                max={3.0} 
+                step={0.1} 
+                onValueChange={([v]) => updateSettings({ speed: v })}
+                className="py-2"
+              />
+            </div>
+          </div>
+
+          <Separator className="bg-white/5" />
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
               <Palette className="w-3 h-3 text-primary" />
               <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Visual Styles</Label>
             </div>
             
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
+                <Label className="text-[8px] text-muted-foreground font-bold">BULLISH</Label>
                 <div className="flex items-center justify-center h-10 rounded bg-black border border-white/5 relative overflow-hidden transition-all hover:border-white/10">
                   <input 
                     type="color" 
@@ -74,9 +138,9 @@ const PropertiesPanel = ({
                     className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-110" 
                   />
                 </div>
-                <div className="text-[8px] text-center text-muted-foreground font-mono">{settings.bullColor}</div>
               </div>
               <div className="space-y-2">
+                <Label className="text-[8px] text-muted-foreground font-bold">BEARISH</Label>
                 <div className="flex items-center justify-center h-10 rounded bg-black border border-white/5 relative overflow-hidden transition-all hover:border-white/10">
                   <input 
                     type="color" 
@@ -85,8 +149,37 @@ const PropertiesPanel = ({
                     className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-110" 
                   />
                 </div>
-                <div className="text-[8px] text-center text-muted-foreground font-mono">{settings.bearColor}</div>
               </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-white/70 font-medium">Body Radius</span>
+                <span className="text-[10px] font-mono text-primary">{settings.bodyRadius}px</span>
+              </div>
+              <Slider 
+                value={[settings.bodyRadius || 0]} 
+                min={0} 
+                max={20} 
+                step={1} 
+                onValueChange={([v]) => updateSettings({ bodyRadius: v })}
+                className="py-2"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-white/70 font-medium">Wick Rounding</span>
+                <span className="text-[10px] font-mono text-primary">{settings.wickRadius > 0 ? 'Rounded' : 'Sharp'}</span>
+              </div>
+              <Slider 
+                value={[settings.wickRadius || 0]} 
+                min={0} 
+                max={1} 
+                step={1} 
+                onValueChange={([v]) => updateSettings({ wickRadius: v })}
+                className="py-2"
+              />
             </div>
           </div>
         </div>
@@ -227,7 +320,7 @@ export default function PricePatternStudio() {
         close = open - bodySize;
         high = open + topWick;
         low = close - botWick;
-      } else { // Doji
+      } else { // Doji: Body 10-25, Wick 25-50
         const bodySize = randomRange(10, 25); 
         const topWick = randomRange(25, 50);
         const botWick = randomRange(25, 50);
@@ -266,16 +359,16 @@ export default function PricePatternStudio() {
     setCandles([]);
   }, []);
 
-  const handleExportSVG = useCallback(() => {
-    if (candles.length === 0) return;
-    const svg = generateSVG(candles, settings);
-    const blob = new Blob([svg], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
+  const handleExportPNG = useCallback(() => {
+    const canvas = chartRef.current?.getCanvas();
+    if (!canvas || candles.length === 0) return;
+    const url = canvas.toDataURL('image/png');
     const a = document.createElement('a');
     a.href = url;
-    a.download = `price-chart.svg`;
+    a.download = `price-chart-4k.png`;
     a.click();
-  }, [candles, settings]);
+    toast({ title: "Export Success", description: "4K PNG saved." });
+  }, [candles, toast]);
 
   const handleReplay = useCallback(() => {
     if (candles.length === 0) return;
@@ -399,12 +492,12 @@ export default function PricePatternStudio() {
             
             <Separator orientation="vertical" className="h-6 bg-white/10" />
             
-            <Button variant="outline" className="h-10 px-6 text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
-              <Download className="w-3.5 h-3.5" /> SVG
+            <Button variant="outline" className="h-10 px-6 text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportPNG} disabled={candles.length === 0}>
+              <Download className="w-3.5 h-3.5" /> PNG
             </Button>
             
             <Button className="min-w-[140px] h-10 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2 shadow-lg shadow-emerald-900/20" onClick={handleRecordVideo} disabled={candles.length === 0}>
-              <Video className="w-3.5 h-3.5" /> Render 4K Video
+              <Video className="w-3.5 h-3.5" /> Video
             </Button>
           </div>
         </div>
