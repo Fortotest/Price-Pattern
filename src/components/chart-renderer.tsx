@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useRef, useEffect, forwardRef, useImperativeHandle } from "react";
@@ -66,7 +65,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const candleWidth = (CANVAS_WIDTH / Math.max(10, currentCandles.length)) * settings.zoom;
     const spacing = candleWidth * 0.25;
     const bodyWidth = candleWidth - spacing;
-    const wickWidth = Math.max(4, 5 * settings.zoom); // Audit: Thicker wicks as requested
+    const wickWidth = Math.max(4, 5 * settings.zoom);
 
     const startX = (CANVAS_WIDTH / 2) - ((currentCandles.length * candleWidth) / 2) + (candleWidth / 2);
     const centerY = CANVAS_HEIGHT / 2;
@@ -86,7 +85,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       const c = currentCandles[i];
       const x = startX + (i * candleWidth);
-      const shift = (c.offsetY || 0) * settings.zoom;
+      const shift = (c.offsetY || 0);
       
       const yOpen = getY(c.open) + shift;
       const yClose = getY(c.close) + shift;
@@ -131,6 +130,11 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
             curLowY = yLow;
           }
         }
+      } else {
+        curOpenY = yOpen;
+        curCloseY = yClose;
+        curHighY = yHigh;
+        curLowY = yLow;
       }
 
       const isBullish = curCloseY <= yOpen;
@@ -152,7 +156,6 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       
       ctx.fillStyle = color;
       if (!isDoji) {
-        // Draw rounded rect manually for body
         const radius = wickWidth / 2;
         ctx.beginPath();
         ctx.roundRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight, radius);
@@ -168,7 +171,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
   useEffect(() => {
     if (isAnimating) {
-      startTimeRef.current = null; // Reset start time whenever animation is triggered
+      startTimeRef.current = null;
       const animate = (time: number) => {
         if (startTimeRef.current === null) startTimeRef.current = time;
         const elapsed = time - startTimeRef.current;

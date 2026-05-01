@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef } from "react";
@@ -16,9 +15,11 @@ import {
   BarChart4,
   RefreshCw,
   Play,
-  MousePointer2
+  MousePointer2,
+  Wand2
 } from "lucide-react";
 import { generatePattern } from "@/ai/flows/generate-pattern-from-description-flow";
+import { refinePatternWithAI } from "@/ai/flows/refine-pattern-with-ai-flow";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Select,
@@ -48,6 +49,7 @@ export default function PricePatternStudio() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isRefining, setIsRefining] = useState(false);
   
   const chartRef = useRef<ChartRendererHandle>(null);
   const { toast } = useToast();
@@ -79,13 +81,9 @@ export default function PricePatternStudio() {
     newCandles[index] = updated;
     // Continuity logic
     for (let i = index + 1; i < newCandles.length; i++) {
-      const diff = newCandles[i-1].close - newCandles[i].open;
       newCandles[i] = {
         ...newCandles[i],
         open: newCandles[i-1].close,
-        close: newCandles[i].close + diff,
-        high: newCandles[i].high + diff,
-        low: newCandles[i].low + diff
       };
     }
     setCandles(newCandles);
@@ -160,6 +158,25 @@ export default function PricePatternStudio() {
       toast({ variant: "destructive", title: "AI Error", description: "Failed to generate pattern." });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleAiRefine = async () => {
+    if (candles.length === 0) return;
+    setIsRefining(true);
+    try {
+      const result = await refinePatternWithAI({
+        candlesticks: candles,
+        patternDescription: `Refine this ${aiParams.pattern} to be more realistic.`
+      });
+      if (result && result.refinedCandlesticks) {
+        setCandles(result.refinedCandlesticks);
+        toast({ title: "AI Refined", description: "Pattern enhanced with realistic noise." });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "AI Error", description: "Failed to refine pattern." });
+    } finally {
+      setIsRefining(false);
     }
   };
 
@@ -281,14 +298,25 @@ export default function PricePatternStudio() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button 
-                    className="w-full h-11 font-bold gap-2 bg-primary hover:bg-primary/90" 
-                    onClick={handleAiGenerate}
-                    disabled={isGenerating}
-                  >
-                    <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
-                    {isGenerating ? "Generating..." : "Generate Struktur AI"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      className="flex-1 h-11 font-bold gap-2 bg-primary hover:bg-primary/90" 
+                      onClick={handleAiGenerate}
+                      disabled={isGenerating}
+                    >
+                      <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
+                      Generate
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="flex-1 h-11 font-bold gap-2 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/5" 
+                      onClick={handleAiRefine}
+                      disabled={isRefining || candles.length === 0}
+                    >
+                      <Wand2 className={`w-4 h-4 ${isRefining ? 'animate-pulse' : ''}`} />
+                      Refine
+                    </Button>
+                  </div>
                 </div>
             </div>
           </TabsContent>
