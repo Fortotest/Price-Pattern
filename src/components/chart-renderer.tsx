@@ -56,23 +56,13 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Grid Lines (Only in Chart Area)
-    ctx.strokeStyle = '#111';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(chartAreaWidth, 0);
-    ctx.lineTo(chartAreaWidth, chartAreaHeight);
-    ctx.moveTo(0, chartAreaHeight);
-    ctx.lineTo(chartAreaWidth, chartAreaHeight);
-    ctx.stroke();
-
     if (currentCandles.length === 0) return;
 
     const bounds = getChartBounds(currentCandles);
     const range = Math.max(bounds.max - bounds.min, 1);
     
     const zoom = settings.zoom || 0.8;
-    const spacingMultiplier = settings.spacing || 1.0;
+    const spacingMultiplier = settings.spacing || 1.2;
     const effectiveCount = Math.max(12, currentCandles.length);
     
     const bodyWidth = (chartAreaWidth / effectiveCount) * 0.8 * zoom;
@@ -89,7 +79,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       return centerY - scaledY;
     };
 
-    // 2. CLIP Area for Candlesticks
+    // 2. CLIP Area for Candlesticks (Anti-Bleeding)
     ctx.save();
     ctx.beginPath();
     ctx.rect(0, 0, chartAreaWidth, chartAreaHeight);
@@ -135,7 +125,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const isBullish = c.close >= c.open;
       const color = isBullish ? settings.bullColor : settings.bearColor;
 
-      // Draw Wick (BACK)
+      // Draw Wick FIRST (BACK)
       ctx.beginPath();
       ctx.moveTo(x, curHighY);
       ctx.lineTo(x, curLowY);
@@ -144,7 +134,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       ctx.lineCap = settings.wickRadius > 0 ? 'round' : 'butt';
       ctx.stroke();
 
-      // Draw Body (FRONT)
+      // Draw Body SECOND (FRONT) - Solid color to hide wick split
       const rectY = Math.min(curOpenY, curCloseY);
       const rectHeight = Math.max(4, Math.abs(curOpenY - curCloseY));
       ctx.fillStyle = color;

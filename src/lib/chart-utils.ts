@@ -27,12 +27,12 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
   const width = CANVAS_WIDTH;
   
   const zoom = settings.zoom || 0.8;
-  const spacingMultiplier = settings.spacing || 1.0;
+  const spacingMultiplier = settings.spacing || 1.2;
   const effectiveCount = Math.max(12, candles.length);
   
   const bodyWidth = (width / effectiveCount) * 0.8 * zoom;
   const baseWidth = ((width / effectiveCount) * 0.8) * spacingMultiplier;
-  const wickWidth = Math.max(12, bodyWidth * 0.2);
+  const wickWidth = Math.max(12, bodyWidth * 0.15);
 
   const getY = (price: number) => {
     const midPrice = (bounds.max + bounds.min) / 2;
@@ -61,10 +61,10 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
     const bodyHeight = Math.max(Math.abs(yOpen - yClose), 4);
     const rx = settings.bodyRadius || 0;
 
-    // Wick
+    // Wick (Draw First)
     svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="${settings.wickRadius > 0 ? 'round' : 'butt'}" />`;
     
-    // Body
+    // Body (Draw Second to cover wick center)
     svgContent += `<rect x="${x - bodyWidth / 2}" y="${top}" width="${bodyWidth}" height="${bodyHeight}" fill="${color}" rx="${rx}" />`;
   });
 
@@ -75,8 +75,8 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
 export const createId = () => Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
 
 export const TEMPLATES = {
-  HAMMER: [{ id: createId(), open: 150, high: 155, low: 80, close: 148, offsetY: 0 }],
-  SHOOTING_STAR: [{ id: createId(), open: 140, high: 220, low: 138, close: 135, offsetY: 0 }],
+  HAMMER: [{ id: createId(), open: 300, high: 305, low: 220, close: 295, offsetY: 0 }],
+  SHOOTING_STAR: [{ id: createId(), open: 300, high: 380, low: 295, close: 290, offsetY: 0 }],
   DOUBLE_BOTTOM: [
     { id: createId(), open: 300, high: 305, low: 220, close: 230, offsetY: 0 },
     { id: createId(), open: 230, high: 320, low: 225, close: 310, offsetY: 0 },
@@ -98,17 +98,17 @@ export const TEMPLATES = {
     { id: createId(), open: 275, high: 280, low: 190, close: 200, offsetY: 0 }
   ],
   FULL_BULLISH_WAVE: [
-    { id: createId(), open: 100, high: 115, low: 98, close: 112, offsetY: 0 },
-    { id: createId(), open: 112, high: 115, low: 110, close: 113, offsetY: 0 },
-    { id: createId(), open: 113, high: 118, low: 112, close: 117, offsetY: 0 },
-    { id: createId(), open: 117, high: 120, low: 114, close: 115, offsetY: 0 },
-    { id: createId(), open: 115, high: 116, low: 100, close: 101, offsetY: 0 },
-    { id: createId(), open: 101, high: 105, low: 100, close: 103, offsetY: 0 },
-    { id: createId(), open: 103, high: 122, low: 102, close: 120, offsetY: 0 },
-    { id: createId(), open: 120, high: 125, low: 118, close: 124, offsetY: 0 },
-    { id: createId(), open: 124, high: 140, low: 123, close: 138, offsetY: 0 },
-    { id: createId(), open: 138, high: 140, low: 130, close: 132, offsetY: 0 },
-    { id: createId(), open: 132, high: 160, low: 130, close: 158, offsetY: 0 }
+    { id: createId(), open: 100, high: 110, low: 95, close: 108, offsetY: 0 },
+    { id: createId(), open: 108, high: 125, low: 105, close: 122, offsetY: 0 },
+    { id: createId(), open: 122, high: 125, low: 110, close: 112, offsetY: 0 },
+    { id: createId(), open: 112, high: 140, low: 110, close: 135, offsetY: 0 },
+    { id: createId(), open: 135, high: 145, low: 120, close: 125, offsetY: 0 },
+    { id: createId(), open: 125, high: 160, low: 122, close: 155, offsetY: 0 },
+    { id: createId(), open: 155, high: 158, low: 140, close: 142, offsetY: 0 },
+    { id: createId(), open: 142, high: 185, low: 140, close: 180, offsetY: 0 },
+    { id: createId(), open: 180, high: 210, low: 178, close: 205, offsetY: 0 },
+    { id: createId(), open: 205, high: 210, low: 185, close: 190, offsetY: 0 },
+    { id: createId(), open: 190, high: 240, low: 188, close: 235, offsetY: 0 }
   ]
 };
 

@@ -270,7 +270,7 @@ export default function PricePatternStudio() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [showProperties, setShowProperties] = useState(true);
-  const [layersPanelWidth, setLayersPanelWidth] = useState(260);
+  const [layersPanelWidth, setLayersPanelWidth] = useState(320);
   const [isResizing, setIsResizing] = useState(false);
   
   const chartRef = useRef<ChartRendererHandle>(null);
@@ -310,7 +310,7 @@ export default function PricePatternStudio() {
         high = open + topWick;
         low = close - botWick;
       } else { // Doji
-        const bodySize = randomRange(4, 12); // Reference image shows slight bodies even in dojis
+        const bodySize = randomRange(4, 12);
         const topWick = randomRange(30, 60);
         const botWick = randomRange(30, 60);
         const isBullishDoji = Math.random() > 0.5;
