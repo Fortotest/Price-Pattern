@@ -12,7 +12,7 @@ export function getChartBounds(candles: Candlestick[]) {
     if (c.high > max) max = c.high;
   });
   const range = max - min;
-  const padding = range * 0.25 || 100;
+  const padding = range * 0.4 || 100; // Extra padding for pro look
   return { min: min - padding, max: max + padding };
 }
 
@@ -49,7 +49,7 @@ export function generateSVG(candles: Candlestick[]): string {
     
     const top = Math.min(yOpen, yClose);
     const bodyHeight = Math.max(Math.abs(yOpen - yClose), 4);
-    const wickWidth = 4;
+    const wickWidth = 6;
 
     // Wick
     svgContent += `<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="${wickWidth}" stroke-linecap="round" />`;
@@ -66,18 +66,78 @@ export function generateSVG(candles: Candlestick[]): string {
 }
 
 export const TEMPLATES = {
+  // SINGLE PATTERNS
+  HAMMER: [
+    { open: 150, high: 152, low: 100, close: 145, offsetY: 0 }
+  ],
+  SHOOTING_STAR: [
+    { open: 145, high: 200, low: 143, close: 148, offsetY: 0 }
+  ],
+  BULLISH_MARUBOZU: [
+    { open: 100, high: 200, low: 100, close: 200, offsetY: 0 }
+  ],
+  BEARISH_MARUBOZU: [
+    { open: 200, high: 200, low: 100, close: 100, offsetY: 0 }
+  ],
+  
+  // DUAL PATTERNS
   BULLISH_ENGULFING: [
-    { open: 100, high: 110, low: 90, close: 70, offsetY: 0 },
-    { open: 70, high: 150, low: 65, close: 140, offsetY: 0 }
+    { open: 100, high: 105, low: 75, close: 80, offsetY: 0 },
+    { open: 80, high: 160, low: 78, close: 150, offsetY: 0 }
   ],
   BEARISH_ENGULFING: [
-    { open: 100, high: 120, low: 95, close: 115, offsetY: 0 },
-    { open: 115, high: 125, low: 70, close: 75, offsetY: 0 }
+    { open: 150, high: 170, low: 145, close: 165, offsetY: 0 },
+    { open: 165, high: 175, low: 90, close: 95, offsetY: 0 }
   ],
+  TWEEZER_BOTTOM: [
+    { open: 150, high: 155, low: 100, close: 105, offsetY: 0 },
+    { open: 105, high: 160, low: 100, close: 155, offsetY: 0 }
+  ],
+
+  // THREE CANDLE PATTERNS
   MORNING_STAR: [
     { open: 200, high: 205, low: 145, close: 150, offsetY: 0 },
     { open: 140, high: 142, low: 128, close: 130, offsetY: 0 },
     { open: 135, high: 195, low: 130, close: 185, offsetY: 0 }
+  ],
+  EVENING_STAR: [
+    { open: 100, high: 155, low: 95, close: 145, offsetY: 0 },
+    { open: 155, high: 165, low: 150, close: 160, offsetY: 0 },
+    { open: 155, high: 160, low: 100, close: 110, offsetY: 0 }
+  ],
+  THREE_WHITE_SOLDIERS: [
+    { open: 100, high: 135, low: 98, close: 130, offsetY: 0 },
+    { open: 130, high: 165, low: 128, close: 160, offsetY: 0 },
+    { open: 160, high: 195, low: 158, close: 190, offsetY: 0 }
+  ],
+
+  // MARKET STRUCTURES
+  DOUBLE_BOTTOM: [
+    { open: 300, high: 310, low: 150, close: 160, offsetY: 0 },
+    { open: 160, high: 250, low: 155, close: 240, offsetY: 0 },
+    { open: 240, high: 245, low: 150, close: 155, offsetY: 0 },
+    { open: 155, high: 400, low: 150, close: 380, offsetY: 0 }
+  ],
+  DOUBLE_TOP: [
+    { open: 100, high: 350, low: 95, close: 340, offsetY: 0 },
+    { open: 340, high: 345, low: 250, close: 260, offsetY: 0 },
+    { open: 260, high: 355, low: 255, close: 345, offsetY: 0 },
+    { open: 345, high: 350, low: 50, close: 60, offsetY: 0 }
+  ],
+  HEAD_AND_SHOULDERS: [
+    { open: 100, high: 250, low: 95, close: 240, offsetY: 0 }, // Left Shoulder
+    { open: 240, high: 245, low: 180, close: 190, offsetY: 0 }, // Valley
+    { open: 190, high: 350, low: 185, close: 340, offsetY: 0 }, // Head
+    { open: 340, high: 345, low: 180, close: 190, offsetY: 0 }, // Valley
+    { open: 190, high: 255, low: 185, close: 245, offsetY: 0 }, // Right Shoulder
+    { open: 245, high: 250, low: 50, close: 60, offsetY: 0 }    // Breakdown
+  ],
+  BULLISH_WEDGE: [
+    { open: 400, high: 410, low: 300, close: 310, offsetY: 0 },
+    { open: 310, high: 360, low: 315, close: 350, offsetY: 0 },
+    { open: 350, high: 355, low: 260, close: 270, offsetY: 0 },
+    { open: 270, high: 320, low: 275, close: 310, offsetY: 0 },
+    { open: 310, high: 450, low: 305, close: 430, offsetY: 0 }
   ],
   FULL_BULLISH_WAVE: [
     { open: 100, high: 115, low: 98, close: 112, offsetY: 0 },

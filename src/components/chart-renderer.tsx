@@ -40,20 +40,29 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Pro Background
+    // Dark Studio Background
     const grad = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
     grad.addColorStop(0, '#0b0e14');
-    grad.addColorStop(1, '#131722');
+    grad.addColorStop(1, '#151924');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Aesthetic Grid
+    // Aesthetic Vertical/Horizontal Grids
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
+    
+    // Horizontal Grids
     for(let i=1; i<10; i++) {
         ctx.beginPath();
         ctx.moveTo(0, (CANVAS_HEIGHT/10)*i);
         ctx.lineTo(CANVAS_WIDTH, (CANVAS_HEIGHT/10)*i);
+        ctx.stroke();
+    }
+    // Vertical Grids
+    for(let i=1; i<12; i++) {
+        ctx.beginPath();
+        ctx.moveTo((CANVAS_WIDTH/12)*i, 0);
+        ctx.lineTo((CANVAS_WIDTH/12)*i, CANVAS_HEIGHT);
         ctx.stroke();
     }
 
@@ -62,19 +71,15 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const bounds = getChartBounds(currentCandles);
     const range = bounds.max - bounds.min;
     
-    // Zoom affecting scale
     const zoom = settings.zoom || 1.0;
-    const scaleMultiplier = CANVAS_WIDTH / 900; // Scaling logic to maintain 4K sharpness
+    const baseWidth = (CANVAS_WIDTH / Math.max(10, currentCandles.length)) * zoom;
+    const spacing = baseWidth * 0.25;
+    const bodyWidth = baseWidth - spacing;
     
-    const baseCandleWidth = (CANVAS_WIDTH / Math.max(10, currentCandles.length)) * zoom;
-    const candleWidth = baseCandleWidth;
-    const spacing = candleWidth * 0.25;
-    const bodyWidth = candleWidth - spacing;
-    
-    // Pro Wick Thickness (TradingView standard)
-    const wickWidth = Math.max(4, 3 * zoom * (CANVAS_WIDTH / 3840)); 
+    // Pro Wick Sharpness
+    const wickWidth = Math.max(5, 4 * zoom * (CANVAS_WIDTH / 3840)); 
 
-    const startX = (CANVAS_WIDTH / 2) - ((currentCandles.length * candleWidth) / 2) + (candleWidth / 2);
+    const startX = (CANVAS_WIDTH / 2) - ((currentCandles.length * baseWidth) / 2) + (baseWidth / 2);
     const centerY = CANVAS_HEIGHT / 2;
 
     const currentIndex = Math.floor(progressValue);
@@ -83,7 +88,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
     const getY = (price: number) => {
       const midPrice = (bounds.max + bounds.min) / 2;
-      const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.8);
+      const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.7);
       return centerY - scaledY;
     };
 
@@ -91,8 +96,8 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       if (i >= currentCandles.length) break;
 
       const c = currentCandles[i];
-      const x = startX + (i * candleWidth);
-      const shift = (c.offsetY || 0) * zoom * scaleMultiplier;
+      const x = startX + (i * baseWidth);
+      const shift = (c.offsetY || 0) * zoom;
       
       const yOpen = getY(c.open) + shift;
       const yClose = getY(c.close) + shift;
@@ -104,7 +109,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       let curHighY = yHigh;
       let curLowY = yLow;
 
-      // Price Action Animation Logic
+      // Price Action Animation
       if (i === currentIndex && isAnimating) {
         if (c.close >= c.open) { // Bullish
           if (p < 0.25) {
@@ -152,7 +157,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const isDoji = Math.abs(c.close - c.open) < 0.1;
       const color = isDoji ? "#787b86" : isBullish ? "#089981" : "#f23645";
 
-      // Draw Wick (Garis Ekor) - High Sharpness
+      // Draw Wick
       ctx.beginPath();
       ctx.moveTo(x, curHighY);
       ctx.lineTo(x, curLowY);
@@ -167,16 +172,15 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       
       ctx.fillStyle = color;
       if (!isDoji) {
-        // Border-radius for pro look
-        const radius = Math.min(wickWidth / 2, bodyWidth / 4);
+        const radius = Math.min(wickWidth, bodyWidth / 4);
         ctx.beginPath();
         ctx.roundRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight, radius);
         ctx.fill();
       } else {
-        // Doji Body Line
         ctx.beginPath();
         ctx.moveTo(x - bodyWidth / 2, yOpen);
         ctx.lineTo(x + bodyWidth / 2, yOpen);
+        ctx.lineWidth = wickWidth;
         ctx.stroke();
       }
     }
@@ -198,10 +202,9 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
         if (progress < 1) {
           animationRef.current = requestAnimationFrame(animate);
         } else {
-          // Animation complete
           setTimeout(() => {
             onAnimationComplete?.();
-          }, 500);
+          }, 300);
         }
       };
       animationRef.current = requestAnimationFrame(animate);
@@ -215,12 +218,12 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   }, [candles, isAnimating, settings]);
 
   return (
-    <div className="canvas-container shadow-2xl">
+    <div className="canvas-container w-full h-full flex items-center justify-center">
       <canvas 
         ref={canvasRef} 
         width={CANVAS_WIDTH} 
         height={CANVAS_HEIGHT}
-        className="w-full h-full object-contain"
+        className="w-full h-full object-contain rounded-2xl shadow-2xl shadow-black/50"
       />
     </div>
   );
