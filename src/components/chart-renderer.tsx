@@ -44,16 +44,15 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   const draw = (currentCandles: Candlestick[], progressValue: number = currentCandles.length) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
     const chartAreaWidth = CANVAS_WIDTH - Y_AXIS_WIDTH;
     const chartAreaHeight = CANVAS_HEIGHT - X_AXIS_HEIGHT;
 
+    // Clear canvas - DO NOT fill with black for transparency support
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     if (currentCandles.length === 0) return;
 
@@ -104,13 +103,11 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
         const p = progressValue - i; // 0 to 1
         
         if (p < 0.5) {
-          // Phase 1: Wicks grow from Open (0% to 50% of total candle time)
           const t = easeOut(p / 0.5);
           curHighY = lerp(yOpen, yHigh, t);
           curLowY = lerp(yOpen, yLow, t);
           curCloseY = yOpen;
         } else {
-          // Phase 2: Body grows from Open to Close (50% to 100% of total candle time)
           const t = easeOut((p - 0.5) / 0.5);
           curHighY = yHigh;
           curLowY = yLow;
@@ -151,7 +148,8 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     ctx.restore();
 
     // --- DRAW AXES (Y-Axis) ---
-    ctx.fillStyle = '#555';
+    // Using a lighter color (#aaa) for better visibility on transparent backgrounds
+    ctx.fillStyle = '#aaaaaa';
     ctx.font = 'bold 42px monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
@@ -169,7 +167,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     for (let i = 0; i < limit; i++) {
       const x = startX + (i * baseWidth);
       if(x >= 0 && x <= chartAreaWidth) {
-        ctx.fillStyle = '#555';
+        ctx.fillStyle = '#aaaaaa';
         ctx.font = 'bold 36px monospace';
         ctx.textAlign = 'center';
         ctx.fillText(`BAR ${i+1}`, x, chartAreaHeight + 80);
