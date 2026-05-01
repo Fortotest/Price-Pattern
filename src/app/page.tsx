@@ -22,7 +22,6 @@ import {
   Video,
   Instagram
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
@@ -57,7 +56,6 @@ const PropertiesPanel = ({
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6 pb-12">
-          {/* Viewport Controls */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Monitor className="w-3 h-3 text-primary" />
@@ -97,7 +95,6 @@ const PropertiesPanel = ({
 
           <Separator className="bg-white/5" />
 
-          {/* Animation Controls */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Zap className="w-3 h-3 text-primary" />
@@ -121,7 +118,6 @@ const PropertiesPanel = ({
 
           <Separator className="bg-white/5" />
 
-          {/* Brand Identity */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Palette className="w-3 h-3 text-primary" />
@@ -304,10 +300,15 @@ export default function PricePattern() {
   const [showProperties, setShowProperties] = useState(true);
   const [layersPanelWidth, setLayersPanelWidth] = useState(280);
   const [isResizing, setIsResizing] = useState(false);
+  const [notification, setNotification] = useState<{title: string, icon: any} | null>(null);
   
   const chartRef = useRef<ChartRendererHandle>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
-  const { toast } = useToast();
+
+  const showNotification = (title: string, icon: any) => {
+    setNotification({ title, icon });
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   const updateSettings = useCallback((newSettings: Partial<ChartSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
@@ -332,7 +333,6 @@ export default function PricePattern() {
       let open = lastClose;
       let close, high, low;
 
-      // Logic for impulsive candles (15% chance to be much larger)
       const isImpulsive = Math.random() < 0.15;
 
       if (type === 'Bullish') {
@@ -350,7 +350,6 @@ export default function PricePattern() {
         high = open + topWick;
         low = close - botWick;
       } else { 
-        // Doji remains highly random with subtle body and long wicks
         const bodySize = randomRange(10, 25); 
         const isBullish = Math.random() > 0.5;
         const topWick = randomRange(25, 50);
@@ -447,8 +446,8 @@ export default function PricePattern() {
     a.href = url;
     a.download = `price-pattern-vector.svg`;
     a.click();
-    toast({ title: "Vector Export", description: "SVG saved with transparent background." });
-  }, [candles, settings, toast]);
+    showNotification("Vector Export Saved", FileCode);
+  }, [candles, settings]);
 
   const handleReplay = useCallback(() => {
     if (candles.length === 0) return;
@@ -475,10 +474,7 @@ export default function PricePattern() {
       };
       
       recorder.onstop = () => {
-        if (chunks.length === 0) {
-          toast({ variant: "destructive", title: "Recording Error", description: "No data captured." });
-          return;
-        }
+        if (chunks.length === 0) return;
         const blob = new Blob(chunks, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -489,7 +485,7 @@ export default function PricePattern() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         setIsAnimating(false);
-        toast({ title: "Video Export", description: "Alpha channel video saved." });
+        showNotification("Alpha Video Saved", Video);
       };
       
       recorderRef.current = recorder;
@@ -527,11 +523,10 @@ export default function PricePattern() {
 
   return (
     <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none text-white">
-      {/* Sidebar with smooth transition */}
       <aside 
         className={cn(
-          "flex-col flex-shrink-0 bg-[#0a0a0a] border-r border-white/5 transition-all duration-300 ease-in-out hidden lg:flex",
-          showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none"
+          "flex-col flex-shrink-0 bg-[#0a0a0a] border-r border-white/5 transition-all duration-300 ease-in-out lg:flex",
+          showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none border-r-0"
         )}
       >
         <div className="w-[280px]">
@@ -586,6 +581,14 @@ export default function PricePattern() {
 
         <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden bg-[#000]">
           <div className="w-full h-full flex items-center justify-center relative">
+            {notification && (
+              <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in slide-in-from-top-4 duration-500">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl">
+                  <notification.icon className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-[10px] font-bold tracking-wider text-white/80 uppercase">{notification.title}</span>
+                </div>
+              </div>
+            )}
             <ChartRenderer 
               ref={chartRef}
               candles={candles} 
