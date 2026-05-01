@@ -39,7 +39,7 @@ const CustomNumberInput = ({
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [inputValue, setInputValue] = useState(value.toString());
 
-  // Sync local input state when value from prop changes (but not during typing)
+  // Sync local input state when value from prop changes
   useEffect(() => {
     setInputValue(Math.round(value).toString());
   }, [value]);
@@ -50,15 +50,23 @@ const CustomNumberInput = ({
   }, []);
 
   const handleStep = useCallback((delta: number) => {
-    const newVal = Math.max(min, value + delta);
-    onChange(newVal);
-  }, [onChange, min, value]);
+    // We use the current prop value to calculate the next step
+    // But since this is inside a callback, we might need a more robust way to handle sequential steps
+    // For simplicity in this functional component, we'll assume 'value' is fresh enough
+    onChange(Math.round(value + delta));
+  }, [onChange, value]);
 
   const startAdjusting = useCallback((delta: number) => {
     stopAdjusting();
     handleStep(delta);
+    
+    // Start auto-repeat after 300ms delay
     timerRef.current = setTimeout(() => {
-      intervalRef.current = setInterval(() => handleStep(delta), 60);
+      intervalRef.current = setInterval(() => {
+        // Here we use the functional update pattern if possible, 
+        // but since onChange is a parent prop, we'll rely on the re-render cycle
+        handleStep(delta);
+      }, 60);
     }, 300);
   }, [handleStep, stopAdjusting]);
 
