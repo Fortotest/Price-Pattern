@@ -18,7 +18,8 @@ import {
   Layers,
   Trash2,
   Plus,
-  Monitor
+  Monitor,
+  RefreshCw
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -53,7 +54,6 @@ export default function PricePatternStudio() {
     const template = TEMPLATES[val as keyof typeof TEMPLATES];
     if (template) {
       setCandles(template);
-      // Zoom dibatasi ke 1.0
       setSettings(prev => ({ ...prev, zoom: 1.0 }));
       toast({ title: "Template Applied", description: `Loaded professional ${val} pattern.` });
     }
@@ -61,11 +61,28 @@ export default function PricePatternStudio() {
 
   const handleAddCandle = (type: 'Bullish' | 'Bearish') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
-    const bodySize = 40;
-    const wickSize = 15;
+    
+    // Generate random but "neat" values (multiples of 5)
+    // Scale: Body ~100, Wicks ~15-20
+    const bodySize = Math.floor(Math.random() * 9 + 16) * 5; // 80 to 120
+    const topWick = Math.floor(Math.random() * 4 + 3) * 5;   // 15 to 30
+    const botWick = Math.floor(Math.random() * 4 + 3) * 5;   // 15 to 30
+    
     const newCandle: Candlestick = type === 'Bullish' 
-      ? { open: lastClose, close: lastClose + bodySize, high: lastClose + bodySize + wickSize, low: lastClose - 5, offsetY: 0 }
-      : { open: lastClose, close: lastClose - bodySize, high: lastClose + 5, low: lastClose - bodySize - wickSize, offsetY: 0 };
+      ? { 
+          open: lastClose, 
+          close: lastClose + bodySize, 
+          high: lastClose + bodySize + topWick, 
+          low: lastClose - botWick, 
+          offsetY: 0 
+        }
+      : { 
+          open: lastClose, 
+          close: lastClose - bodySize, 
+          high: lastClose + topWick, 
+          low: lastClose - bodySize - botWick, 
+          offsetY: 0 
+        };
     setCandles([...candles, newCandle]);
   };
 
@@ -89,7 +106,7 @@ export default function PricePatternStudio() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `PricePattern_4K_Vector.svg`;
+    a.download = `PricePattern_Vector_Pro.svg`;
     a.click();
     toast({ title: "Vector Exported", description: "Professional SVG file downloaded." });
   };
@@ -97,7 +114,7 @@ export default function PricePatternStudio() {
   const handleReplay = () => {
     if (candles.length === 0) return;
     setIsAnimating(false);
-    setTimeout(() => setIsAnimating(true), 50);
+    setTimeout(() => setIsAnimating(true), 100);
   };
 
   const handleRecordVideo = async () => {
@@ -151,21 +168,27 @@ export default function PricePatternStudio() {
                 </SelectTrigger>
                 <SelectContent className="bg-[#1c212f] border-white/10 text-white">
                   <SelectGroup>
-                    <SelectLabel>Basic Bars</SelectLabel>
+                    <SelectLabel>Single Bar Patterns</SelectLabel>
+                    <SelectItem value="HAMMER">🔨 Bullish Hammer</SelectItem>
+                    <SelectItem value="SHOOTING_STAR">☄️ Shooting Star</SelectItem>
                     <SelectItem value="BULLISH_MARUBOZU">🟩 Bullish Marubozu</SelectItem>
                     <SelectItem value="BEARISH_MARUBOZU">🟥 Bearish Marubozu</SelectItem>
-                    <SelectItem value="HAMMER">🔨 Bullish Hammer</SelectItem>
                   </SelectGroup>
                   <SelectGroup>
-                    <SelectLabel>Reversal Structures</SelectLabel>
+                    <SelectLabel>Dual/Triple Bar Patterns</SelectLabel>
+                    <SelectItem value="BULLISH_ENGULFING">📈 Bullish Engulfing</SelectItem>
+                    <SelectItem value="BEARISH_ENGULFING">📉 Bearish Engulfing</SelectItem>
+                    <SelectItem value="TWEEZER_BOTTOM">⚓ Tweezer Bottom</SelectItem>
                     <SelectItem value="MORNING_STAR">🌅 Morning Star</SelectItem>
+                    <SelectItem value="EVENING_STAR">🌆 Evening Star</SelectItem>
+                    <SelectItem value="THREE_WHITE_SOLDIERS">💂 Three Soldiers</SelectItem>
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel>Market Structure</SelectLabel>
                     <SelectItem value="DOUBLE_BOTTOM">📈 Double Bottom (W)</SelectItem>
                     <SelectItem value="DOUBLE_TOP">📉 Double Top (M)</SelectItem>
                     <SelectItem value="HEAD_AND_SHOULDERS">👤 Head & Shoulders</SelectItem>
-                  </SelectGroup>
-                  <SelectGroup>
-                    <SelectLabel>Wave Analysis</SelectLabel>
-                    <SelectItem value="FULL_BULLISH_WAVE">🌊 Wave (11 Bars)</SelectItem>
+                    <SelectItem value="FULL_BULLISH_WAVE">🌊 Full Bullish Wave</SelectItem>
                     <SelectItem value="BULLISH_WEDGE">📐 Bullish Wedge</SelectItem>
                   </SelectGroup>
                 </SelectContent>
@@ -215,7 +238,7 @@ export default function PricePatternStudio() {
         </ScrollArea>
 
         <div className="p-6 bg-[#161616] border-t border-white/5 space-y-3 shrink-0">
-          <Button className="w-full h-11 font-bold gap-2 bg-slate-700 hover:bg-slate-600 text-white" onClick={handleReplay} disabled={candles.length === 0 || isAnimating}><Play className="w-4 h-4" /> Preview Animation</Button>
+          <Button className="w-full h-11 font-bold gap-2 bg-slate-700 hover:bg-slate-600 text-white" onClick={handleReplay} disabled={candles.length === 0 || isAnimating}><RefreshCw className={`w-4 h-4 ${isAnimating ? 'animate-spin' : ''}`} /> Replay Animation</Button>
           <div className="flex gap-3">
             <Button variant="outline" className="flex-1 h-12 gap-2 border-primary/20 text-primary hover:bg-primary/5 font-bold" onClick={handleExportSVG} disabled={candles.length === 0}><Download className="w-4 h-4" /> SVG</Button>
             <Button className="flex-1 h-12 gap-2 bg-purple-600 hover:bg-purple-700 font-bold" onClick={handleRecordVideo} disabled={candles.length === 0}><Video className="w-4 h-4" /> 4K Video</Button>
