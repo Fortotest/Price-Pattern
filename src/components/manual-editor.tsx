@@ -4,7 +4,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Candlestick } from "@/lib/chart-types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Trash2, GripVertical, ChevronUp, ChevronDown } from "lucide-react";
 import { 
@@ -25,27 +24,30 @@ const CustomNumberInput = ({
   label, 
   value, 
   onChange, 
-  colorClass = "text-primary" 
+  colorClass = "text-primary",
+  min = 0,
+  compact = false
 }: { 
-  label: string, 
+  label?: string, 
   value: number, 
   onChange: (val: number) => void,
-  colorClass?: string
+  colorClass?: string,
+  min?: number,
+  compact?: boolean
 }) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const valueRef = useRef(value);
 
   useEffect(() => {
-    // Pastikan valueRef selalu memiliki angka yang valid
     valueRef.current = Number.isFinite(value) ? value : 0;
   }, [value]);
 
   const handleStep = useCallback((delta: number) => {
     const currentVal = Number.isFinite(valueRef.current) ? valueRef.current : 0;
-    const newValue = Math.max(0, Math.round(currentVal + delta));
+    const newValue = Math.max(min, Math.round(currentVal + delta));
     onChange(newValue);
-  }, [onChange]);
+  }, [onChange, min]);
 
   const stopAdjusting = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -58,20 +60,18 @@ const CustomNumberInput = ({
     stopAdjusting();
     handleStep(delta);
     
-    // Penundaan awal sebelum pengulangan otomatis dimulai
     timerRef.current = setTimeout(() => {
       intervalRef.current = setInterval(() => {
         handleStep(delta);
-      }, 50); // Kecepatan pengulangan 50ms
+      }, 50);
     }, 350);
   }, [handleStep, stopAdjusting]);
 
-  // Hindari NaN pada tampilan
   const displayValue = Number.isFinite(value) ? Math.round(value) : 0;
 
   return (
-    <div className="bg-[#0d0d0d] rounded-md p-1.5 flex flex-col items-center justify-between border border-white/5 h-14 w-full group/input transition-colors hover:border-white/10">
-      <span className={`text-[7px] font-bold uppercase tracking-wider ${colorClass}`}>{label}</span>
+    <div className={`bg-[#0d0d0d] rounded-md flex flex-col items-center justify-between border border-white/5 group/input transition-colors hover:border-white/10 ${compact ? 'h-10' : 'h-14'} w-full`}>
+      {label && <span className={`text-[7px] font-bold uppercase tracking-wider pt-1 ${colorClass}`}>{label}</span>}
       <div className="flex items-center w-full flex-1">
         <div className="flex-1 text-center font-mono text-[10px] font-bold text-white">
           {displayValue}
@@ -135,14 +135,13 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
               </Button>
             </div>
             
-            <div className="grid grid-cols-2 gap-1.5 mb-1.5">
+            <div className="grid grid-cols-2 gap-2 mb-2">
               <div className="space-y-1">
                 <Label className="text-[7px] uppercase text-muted-foreground tracking-widest font-bold">Type</Label>
                 <Select 
                   value={bodyPrice > 10 ? 'bullish' : (bodyPrice < -10 ? 'bearish' : 'doji')} 
                   onValueChange={(val) => {
                     if (val === 'doji') {
-                      // Doji default body 10
                       onChange(idx, { 
                         ...c, 
                         close: c.open + 10,
@@ -161,7 +160,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                     }
                   }}
                 >
-                  <SelectTrigger className="h-5 text-[7px] bg-black border-white/5 font-bold p-1 px-2 focus:ring-0">
+                  <SelectTrigger className="h-10 text-[7px] bg-black border-white/5 font-bold p-1 px-2 focus:ring-0">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#1c212f] border-white/10 text-white">
@@ -174,14 +173,12 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
 
               <div className="space-y-1">
                 <Label className="text-[7px] uppercase text-muted-foreground tracking-widest font-bold">Offset Y</Label>
-                <Input 
-                  type="number" 
+                <CustomNumberInput 
                   value={c.offsetY || 0} 
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value) || 0;
-                    onChange(idx, { ...c, offsetY: val });
-                  }}
-                  className="h-5 text-[7px] bg-black border-white/5 font-mono px-2 focus-visible:ring-0"
+                  onChange={(val) => onChange(idx, { ...c, offsetY: val })}
+                  min={-2000}
+                  compact
+                  colorClass="text-white"
                 />
               </div>
             </div>
