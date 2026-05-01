@@ -19,7 +19,8 @@ import {
   Menu,
   X,
   FileCode,
-  Video
+  Video,
+  Instagram
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -243,7 +244,7 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
         >
           <option value="custom">Kosongkan Layer</option>
           <optgroup label="General Patterns">
-            <option value="spinning_tops">😵 Spinning Tops</option>
+            <option value="spinning_tops">😐 Spinning Tops</option>
             <option value="shooting_star">😰 Shooting Star</option>
             <option value="hammer">😤 Hammer</option>
             <option value="doji">😐 Doji</option>
@@ -254,14 +255,14 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
             <option value="three_soldiers">🫡 3 Soldiers</option>
             <option value="three_crows">🧟 3 Crows</option>
           </optgroup>
-          <optgroup label="Market Structure (SNR)">
-            <option value="bullish_snr_3_valleys">🤑 Bullish SNR (3 Valleys)</option>
-            <option value="bearish_snr_3_peaks">🤮 Bearish SNR (3 Peaks)</option>
+          <optgroup label="Macro Market Structures">
+            <option value="bullish_snr_3_valleys">📈 SNR Bullish (3 Valleys)</option>
+            <option value="bearish_snr_3_peaks">📉 SNR Bearish (3 Peaks)</option>
           </optgroup>
           <optgroup label="Advanced Price Action">
-            <option value="trend_reversal_v_shape">🤯 V-Shape Reversal</option>
-            <option value="bullish_fakeout_trap">🤡 Fakeout / Bull Trap</option>
-            <option value="valid_breakout_retest">🧐 Breakout & Retest</option>
+            <option value="trend_reversal_v_shape">🔄 V-Shape Reversal</option>
+            <option value="bullish_fakeout_trap">🪤 Fakeout / Bull Trap</option>
+            <option value="valid_breakout_retest">🚀 Breakout & Retest</option>
             <option value="strong_momentum_run">🥵 Strong Momentum</option>
           </optgroup>
         </select>
@@ -536,6 +537,16 @@ export default function PricePattern() {
               PricePattern
             </div>
           </div>
+
+          <a 
+            href="https://www.instagram.com/masffadil/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/5 group active:scale-95"
+          >
+            <Instagram className="w-3.5 h-3.5 text-pink-500 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-bold tracking-wider text-white/80 group-hover:text-white">masffadil</span>
+          </a>
         </header>
 
         <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden bg-[#000]">
