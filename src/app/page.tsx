@@ -18,7 +18,8 @@ import {
   Maximize,
   Palette,
   Layers,
-  Settings2
+  Settings2,
+  Trash2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -57,14 +58,12 @@ const PropertiesPanel = ({
   candles, 
   isAnimating 
 }: PanelProps) => {
-  // Local states for 60fps interaction
   const [localZoom, setLocalZoom] = useState(settings.zoom);
   const [localSpacing, setLocalSpacing] = useState(settings.spacing);
   const [localSpeed, setLocalSpeed] = useState(settings.speed);
   const [localBodyRadius, setLocalBodyRadius] = useState(settings.bodyRadius);
   const [localWickRadius, setLocalWickRadius] = useState(settings.wickRadius);
 
-  // Sync local states when external settings change (e.g. template load)
   useEffect(() => {
     setLocalZoom(settings.zoom);
     setLocalSpacing(settings.spacing);
@@ -276,27 +275,40 @@ const PropertiesPanel = ({
 
 interface LayersPanelProps {
   candles: Candlestick[];
-  onAddCandle: (type: 'Bullish' | 'Bearish') => void;
+  onAddCandle: (type: 'Bullish' | 'Bearish' | 'Doji') => void;
   onUpdateCandle: (index: number, updated: Candlestick) => void;
   onRemoveCandle: (index: number) => void;
+  onClearAll: () => void;
 }
 
-const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle }: LayersPanelProps) => (
+const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll }: LayersPanelProps) => (
   <div className="flex flex-col h-full bg-[#0a0a0a] border-l border-[#1a1a1a] text-white overflow-hidden w-[260px]">
-    <div className="p-3 border-b border-white/5 flex items-center gap-2">
-      <Layers className="w-3.5 h-3.5 text-emerald-500" />
-      <span className="text-[10px] font-bold uppercase tracking-wider">Layers</span>
+    <div className="p-3 border-b border-white/5 flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Layers className="w-3.5 h-3.5 text-emerald-500" />
+        <span className="text-[10px] font-bold uppercase tracking-wider">Layers</span>
+      </div>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={onClearAll} 
+        disabled={candles.length === 0}
+        className="h-6 px-2 text-[8px] font-bold hover:bg-red-500/10 hover:text-red-400 text-muted-foreground gap-1.5"
+      >
+        <Trash2 className="w-2.5 h-2.5" /> CLEAR
+      </Button>
     </div>
     
     <div className="p-3 bg-black/40 space-y-2">
-      <div className="grid grid-cols-2 gap-2">
-        <Button onClick={() => onAddCandle('Bullish')} className="bg-[#00b386] hover:bg-[#00b386]/90 h-7 text-[9px] font-bold border-none"><Plus className="w-3 h-3 mr-1" /> Bull</Button>
-        <Button onClick={() => onAddCandle('Bearish')} variant="destructive" className="bg-[#f23645] hover:bg-[#f23645]/90 h-7 text-[9px] font-bold border-none"><Plus className="w-3 h-3 mr-1" /> Bear</Button>
+      <div className="grid grid-cols-3 gap-1.5">
+        <Button onClick={() => onAddCandle('Bullish')} className="bg-[#00b386] hover:bg-[#00b386]/90 h-7 text-[8px] font-bold border-none">BULL</Button>
+        <Button onClick={() => onAddCandle('Bearish')} variant="destructive" className="bg-[#f23645] hover:bg-[#f23645]/90 h-7 text-[8px] font-bold border-none">BEAR</Button>
+        <Button onClick={() => onAddCandle('Doji')} variant="outline" className="bg-[#333] hover:bg-[#444] h-7 text-[8px] font-bold border-none">DOJI</Button>
       </div>
     </div>
 
     <ScrollArea className="flex-1">
-      <div className="p-3 pb-8">
+      <div className="p-2 pb-8">
         <ManualEditor 
           candles={candles} 
           onChange={onUpdateCandle} 
@@ -328,16 +340,13 @@ export default function PricePatternStudio() {
   const chartRef = useRef<ChartRendererHandle>(null);
   const { toast } = useToast();
 
-  // Debounced settings update to prevent main thread blocking during 4K render
   const debouncedUpdateTimer = useRef<NodeJS.Timeout | null>(null);
   const updateSettings = useCallback((newSettings: Partial<ChartSettings>) => {
-    // If it's a color change, update immediately for responsive picker
     if (newSettings.bullColor || newSettings.bearColor) {
       setSettings(prev => ({ ...prev, ...newSettings }));
       return;
     }
 
-    // Otherwise debounce (for Slider-based interactions)
     if (debouncedUpdateTimer.current) clearTimeout(debouncedUpdateTimer.current);
     debouncedUpdateTimer.current = setTimeout(() => {
       setSettings(prev => ({ ...prev, ...newSettings }));
@@ -352,26 +361,38 @@ export default function PricePatternStudio() {
     }
   }, [toast]);
 
-  const handleAddCandle = useCallback((type: 'Bullish' | 'Bearish') => {
+  const handleAddCandle = useCallback((type: 'Bullish' | 'Bearish' | 'Doji') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
-    const bodySize = 50; 
+    const bodySize = type === 'Doji' ? 0 : 50; 
     const wickSize = 20;
     
-    const newCandle: Candlestick = type === 'Bullish' 
-      ? { 
-          open: lastClose, 
-          close: lastClose + bodySize, 
-          high: lastClose + bodySize + wickSize, 
-          low: lastClose - wickSize, 
-          offsetY: 0 
-        }
-      : { 
-          open: lastClose, 
-          close: lastClose - bodySize, 
-          high: lastClose + wickSize, 
-          low: lastClose - bodySize - wickSize, 
-          offsetY: 0 
-        };
+    let newCandle: Candlestick;
+    
+    if (type === 'Doji') {
+      newCandle = {
+        open: lastClose,
+        close: lastClose,
+        high: lastClose + wickSize,
+        low: lastClose - wickSize,
+        offsetY: 0
+      };
+    } else if (type === 'Bullish') {
+      newCandle = { 
+        open: lastClose, 
+        close: lastClose + bodySize, 
+        high: lastClose + bodySize + wickSize, 
+        low: lastClose - wickSize, 
+        offsetY: 0 
+      };
+    } else {
+      newCandle = { 
+        open: lastClose, 
+        close: lastClose - bodySize, 
+        high: lastClose + wickSize, 
+        low: lastClose - bodySize - wickSize, 
+        offsetY: 0 
+      };
+    }
     
     setCandles(prev => [...prev, newCandle]);
   }, [candles]);
@@ -387,6 +408,11 @@ export default function PricePatternStudio() {
   const handleRemoveCandle = useCallback((idx: number) => {
     setCandles(prev => prev.filter((_, i) => i !== idx));
   }, []);
+
+  const handleClearAll = useCallback(() => {
+    setCandles([]);
+    toast({ title: "Layers Cleared", description: "All candlesticks removed." });
+  }, [toast]);
 
   const handleExportSVG = useCallback(() => {
     if (candles.length === 0) return;
@@ -431,7 +457,6 @@ export default function PricePatternStudio() {
 
   return (
     <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none">
-      {/* Properties on the LEFT */}
       <aside className="hidden lg:flex flex-col flex-shrink-0">
         <PropertiesPanel 
           settings={settings}
@@ -445,7 +470,6 @@ export default function PricePatternStudio() {
         />
       </aside>
 
-      {/* Main Canvas Area */}
       <main className="flex-1 flex flex-col relative overflow-hidden bg-black">
         <header className="lg:hidden h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#0a0a0a] z-30">
           <Sheet>
@@ -479,6 +503,7 @@ export default function PricePatternStudio() {
                 onAddCandle={handleAddCandle}
                 onUpdateCandle={handleUpdateCandle}
                 onRemoveCandle={handleRemoveCandle}
+                onClearAll={handleClearAll}
               />
             </SheetContent>
           </Sheet>
@@ -517,13 +542,13 @@ export default function PricePatternStudio() {
         </footer>
       </main>
 
-      {/* Layers on the RIGHT */}
       <aside className="hidden lg:flex flex-col flex-shrink-0">
         <LayersPanel 
           candles={candles}
           onAddCandle={handleAddCandle}
           onUpdateCandle={handleUpdateCandle}
           onRemoveCandle={handleRemoveCandle}
+          onClearAll={handleClearAll}
         />
       </aside>
     </div>
