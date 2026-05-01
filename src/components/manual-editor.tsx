@@ -37,6 +37,7 @@ const CustomNumberInput = ({
   const valueRef = useRef(value);
 
   useEffect(() => {
+    // Pastikan valueRef selalu memiliki angka yang valid
     valueRef.current = Number.isFinite(value) ? value : 0;
   }, [value]);
 
@@ -57,13 +58,15 @@ const CustomNumberInput = ({
     stopAdjusting();
     handleStep(delta);
     
+    // Penundaan awal sebelum pengulangan otomatis dimulai
     timerRef.current = setTimeout(() => {
       intervalRef.current = setInterval(() => {
         handleStep(delta);
-      }, 50);
+      }, 50); // Kecepatan pengulangan 50ms
     }, 350);
   }, [handleStep, stopAdjusting]);
 
+  // Hindari NaN pada tampilan
   const displayValue = Number.isFinite(value) ? Math.round(value) : 0;
 
   return (
@@ -104,9 +107,6 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
       {reversedIndices.map((idx) => {
         const c = candles[idx];
         const bodyPrice = c.close - c.open;
-        const isBullish = bodyPrice > 0;
-        const isBearish = bodyPrice < 0;
-        const isDoji = bodyPrice === 0 || Math.abs(bodyPrice) <= 10; // Logic for Doji check
         
         let statusColor = "bg-[#333]";
         if (bodyPrice > 10) statusColor = "bg-[#00b386]";
@@ -142,7 +142,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                   value={bodyPrice > 10 ? 'bullish' : (bodyPrice < -10 ? 'bearish' : 'doji')} 
                   onValueChange={(val) => {
                     if (val === 'doji') {
-                      // Set close to open + 10 as requested for Doji default body
+                      // Doji default body 10
                       onChange(idx, { 
                         ...c, 
                         close: c.open + 10,

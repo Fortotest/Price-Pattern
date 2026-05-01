@@ -353,13 +353,13 @@ export default function PricePatternStudio() {
     const template = TEMPLATES[val as keyof typeof TEMPLATES];
     if (template) {
       setCandles(template);
-      toast({ title: "Template Applied", description: val.replace(/_/g, ' ') });
+      // Notifikasi toast dihapus sesuai permintaan
     }
-  }, [toast]);
+  }, []);
 
   const handleAddCandle = useCallback((type: 'Bullish' | 'Bearish' | 'Doji') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
-    // Set Doji default body to 10 as requested
+    // Set Doji default body to 10
     const bodySize = type === 'Doji' ? 10 : 50; 
     const wickSize = 20;
     
