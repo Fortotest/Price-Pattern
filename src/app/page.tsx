@@ -300,13 +300,13 @@ export default function PricePattern() {
   const [showProperties, setShowProperties] = useState(true);
   const [layersPanelWidth, setLayersPanelWidth] = useState(280);
   const [isResizing, setIsResizing] = useState(false);
-  const [notification, setNotification] = useState<{title: string, icon: any} | null>(null);
+  const [notification, setNotification] = useState<{title: string, emoji: string} | null>(null);
   
   const chartRef = useRef<ChartRendererHandle>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
 
-  const showNotification = (title: string, icon: any) => {
-    setNotification({ title, icon });
+  const showNotification = (title: string, emoji: string) => {
+    setNotification({ title, emoji });
     // Menghilangkan notifikasi otomatis setelah 5 detik
     setTimeout(() => setNotification(null), 5000);
   };
@@ -447,7 +447,7 @@ export default function PricePattern() {
     a.href = url;
     a.download = `price-pattern-vector.svg`;
     a.click();
-    showNotification("Berhasil di unduh", FileCode);
+    showNotification("Berhasil di unduh", "✅");
   }, [candles, settings]);
 
   const handleReplay = useCallback(() => {
@@ -486,7 +486,7 @@ export default function PricePattern() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         setIsAnimating(false);
-        showNotification("Berhasil di unduh", Video);
+        showNotification("Berhasil di unduh", "🎬");
       };
       
       recorderRef.current = recorder;
@@ -585,7 +585,7 @@ export default function PricePattern() {
             {notification && (
               <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in slide-in-from-top-4 duration-500">
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl">
-                  <notification.icon className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-sm">{notification.emoji}</span>
                   <span className="text-[10px] font-bold tracking-wider text-white/80 uppercase">{notification.title}</span>
                 </div>
               </div>
