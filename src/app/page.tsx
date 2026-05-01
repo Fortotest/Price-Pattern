@@ -307,7 +307,8 @@ export default function PricePattern() {
 
   const showNotification = (title: string, icon: any) => {
     setNotification({ title, icon });
-    setTimeout(() => setNotification(null), 2500);
+    // Menghilangkan notifikasi otomatis setelah 5 detik
+    setTimeout(() => setNotification(null), 5000);
   };
 
   const updateSettings = useCallback((newSettings: Partial<ChartSettings>) => {
