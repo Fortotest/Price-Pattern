@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Candlestick, ChartSettings } from "@/lib/chart-types";
+import { Candlestick, ChartSettings, DrawingTool } from "@/lib/chart-types";
 import { generateSVG, TEMPLATES } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
 import ManualEditor from "@/components/manual-editor";
@@ -14,7 +14,6 @@ import {
   Video, 
   BarChart4,
   Play,
-  MousePointer2,
   Layers,
   Trash2,
   Plus,
@@ -41,6 +40,7 @@ export default function PricePatternStudio() {
     autoCenter: true
   });
   
+  const [activeTool, setActiveTool] = useState<DrawingTool>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   
@@ -56,7 +56,6 @@ export default function PricePatternStudio() {
       if (template.length > 20) newZoom = 0.5;
       else if (template.length > 10) newZoom = 0.8;
       else newZoom = 1.2;
-      
       setSettings(prev => ({ ...prev, zoom: newZoom }));
       toast({ title: "Template Applied", description: `Loaded professional ${val} pattern.` });
     }
@@ -66,11 +65,9 @@ export default function PricePatternStudio() {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
     const bodySize = 40;
     const wickSize = 15;
-    
     const newCandle: Candlestick = type === 'Bullish' 
       ? { open: lastClose, close: lastClose + bodySize, high: lastClose + bodySize + wickSize, low: lastClose - 5, offsetY: 0 }
       : { open: lastClose, close: lastClose - bodySize, high: lastClose + 5, low: lastClose - bodySize - wickSize, offsetY: 0 };
-    
     setCandles([...candles, newCandle]);
   };
 
@@ -81,11 +78,7 @@ export default function PricePatternStudio() {
       const prevClose = newCandles[i-1].close;
       const body = Math.abs(newCandles[i].close - newCandles[i].open);
       const isUp = newCandles[i].close >= newCandles[i].open;
-      newCandles[i] = {
-        ...newCandles[i],
-        open: prevClose,
-        close: isUp ? prevClose + body : prevClose - body,
-      };
+      newCandles[i] = { ...newCandles[i], open: prevClose, close: isUp ? prevClose + body : prevClose - body };
     }
     setCandles(newCandles);
   };
@@ -105,22 +98,15 @@ export default function PricePatternStudio() {
   const handleReplay = () => {
     if (candles.length === 0) return;
     setIsAnimating(false);
-    setTimeout(() => {
-      setIsAnimating(true);
-    }, 50);
+    setTimeout(() => setIsAnimating(true), 50);
   };
 
   const handleRecordVideo = async () => {
     const canvas = chartRef.current?.getCanvas();
     if (!canvas || candles.length === 0) return;
-
     setIsRecording(true);
     const stream = canvas.captureStream(60);
-    const recorder = new MediaRecorder(stream, {
-      mimeType: 'video/webm;codecs=vp9',
-      videoBitsPerSecond: 20000000 
-    });
-
+    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 20000000 });
     const chunks: Blob[] = [];
     recorder.ondataavailable = (e) => chunks.push(e.data);
     recorder.onstop = () => {
@@ -134,17 +120,13 @@ export default function PricePatternStudio() {
       setIsAnimating(false);
       toast({ title: "Recording Finished", description: "4K cinematic video saved." });
     };
-
     recorder.start();
     setIsAnimating(true);
   };
 
   return (
     <div className="flex h-screen w-full bg-[#0b0e14] text-foreground overflow-hidden font-body">
-      {/* Sidebar: Fixed Height and Flex Layout */}
       <aside className={`w-[400px] h-screen flex flex-col border-r border-white/5 bg-[#121212] shrink-0 transition-opacity duration-300 ${isRecording ? 'opacity-20 pointer-events-none' : ''}`}>
-        
-        {/* Branding (Fixed Top) */}
         <div className="p-6 border-b border-white/5 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
@@ -157,11 +139,8 @@ export default function PricePatternStudio() {
           </div>
         </div>
 
-        {/* Scrollable Middle Section */}
         <ScrollArea className="flex-1 overflow-y-auto">
           <div className="p-6 space-y-8">
-            
-            {/* Template Market */}
             <section className="space-y-4">
               <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
                 <Layers className="w-3.5 h-3.5" /> Template Market
@@ -193,7 +172,6 @@ export default function PricePatternStudio() {
               </Select>
             </section>
 
-            {/* View Controls */}
             <section className="bg-white/5 rounded-2xl p-5 space-y-6">
               <div className="space-y-4">
                 <div className="space-y-3">
@@ -201,80 +179,51 @@ export default function PricePatternStudio() {
                     <Label className="text-[10px] font-bold uppercase text-muted-foreground">Zoom Level</Label>
                     <span className="text-[10px] font-mono text-primary font-bold">{settings.zoom.toFixed(1)}x</span>
                   </div>
-                  <Slider 
-                    value={[settings.zoom]} 
-                    min={0.2} max={3} step={0.1}
-                    onValueChange={([val]) => setSettings(prev => ({ ...prev, zoom: val }))}
-                  />
+                  <Slider value={[settings.zoom]} min={0.2} max={3} step={0.1} onValueChange={([val]) => setSettings(prev => ({ ...prev, zoom: val }))} />
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <Label className="text-[10px] font-bold uppercase text-muted-foreground">Animation Speed</Label>
                     <span className="text-[10px] font-mono text-primary font-bold">{settings.speed.toFixed(1)}s</span>
                   </div>
-                  <Slider 
-                    value={[settings.speed]} 
-                    min={0.1} max={2.5} step={0.1}
-                    onValueChange={([val]) => setSettings(prev => ({ ...prev, speed: val }))}
-                  />
+                  <Slider value={[settings.speed]} min={0.1} max={2.5} step={0.1} onValueChange={([val]) => setSettings(prev => ({ ...prev, speed: val }))} />
                 </div>
               </div>
             </section>
 
-            {/* Manual Tuning */}
             <section className="space-y-4 pb-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  <MousePointer2 className="w-3.5 h-3.5" /> Manual Tuning
+                  <Monitor className="w-3.5 h-3.5" /> Manual Tuning
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setCandles([])} className="h-6 text-[10px] font-bold text-red-400 hover:text-red-300">
-                  <Trash2 className="w-3 h-3 mr-1" /> Reset
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => chartRef.current?.clearDrawings()} className="h-6 text-[10px] font-bold text-blue-400 hover:text-blue-300">Clear Drawings</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setCandles([])} className="h-6 text-[10px] font-bold text-red-400 hover:text-red-300">
+                    <Trash2 className="w-3 h-3 mr-1" /> Reset
+                  </Button>
+                </div>
               </div>
               
               <div className="flex gap-2 mb-4">
-                <Button onClick={() => handleAddCandle('Bullish')} className="flex-1 bg-[#089981] hover:bg-[#089981]/90 h-10 text-xs font-bold gap-2">
-                  <Plus className="w-3 h-3" /> Bullish
-                </Button>
-                <Button onClick={() => handleAddCandle('Bearish')} variant="destructive" className="flex-1 bg-[#f23645] hover:bg-[#f23645]/90 h-10 text-xs font-bold gap-2">
-                  <Plus className="w-3 h-3" /> Bearish
-                </Button>
+                <Button onClick={() => handleAddCandle('Bullish')} className="flex-1 bg-[#089981] hover:bg-[#089981]/90 h-10 text-xs font-bold gap-2"><Plus className="w-3 h-3" /> Bullish</Button>
+                <Button onClick={() => handleAddCandle('Bearish')} variant="destructive" className="flex-1 bg-[#f23645] hover:bg-[#f23645]/90 h-10 text-xs font-bold gap-2"><Plus className="w-3 h-3" /> Bearish</Button>
               </div>
 
-              <ManualEditor 
-                candles={candles} 
-                onChange={handleUpdateCandle} 
-                onAdd={handleAddCandle}
-                onRemove={(idx) => setCandles(candles.filter((_, i) => i !== idx))}
-                onClear={() => setCandles([])}
-              />
+              <ManualEditor candles={candles} onChange={handleUpdateCandle} onAdd={handleAddCandle} onRemove={(idx) => setCandles(candles.filter((_, i) => i !== idx))} onClear={() => setCandles([])} />
             </section>
           </div>
         </ScrollArea>
 
-        {/* Global Actions (Fixed Bottom) */}
         <div className="p-6 bg-[#161616] border-t border-white/5 space-y-3 shrink-0">
-          <Button 
-            className="w-full h-11 font-bold gap-2 bg-slate-700 hover:bg-slate-600 text-white"
-            onClick={handleReplay}
-            disabled={candles.length === 0 || isAnimating}
-          >
-            <Play className="w-4 h-4" /> Preview Animation
-          </Button>
+          <Button className="w-full h-11 font-bold gap-2 bg-slate-700 hover:bg-slate-600 text-white" onClick={handleReplay} disabled={candles.length === 0 || isAnimating}><Play className="w-4 h-4" /> Preview Animation</Button>
           <div className="flex gap-3">
-            <Button variant="outline" className="flex-1 h-12 gap-2 border-primary/20 text-primary hover:bg-primary/5 font-bold" onClick={handleExportSVG} disabled={candles.length === 0}>
-              <Download className="w-4 h-4" /> SVG
-            </Button>
-            <Button className="flex-1 h-12 gap-2 bg-purple-600 hover:bg-purple-700 font-bold" onClick={handleRecordVideo} disabled={candles.length === 0}>
-              <Video className="w-4 h-4" /> 4K Video
-            </Button>
+            <Button variant="outline" className="flex-1 h-12 gap-2 border-primary/20 text-primary hover:bg-primary/5 font-bold" onClick={handleExportSVG} disabled={candles.length === 0}><Download className="w-4 h-4" /> SVG</Button>
+            <Button className="flex-1 h-12 gap-2 bg-purple-600 hover:bg-purple-700 font-bold" onClick={handleRecordVideo} disabled={candles.length === 0}><Video className="w-4 h-4" /> 4K Video</Button>
           </div>
         </div>
       </aside>
 
-      {/* Main Studio Viewport */}
       <main className="flex-1 h-screen relative flex flex-col bg-[#000000]">
-        {/* Floating Toolbar */}
         <div className="absolute top-0 left-0 right-0 p-8 flex justify-between items-start pointer-events-none z-20">
           <div className="flex items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 px-5 py-2.5 rounded-full shadow-2xl">
              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.8)]" />
@@ -291,11 +240,9 @@ export default function PricePatternStudio() {
           )}
         </div>
 
-        {/* Dynamic Chart Area */}
         <div className="flex-1 flex flex-col items-center justify-center p-12 overflow-hidden relative">
-          {/* Drawing Toolbar (Floating above Chart) */}
           <div className="mb-6 z-30">
-            <DrawingToolbar />
+            <DrawingToolbar activeTool={activeTool} onToolSelect={setActiveTool} />
           </div>
 
           <div className="w-full max-w-[1600px] z-10">
@@ -304,12 +251,12 @@ export default function PricePatternStudio() {
               candles={candles} 
               settings={settings} 
               isAnimating={isAnimating}
+              activeTool={activeTool}
               onAnimationComplete={() => setIsAnimating(false)}
             />
           </div>
         </div>
 
-        {/* Status Bar (Fixed Bottom of Main) */}
         <div className="h-14 border-t border-white/5 bg-[#121212] px-8 flex items-center justify-between shrink-0">
           <div className="flex gap-10">
              <div className="flex flex-col">

@@ -3,7 +3,7 @@ export interface Candlestick {
   high: number;
   low: number;
   close: number;
-  offsetY?: number; // Optional vertical shift for custom positioning
+  offsetY?: number;
 }
 
 export type MarketPattern = 'Bullish Trend' | 'Bearish Trend' | 'Double Top' | 'Double Bottom' | 'Sideways';
@@ -11,12 +11,15 @@ export type MarketPattern = 'Bullish Trend' | 'Bearish Trend' | 'Double Top' | '
 export interface ChartSettings {
   zoom: number;
   spacing: number;
-  speed: number; // seconds per candle
+  speed: number;
   autoCenter: boolean;
 }
 
-export interface AIGeneratorParams {
-  count: number;
-  pattern: MarketPattern;
-  volatility: number;
+export type DrawingTool = 'crosshair' | 'trendline' | 'rectangle' | 'brush' | 'arrow' | null;
+
+export interface Drawing {
+  id: string;
+  type: DrawingTool;
+  points: { x: number; y: number }[];
+  color: string;
 }
