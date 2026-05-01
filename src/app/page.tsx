@@ -331,15 +331,18 @@ export default function PricePattern() {
       let open = lastClose;
       let close, high, low;
 
+      // Logic for impulsive candles (15% chance to be much larger)
+      const isImpulsive = Math.random() < 0.15;
+
       if (type === 'Bullish') {
-        const bodySize = randomRange(50, 150);
+        const bodySize = isImpulsive ? randomRange(250, 450) : randomRange(50, 150);
         const topWick = randomRange(25, 60);
         const botWick = randomRange(20, 70);
         close = open + bodySize;
         high = close + topWick;
         low = open - botWick;
       } else if (type === 'Bearish') {
-        const bodySize = randomRange(50, 150);
+        const bodySize = isImpulsive ? randomRange(250, 450) : randomRange(50, 150);
         const topWick = randomRange(25, 60);
         const botWick = randomRange(20, 70);
         close = open - bodySize;
