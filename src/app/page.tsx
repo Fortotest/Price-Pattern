@@ -50,7 +50,7 @@ const PropertiesPanel = ({
       <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-primary" />
-          <span className="text-[10px] font-bold uppercase tracking-wider">Chart Configuration</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider">Studio Configuration</span>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5">
           <X className="w-3 h-3" />
@@ -59,6 +59,7 @@ const PropertiesPanel = ({
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6 pb-12">
+          {/* Viewport Controls */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Monitor className="w-3 h-3 text-primary" />
@@ -98,6 +99,7 @@ const PropertiesPanel = ({
 
           <Separator className="bg-white/5" />
 
+          {/* Animation Controls */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Zap className="w-3 h-3 text-primary" />
@@ -121,49 +123,65 @@ const PropertiesPanel = ({
 
           <Separator className="bg-white/5" />
 
+          {/* Color Profiles - Re-branded as Brand Identity */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Palette className="w-3 h-3 text-primary" />
-              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Aesthetic Presets</Label>
+              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Brand Identity</Label>
             </div>
             
             <div className="space-y-3">
               <div className="grid grid-cols-1 gap-2">
-                <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/5">
+                {/* Bullish Color Row */}
+                <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/5 focus-within:border-primary/50 transition-colors">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded border border-white/10 relative overflow-hidden">
+                    <div className="w-6 h-6 rounded border border-white/10 relative overflow-hidden bg-black/20">
                       <input 
                         type="color" 
                         value={settings.bullColor} 
                         onChange={(e) => updateSettings({ bullColor: e.target.value })}
-                        className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-150" 
+                        className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-[2]" 
                       />
                     </div>
-                    <span className="text-[9px] font-bold text-emerald-500">BULLISH</span>
+                    <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-tight">Bullish</span>
                   </div>
-                  <span className="text-[9px] font-mono text-white/40 uppercase">{settings.bullColor}</span>
+                  <input 
+                    type="text"
+                    value={settings.bullColor}
+                    onChange={(e) => updateSettings({ bullColor: e.target.value })}
+                    className="bg-transparent border-none text-[10px] font-mono text-white/70 w-20 text-right focus:ring-0 outline-none p-0 uppercase"
+                    placeholder="#FFFFFF"
+                  />
                 </div>
 
-                <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/5">
+                {/* Bearish Color Row */}
+                <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/5 focus-within:border-primary/50 transition-colors">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded border border-white/10 relative overflow-hidden">
+                    <div className="w-6 h-6 rounded border border-white/10 relative overflow-hidden bg-black/20">
                       <input 
                         type="color" 
                         value={settings.bearColor} 
                         onChange={(e) => updateSettings({ bearColor: e.target.value })}
-                        className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-150" 
+                        className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-[2]" 
                       />
                     </div>
-                    <span className="text-[9px] font-bold text-red-500">BEARISH</span>
+                    <span className="text-[9px] font-bold text-red-500 uppercase tracking-tight">Bearish</span>
                   </div>
-                  <span className="text-[9px] font-mono text-white/40 uppercase">{settings.bearColor}</span>
+                  <input 
+                    type="text"
+                    value={settings.bearColor}
+                    onChange={(e) => updateSettings({ bearColor: e.target.value })}
+                    className="bg-transparent border-none text-[10px] font-mono text-white/70 w-20 text-right focus:ring-0 outline-none p-0 uppercase"
+                    placeholder="#FFFFFF"
+                  />
                 </div>
               </div>
             </div>
 
+            {/* Geometry Styles */}
             <div className="space-y-3 pt-2">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] text-white/70 font-medium">Body Corner Radius</span>
+                <span className="text-[10px] text-white/70 font-medium">Body Radius</span>
                 <span className="text-[10px] font-mono text-primary">{settings.bodyRadius}px</span>
               </div>
               <Slider 
@@ -178,7 +196,7 @@ const PropertiesPanel = ({
 
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] text-white/70 font-medium">Wick Corner Radius</span>
+                <span className="text-[10px] text-white/70 font-medium">Wick Radius</span>
                 <span className="text-[10px] font-mono text-primary">{settings.wickRadius}px</span>
               </div>
               <Slider 
@@ -226,7 +244,7 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
     
     <div className="p-3 bg-black/40 space-y-3">
       <div className="space-y-2">
-        <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Logic Presets</Label>
+        <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Market Templates</Label>
         <select 
           onChange={(e) => onTemplateLoad(e.target.value)} 
           className="flex w-full items-center justify-between rounded-md border ring-offset-background h-10 text-[10px] bg-black border-white/5 font-bold p-1 px-2 focus:ring-0 text-white outline-none"
@@ -335,7 +353,7 @@ export default function PricePatternStudio() {
         close = open - bodySize;
         high = open + topWick;
         low = close - botWick;
-      } else { // Super-Random Doji: Bodi (10-25), Wick (25-50)
+      } else { // Super-Random Doji
         const bodySize = randomRange(10, 25); 
         const isBullish = Math.random() > 0.5;
         const topWick = randomRange(25, 50);
@@ -403,8 +421,6 @@ export default function PricePatternStudio() {
 
     let svgContent = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" viewBox="0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}" fill="none" xmlns="http://www.w3.org/2000/svg">`;
     
-    // Background transparent
-    
     candles.forEach((c, i) => {
       const x = startX + (i * baseWidth);
       const priceOffset = c.offsetY || 0;
@@ -421,16 +437,14 @@ export default function PricePatternStudio() {
       const wickRectY = Math.min(yHigh, yLow);
       const wickRectHeight = Math.abs(yHigh - yLow);
       
-      // Draw Wick as Rect for Radius support
+      // Draw Wick
       svgContent += `<rect x="${x - wickWidth / 2}" y="${wickRectY}" width="${wickWidth}" height="${wickRectHeight}" rx="${settings.wickRadius}" fill="${color}" />`;
       
       // Draw Body
       svgContent += `<rect x="${x - bodyWidth / 2}" y="${rectY}" width="${bodyWidth}" height="${rectHeight}" rx="${settings.bodyRadius}" fill="${color}" />`;
     });
 
-    // Add Axes Labels
     svgContent += `<text x="${chartAreaWidth + 40}" y="${chartAreaHeight / 2}" fill="#888888" font-family="monospace" font-size="42" font-weight="bold">PRICE TICKER</text>`;
-    
     svgContent += `</svg>`;
 
     const blob = new Blob([svgContent], { type: 'image/svg+xml' });
@@ -439,7 +453,7 @@ export default function PricePatternStudio() {
     a.href = url;
     a.download = `price-pattern-vector.svg`;
     a.click();
-    toast({ title: "Vector Export", description: "Professional SVG saved successfully." });
+    toast({ title: "Vector Export", description: "SVG saved with transparent background." });
   }, [candles, settings, toast]);
 
   const handleReplay = useCallback(() => {
