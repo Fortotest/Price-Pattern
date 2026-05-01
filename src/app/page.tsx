@@ -55,7 +55,8 @@ const PropertiesPanel = ({
           <Settings2 className="w-3.5 h-3.5 text-primary" />
           <span className="text-[10px] font-bold uppercase tracking-wider">Configuration</span>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5">
+        {/* Only show manual X on desktop sidebar, mobile uses Sheet close button */}
+        <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5 hidden lg:flex">
           <X className="w-3 h-3" />
         </Button>
       </div>
@@ -217,23 +218,15 @@ interface LayersPanelProps {
   onRemoveCandle: (index: number) => void;
   onClearAll: () => void;
   onTemplateLoad: (val: string) => void;
-  onClose?: () => void;
 }
 
-const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll, onTemplateLoad, onClose }: LayersPanelProps) => (
+const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll, onTemplateLoad }: LayersPanelProps) => (
   <div className="flex flex-col h-full bg-[#0a0a0a] text-white overflow-hidden w-full">
-    <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
+    <div className="p-3 border-b border-white/5 flex items-center bg-black/20">
       <div className="flex items-center gap-2">
-        {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 lg:hidden -ml-1">
-            <X className="w-4 h-4" />
-          </Button>
-        )}
         <Layers className="w-3.5 h-3.5 text-emerald-500" />
         <span className="text-[10px] font-bold uppercase tracking-wider">Layer Stack</span>
       </div>
-      {/* Spacer for Sheet close button on mobile */}
-      <div className="w-8 h-6 lg:hidden" />
     </div>
     
     <div className="p-3 bg-black/40 space-y-4">
@@ -625,7 +618,6 @@ export default function PricePattern() {
                   onRemoveCandle={handleRemoveCandle}
                   onClearAll={handleClearAll}
                   onTemplateLoad={handleTemplateLoad}
-                  onClose={() => setIsLayersOpen(false)}
                 />
               </SheetContent>
             </Sheet>
