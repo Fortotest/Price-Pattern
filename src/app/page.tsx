@@ -5,6 +5,7 @@ import { Candlestick, ChartSettings } from "@/lib/chart-types";
 import { generateSVG, TEMPLATES } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
 import ManualEditor from "@/components/manual-editor";
+import DrawingToolbar from "@/components/drawing-toolbar";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -291,8 +292,13 @@ export default function PricePatternStudio() {
         </div>
 
         {/* Dynamic Chart Area */}
-        <div className="flex-1 flex items-center justify-center p-12 overflow-hidden">
-          <div className="w-full max-w-[1600px]">
+        <div className="flex-1 flex flex-col items-center justify-center p-12 overflow-hidden relative">
+          {/* Drawing Toolbar (Floating above Chart) */}
+          <div className="mb-6 z-30">
+            <DrawingToolbar />
+          </div>
+
+          <div className="w-full max-w-[1600px] z-10">
             <ChartRenderer 
               ref={chartRef}
               candles={candles} 
