@@ -27,7 +27,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
-const NOTIF_SOUND_URL = "https://raw.githubusercontent.com/Fortotest/Market.ai/87fd35bb95da94bd9a80e34a80b08498639b5eb7/Notif%20iphone%20ting%20whatsapp.mp3?raw=true";
+const NOTIF_SOUND_URL = "https://raw.githubusercontent.com/Fortotest/Market.ai/055e319fa2c7c1e028057e8c69556c303b827848/hidup-jokowi.mp3?raw=true";
 
 // --- Sub-Components ---
 
