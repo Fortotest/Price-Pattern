@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef } from "react";
@@ -51,7 +52,6 @@ export default function PricePatternStudio() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isRefining, setIsRefining] = useState(false);
   
   const chartRef = useRef<ChartRendererHandle>(null);
   const { toast } = useToast();
@@ -142,21 +142,31 @@ export default function PricePatternStudio() {
     setIsGenerating(true);
     try {
       const result = await generatePattern(aiParams);
-      setCandles(result.candlesticks);
-      
-      // Auto-zoom logic from PRD
-      let newZoom = 1.0;
-      const count = result.candlesticks.length;
-      if (count > 100) newZoom = 0.3;
-      else if (count > 50) newZoom = 0.5;
-      else if (count > 20) newZoom = 0.8;
-      else newZoom = 1.5;
+      if (result && result.candlesticks) {
+        setCandles(result.candlesticks);
+        
+        // Auto-zoom logic from PRD
+        let newZoom = 1.0;
+        const generatedCount = result.candlesticks.length;
+        if (generatedCount > 100) newZoom = 0.3;
+        else if (generatedCount > 50) newZoom = 0.5;
+        else if (generatedCount > 20) newZoom = 0.8;
+        else newZoom = 1.5;
 
-      setSettings(prev => ({ ...prev, zoom: newZoom }));
-      
-      toast({ title: "Structure Synthesized", description: `Created ${count} candles in ${aiParams.pattern} formation.` });
+        setSettings(prev => ({ ...prev, zoom: newZoom }));
+        
+        toast({ 
+          title: "Structure Synthesized", 
+          description: `Created ${generatedCount} candles in ${aiParams.pattern} formation.` 
+        });
+      }
     } catch (error) {
-      toast({ variant: "destructive", title: "AI Generation Failed" });
+      console.error("AI Generation Error:", error);
+      toast({ 
+        variant: "destructive", 
+        title: "AI Generation Failed",
+        description: "Check your connection or API key limits."
+      });
     } finally {
       setIsGenerating(false);
     }

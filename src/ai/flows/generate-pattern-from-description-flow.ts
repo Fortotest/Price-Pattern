@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview This file defines a Genkit flow for generating candlestick chart data based on structured market parameters.
@@ -35,20 +36,23 @@ const generateCandlestickPatternPrompt = ai.definePrompt({
   name: 'generateCandlestickPatternPrompt',
   input: {schema: GeneratePatternInputSchema},
   output: {schema: GeneratePatternOutputSchema},
-  prompt: `You are an expert financial analyst. Generate a sequence of exactly {{count}} candlesticks for a {{pattern}} market pattern.
+  prompt: `You are an expert financial analyst. 
 
-Rules:
-1. Volatility Level: {{volatility}}. Use this to scale the size of wicks and price fluctuations.
-2. Continuity: The 'open' of candle N must equal the 'close' of candle N-1.
-3. Pattern Accuracy: The overall sequence must clearly represent a {{pattern}}. 
-   - Bullish Trend: Higher highs and higher lows.
-   - Bearish Trend: Lower highs and lower lows.
-   - Double Top: Two prominent peaks at similar price levels.
-   - Double Bottom: Two prominent troughs at similar price levels.
-   - Sideways: Price oscillating within a tight range.
-4. Scale: Use a price range around 100-500.
+Task: Generate a sequence of EXACTLY {{count}} candlesticks for a {{pattern}} market pattern.
 
-Output the data as a JSON array of candlesticks with open, high, low, and close values.`,
+CRITICAL RULES:
+1. ARRAY LENGTH: You MUST return exactly {{count}} objects in the 'candlesticks' array. No more, no less.
+2. VOLATILITY: Level is {{volatility}}. High level means larger wicks and bigger price jumps.
+3. CONTINUITY: The 'open' of candle N must equal the 'close' of candle N-1.
+4. PATTERN LOGIC:
+   - Double Bottom: The price must drop to a support level, rise, drop back to the SAME support level, and then rise strongly.
+   - Bullish Trend: Overall trajectory is upward with higher highs and higher lows.
+   - Bearish Trend: Overall trajectory is downward with lower highs and lower lows.
+   - Double Top: Two peaks at roughly the same resistance level.
+   - Sideways: Price stays within a horizontal channel.
+5. SCALE: Start around price 300. Ensure all prices remain positive (>0).
+
+Output as a structured JSON with a 'candlesticks' array containing objects with open, high, low, and close.`,
 });
 
 const generatePatternFlow = ai.defineFlow(
