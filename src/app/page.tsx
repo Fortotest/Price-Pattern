@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef } from "react";
@@ -92,6 +91,7 @@ export default function PricePatternStudio() {
   const handleUpdateCandle = (index: number, updated: Candlestick) => {
     const newCandles = [...candles];
     newCandles[index] = updated;
+    // Otomatis sinkronkan 'open' candle berikutnya dengan 'close' sebelumnya
     for (let i = index + 1; i < newCandles.length; i++) {
       const prevClose = newCandles[i-1].close;
       const body = Math.abs(newCandles[i].close - newCandles[i].open);
@@ -187,6 +187,7 @@ export default function PricePatternStudio() {
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6 pb-12">
+          {/* Templates */}
           <div className="space-y-3">
             <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Market Library</Label>
             <Select onValueChange={handleTemplateLoad}>
@@ -212,6 +213,7 @@ export default function PricePatternStudio() {
 
           <Separator className="bg-white/5" />
 
+          {/* View Controls */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Maximize className="w-3 h-3 text-primary" />
@@ -247,6 +249,7 @@ export default function PricePatternStudio() {
 
           <Separator className="bg-white/5" />
 
+          {/* Visual Styles */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Palette className="w-3 h-3 text-primary" />
@@ -275,6 +278,7 @@ export default function PricePatternStudio() {
         </div>
       </ScrollArea>
 
+      {/* Export Actions */}
       <div className="p-3 bg-[#161616] border-t border-white/5 space-y-2 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
         <Button className="w-full h-8 font-bold text-[10px] gap-2 bg-slate-800 hover:bg-slate-700 border border-white/5" onClick={handleReplay} disabled={candles.length === 0 || isAnimating}>
           <RefreshCw className={`w-3 h-3 ${isAnimating ? 'animate-spin' : ''}`} /> Replay Animation
@@ -363,4 +367,3 @@ export default function PricePatternStudio() {
     </div>
   );
 }
-

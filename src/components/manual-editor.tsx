@@ -21,6 +21,7 @@ interface ManualEditorProps {
 }
 
 const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove }) => {
+  // Menampilkan bar terbaru di paling atas (seperti layer Photoshop)
   const reversedIndices = Array.from({ length: candles.length }, (_, i) => candles.length - 1 - i);
 
   return (
