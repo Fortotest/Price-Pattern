@@ -23,8 +23,6 @@ import {
   X,
   Download,
   Video,
-  Sparkles,
-  Loader2,
   Dices
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -61,21 +59,17 @@ const PropertiesPanel = ({
   isOpen,
   onClose
 }: PanelProps) => {
-  const [localZoom, setLocalZoom] = useState(settings.zoom);
-  const [localSpacing, setLocalSpacing] = useState(settings.spacing);
   const [localSpeed, setLocalSpeed] = useState(settings.speed);
   const [localBodyRadius, setLocalBodyRadius] = useState(settings.bodyRadius);
   const [localWickRadius, setLocalWickRadius] = useState(settings.wickRadius);
   const [localVolatility, setLocalVolatility] = useState(settings.volatility || 0.5);
 
   useEffect(() => {
-    setLocalZoom(settings.zoom);
-    setLocalSpacing(settings.spacing);
     setLocalSpeed(settings.speed);
     setLocalBodyRadius(settings.bodyRadius);
     setLocalWickRadius(settings.wickRadius);
     setLocalVolatility(settings.volatility || 0.5);
-  }, [settings.zoom, settings.spacing, settings.speed, settings.bodyRadius, settings.wickRadius, settings.volatility]);
+  }, [settings.speed, settings.bodyRadius, settings.wickRadius, settings.volatility]);
 
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const syncSettings = (newVal: Partial<ChartSettings>) => {
@@ -126,45 +120,11 @@ const PropertiesPanel = ({
 
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Maximize className="w-3 h-3 text-primary" />
-              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">View Controls</Label>
+              <Zap className="w-3 h-3 text-primary" />
+              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Animation</Label>
             </div>
             
             <div className="space-y-4">
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center px-0.5">
-                  <Label className="text-[9px] text-muted-foreground">Zoom Level (Y-Axis)</Label>
-                  <span className="text-[9px] font-mono text-primary">{localZoom.toFixed(2)}x</span>
-                </div>
-                <Slider 
-                  value={[localZoom]} 
-                  min={0.1} 
-                  max={2.0} 
-                  step={0.01} 
-                  onValueChange={(val) => {
-                    setLocalZoom(val[0]);
-                    syncSettings({ zoom: val[0] });
-                  }}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center px-0.5">
-                  <Label className="text-[9px] text-muted-foreground">Candle Spacing (X-Axis)</Label>
-                  <span className="text-[9px] font-mono text-primary">{localSpacing.toFixed(2)}x</span>
-                </div>
-                <Slider 
-                  value={[localSpacing]} 
-                  min={0.5} 
-                  max={5.0} 
-                  step={0.01} 
-                  onValueChange={(val) => {
-                    setLocalSpacing(val[0]);
-                    syncSettings({ spacing: val[0] });
-                  }}
-                />
-              </div>
-
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center px-0.5">
                   <Label className="text-[9px] text-muted-foreground">Anim Speed</Label>
@@ -455,9 +415,7 @@ export default function PricePatternStudio() {
         low: bodyMin - randomBot
       };
     }));
-
-    toast({ title: "Volatility Applied", description: "Wick lengths randomized based on current volatility." });
-  }, [candles.length, settings.volatility, toast]);
+  }, [candles.length, settings.volatility]);
 
   const handleExportSVG = useCallback(() => {
     if (candles.length === 0) return;
@@ -639,7 +597,7 @@ export default function PricePatternStudio() {
         <footer className="h-8 bg-[#0a0a0a] border-t border-white/5 px-4 flex items-center justify-between text-[8px] font-bold text-muted-foreground uppercase tracking-[1px]">
           <div className="flex gap-6">
             <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Bars: {candles.length}</span>
-            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Zoom: {settings.zoom.toFixed(2)}x</span>
+            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Professional Axis Enabled</span>
           </div>
           <div className="flex items-center gap-3">
             <Monitor className="w-3 h-3" />

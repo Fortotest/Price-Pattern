@@ -17,8 +17,8 @@ export interface ChartRendererHandle {
   getCanvas: () => HTMLCanvasElement | null;
 }
 
-const Y_AXIS_WIDTH = 180; // 4K Scale
-const X_AXIS_HEIGHT = 120; // 4K Scale
+const Y_AXIS_WIDTH = 180; // Professional 4K Scale
+const X_AXIS_HEIGHT = 120; // Professional 4K Scale
 
 const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({ 
   candles, 
@@ -53,14 +53,17 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+    const chartAreaWidth = CANVAS_WIDTH - Y_AXIS_WIDTH;
+    const chartAreaHeight = CANVAS_HEIGHT - X_AXIS_HEIGHT;
+
     // Grid / Axis Lines
-    ctx.strokeStyle = '#1a1a1a';
+    ctx.strokeStyle = '#111';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(CANVAS_WIDTH - Y_AXIS_WIDTH, 0);
-    ctx.lineTo(CANVAS_WIDTH - Y_AXIS_WIDTH, CANVAS_HEIGHT);
-    ctx.moveTo(0, CANVAS_HEIGHT - X_AXIS_HEIGHT);
-    ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT - X_AXIS_HEIGHT);
+    ctx.moveTo(chartAreaWidth, 0);
+    ctx.lineTo(chartAreaWidth, CANVAS_HEIGHT);
+    ctx.moveTo(0, chartAreaHeight);
+    ctx.lineTo(CANVAS_WIDTH, chartAreaHeight);
     ctx.stroke();
 
     if (currentCandles.length === 0) return;
@@ -72,9 +75,6 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const spacingMultiplier = settings.spacing || 1.0;
     const effectiveCount = Math.max(12, currentCandles.length);
     
-    const chartAreaWidth = CANVAS_WIDTH - Y_AXIS_WIDTH;
-    const chartAreaHeight = CANVAS_HEIGHT - X_AXIS_HEIGHT;
-
     const bodyWidth = (chartAreaWidth / effectiveCount) * 0.8 * zoom;
     const baseWidth = ((chartAreaWidth / effectiveCount) * 0.8) * spacingMultiplier;
     const wickWidth = Math.max(8, bodyWidth * 0.15); 
@@ -90,7 +90,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     };
 
     // Draw Price Labels (Y-Axis)
-    ctx.fillStyle = '#666';
+    ctx.fillStyle = '#444';
     ctx.font = 'bold 36px monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
@@ -100,11 +100,13 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const priceVal = bounds.min + (range * (j/stepCount));
       const yPos = getY(priceVal);
       if(yPos >= 0 && yPos <= chartAreaHeight) {
-        ctx.fillText(priceVal.toFixed(1), chartAreaWidth + 20, yPos);
+        ctx.fillText(priceVal.toFixed(1), chartAreaWidth + 25, yPos);
+        
+        // Grid Horizontal
         ctx.beginPath();
-        ctx.moveTo(chartAreaWidth, yPos);
-        ctx.lineTo(chartAreaWidth + 10, yPos);
-        ctx.strokeStyle = '#333';
+        ctx.moveTo(0, yPos);
+        ctx.lineTo(chartAreaWidth, yPos);
+        ctx.strokeStyle = '#0a0a0a';
         ctx.stroke();
       }
     }
@@ -165,10 +167,17 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
       // Draw X-Axis Label
       if(x >= 0 && x <= chartAreaWidth) {
-        ctx.fillStyle = '#666';
+        ctx.fillStyle = '#444';
         ctx.font = 'bold 30px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(`Bar ${i+1}`, x, chartAreaHeight + 60);
+        ctx.fillText(`Bar ${i+1}`, x, chartAreaHeight + 65);
+
+        // Vertical Grid
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, chartAreaHeight);
+        ctx.strokeStyle = '#0a0a0a';
+        ctx.stroke();
       }
     }
   };
@@ -177,7 +186,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     if (isAnimating) {
       startTimeRef.current = null;
       const animate = (time: number) => {
-        if (!isAnimating) return; // Immediate bailout if stopped
+        if (!isAnimating) return;
         
         if (startTimeRef.current === null) startTimeRef.current = time;
         const elapsed = time - startTimeRef.current;
@@ -204,10 +213,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     }
     
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = undefined;
-      }
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [candles, isAnimating, settings, onAnimationComplete]);
 
@@ -230,15 +236,19 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!dragState || !onSettingsChange) return;
 
-    if (dragState.type === 'y') {
-      const deltaY = e.movementY;
-      const newZoom = Math.max(0.1, Math.min(2.0, settings.zoom - deltaY * 0.005));
-      onSettingsChange({ zoom: newZoom });
-    } else if (dragState.type === 'x') {
-      const deltaX = e.movementX;
-      const newSpacing = Math.max(0.5, Math.min(5.0, settings.spacing + deltaX * 0.01));
-      onSettingsChange({ spacing: newSpacing });
-    }
+    requestAnimationFrame(() => {
+      if (dragState.type === 'y') {
+        const deltaY = e.movementY;
+        const sensitivity = 0.006;
+        const newZoom = Math.max(0.1, Math.min(2.0, settings.zoom - deltaY * sensitivity));
+        onSettingsChange({ zoom: newZoom });
+      } else if (dragState.type === 'x') {
+        const deltaX = e.movementX;
+        const sensitivity = 0.012;
+        const newSpacing = Math.max(0.5, Math.min(5.0, settings.spacing + deltaX * sensitivity));
+        onSettingsChange({ spacing: newSpacing });
+      }
+    });
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
@@ -249,7 +259,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   return (
     <div 
       ref={containerRef}
-      className="landscape-card-container cursor-crosshair touch-none"
+      className="landscape-card-container cursor-crosshair touch-none select-none"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
