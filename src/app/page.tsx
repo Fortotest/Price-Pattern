@@ -71,6 +71,12 @@ const PropertiesPanel = ({
     setLocalWickRadius(settings.wickRadius);
   }, [settings.zoom, settings.spacing, settings.speed, settings.bodyRadius, settings.wickRadius]);
 
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const syncSettings = (newVal: Partial<ChartSettings>) => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => updateSettings(newVal), 40);
+  };
+
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] border-r border-[#1a1a1a] text-white overflow-hidden w-[280px]">
       <div className="p-3 border-b border-white/5 flex items-center justify-between">
@@ -126,7 +132,7 @@ const PropertiesPanel = ({
                   step={0.01} 
                   onValueChange={(val) => {
                     setLocalZoom(val[0]);
-                    updateSettings({ zoom: val[0] });
+                    syncSettings({ zoom: val[0] });
                   }}
                 />
               </div>
@@ -143,7 +149,7 @@ const PropertiesPanel = ({
                   step={0.05} 
                   onValueChange={(val) => {
                     setLocalSpacing(val[0]);
-                    updateSettings({ spacing: val[0] });
+                    syncSettings({ spacing: val[0] });
                   }}
                 />
               </div>
@@ -160,7 +166,7 @@ const PropertiesPanel = ({
                   step={0.05} 
                   onValueChange={(val) => {
                     setLocalSpeed(val[0]);
-                    updateSettings({ speed: val[0] });
+                    syncSettings({ speed: val[0] });
                   }}
                 />
               </div>
@@ -177,7 +183,7 @@ const PropertiesPanel = ({
             
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <div className="flex items-center justify-center h-10 rounded bg-black border border-white/5 relative overflow-hidden group/picker transition-all hover:border-white/10">
+                <div className="flex items-center justify-center h-10 rounded bg-black border border-white/5 relative overflow-hidden transition-all hover:border-white/10">
                   <input 
                     type="color" 
                     value={settings.bullColor} 
@@ -199,7 +205,7 @@ const PropertiesPanel = ({
                 />
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-center h-10 rounded bg-black border border-white/5 relative overflow-hidden group/picker transition-all hover:border-white/10">
+                <div className="flex items-center justify-center h-10 rounded bg-black border border-white/5 relative overflow-hidden transition-all hover:border-white/10">
                   <input 
                     type="color" 
                     value={settings.bearColor} 
@@ -234,7 +240,7 @@ const PropertiesPanel = ({
                 step={1} 
                 onValueChange={(val) => {
                   setLocalBodyRadius(val[0]);
-                  updateSettings({ bodyRadius: val[0] });
+                  syncSettings({ bodyRadius: val[0] });
                 }}
               />
             </div>
@@ -251,7 +257,7 @@ const PropertiesPanel = ({
                 step={1} 
                 onValueChange={(val) => {
                   setLocalWickRadius(val[0]);
-                  updateSettings({ wickRadius: val[0] });
+                  syncSettings({ wickRadius: val[0] });
                 }}
               />
             </div>
@@ -339,18 +345,8 @@ export default function PricePatternStudio() {
   const chartRef = useRef<ChartRendererHandle>(null);
   const { toast } = useToast();
 
-  const debouncedUpdateTimer = useRef<NodeJS.Timeout | null>(null);
   const updateSettings = useCallback((newSettings: Partial<ChartSettings>) => {
-    // If it's a color change, update state immediately but avoid heavy canvas update if possible
-    if (newSettings.bullColor || newSettings.bearColor) {
-      setSettings(prev => ({ ...prev, ...newSettings }));
-      return;
-    }
-
-    if (debouncedUpdateTimer.current) clearTimeout(debouncedUpdateTimer.current);
-    debouncedUpdateTimer.current = setTimeout(() => {
-      setSettings(prev => ({ ...prev, ...newSettings }));
-    }, 40); 
+    setSettings(prev => ({ ...prev, ...newSettings }));
   }, []);
 
   const handleTemplateLoad = useCallback((val: string) => {
@@ -363,7 +359,8 @@ export default function PricePatternStudio() {
 
   const handleAddCandle = useCallback((type: 'Bullish' | 'Bearish' | 'Doji') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
-    const bodySize = type === 'Doji' ? 0 : 50; 
+    // Set Doji default body to 10 as requested
+    const bodySize = type === 'Doji' ? 10 : 50; 
     const wickSize = 20;
     
     let newCandle: Candlestick;
@@ -371,9 +368,9 @@ export default function PricePatternStudio() {
     if (type === 'Doji') {
       newCandle = {
         open: lastClose,
-        close: lastClose,
-        high: lastClose + wickSize,
-        low: lastClose - wickSize,
+        close: lastClose + 10,
+        high: lastClose + 30,
+        low: lastClose - 20,
         offsetY: 0
       };
     } else if (type === 'Bullish') {

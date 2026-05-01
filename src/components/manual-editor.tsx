@@ -36,13 +36,13 @@ const CustomNumberInput = ({
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const valueRef = useRef(value);
 
-  // Keep valueRef in sync with the prop
   useEffect(() => {
-    valueRef.current = value;
+    valueRef.current = Number.isFinite(value) ? value : 0;
   }, [value]);
 
   const handleStep = useCallback((delta: number) => {
-    const newValue = Math.max(0, Math.round(valueRef.current + delta));
+    const currentVal = Number.isFinite(valueRef.current) ? valueRef.current : 0;
+    const newValue = Math.max(0, Math.round(currentVal + delta));
     onChange(newValue);
   }, [onChange]);
 
@@ -60,25 +60,27 @@ const CustomNumberInput = ({
     timerRef.current = setTimeout(() => {
       intervalRef.current = setInterval(() => {
         handleStep(delta);
-      }, 60);
-    }, 400);
+      }, 50);
+    }, 350);
   }, [handleStep, stopAdjusting]);
 
+  const displayValue = Number.isFinite(value) ? Math.round(value) : 0;
+
   return (
-    <div className="bg-[#0d0d0d] rounded-md p-1.5 flex flex-col items-center justify-between border border-white/5 h-16 w-full group/input transition-colors hover:border-white/10">
+    <div className="bg-[#0d0d0d] rounded-md p-1.5 flex flex-col items-center justify-between border border-white/5 h-14 w-full group/input transition-colors hover:border-white/10">
       <span className={`text-[7px] font-bold uppercase tracking-wider ${colorClass}`}>{label}</span>
       <div className="flex items-center w-full flex-1">
-        <div className="flex-1 text-center font-mono text-xs font-bold text-white">
-          {isNaN(value) ? 0 : Math.round(value)}
+        <div className="flex-1 text-center font-mono text-[10px] font-bold text-white">
+          {displayValue}
         </div>
-        <div className="w-5 h-full flex flex-col border-l border-white/5 overflow-hidden rounded-r-sm">
+        <div className="w-4 h-full flex flex-col border-l border-white/5 overflow-hidden rounded-r-sm">
           <button 
             onMouseDown={() => startAdjusting(1)}
             onMouseUp={stopAdjusting}
             onMouseLeave={stopAdjusting}
             className="flex-1 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] border-b border-white/5 transition-colors active:bg-primary/20"
           >
-            <ChevronUp className="w-2.5 h-2.5 text-white/50 group-hover/input:text-white" />
+            <ChevronUp className="w-2 h-2 text-white/50 group-hover/input:text-white" />
           </button>
           <button 
             onMouseDown={() => startAdjusting(-1)}
@@ -86,7 +88,7 @@ const CustomNumberInput = ({
             onMouseLeave={stopAdjusting}
             className="flex-1 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] transition-colors active:bg-primary/20"
           >
-            <ChevronDown className="w-2.5 h-2.5 text-white/50 group-hover/input:text-white" />
+            <ChevronDown className="w-2 h-2 text-white/50 group-hover/input:text-white" />
           </button>
         </div>
       </div>
@@ -101,57 +103,71 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
     <div className="space-y-2">
       {reversedIndices.map((idx) => {
         const c = candles[idx];
-        const isBullish = c.close > c.open;
-        const isBearish = c.close < c.open;
+        const bodyPrice = c.close - c.open;
+        const isBullish = bodyPrice > 0;
+        const isBearish = bodyPrice < 0;
+        const isDoji = bodyPrice === 0 || Math.abs(bodyPrice) <= 10; // Logic for Doji check
         
         let statusColor = "bg-[#333]";
-        if (isBullish) statusColor = "bg-[#00b386]";
-        if (isBearish) statusColor = "bg-[#f23645]";
+        if (bodyPrice > 10) statusColor = "bg-[#00b386]";
+        else if (bodyPrice < -10) statusColor = "bg-[#f23645]";
+        else statusColor = "bg-slate-400";
 
-        const bodySize = Math.abs(c.close - c.open);
+        const bodySize = Math.abs(bodyPrice);
         const topWickSize = Math.max(0, c.high - Math.max(c.open, c.close));
         const botWickSize = Math.max(0, Math.min(c.open, c.close) - c.low);
 
         return (
           <div key={`${idx}-${candles.length}`} className="bg-[#0a0a0a] border border-white/5 rounded-lg p-2 group transition-all hover:border-white/10">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
-                <GripVertical className="w-2.5 h-2.5 text-muted-foreground/30" />
-                <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-tight">Bar #{idx + 1}</span>
+                <GripVertical className="w-2 h-2 text-muted-foreground/30" />
+                <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-tight">Bar #{idx + 1}</span>
                 <div className={`w-1.5 h-1.5 rounded-full ${statusColor}`} />
               </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-5 w-5 text-muted-foreground hover:text-red-400 hover:bg-red-400/10"
+                className="h-4 w-4 text-muted-foreground hover:text-red-400 hover:bg-red-400/10"
                 onClick={() => onRemove(idx)}
               >
-                <Trash2 className="w-2.5 h-2.5" />
+                <Trash2 className="w-2 h-2" />
               </Button>
             </div>
             
-            <div className="grid grid-cols-2 gap-1.5 mb-2">
+            <div className="grid grid-cols-2 gap-1.5 mb-1.5">
               <div className="space-y-1">
                 <Label className="text-[7px] uppercase text-muted-foreground tracking-widest font-bold">Type</Label>
                 <Select 
-                  value={isBullish ? 'bullish' : (isBearish ? 'bearish' : 'doji')} 
+                  value={bodyPrice > 10 ? 'bullish' : (bodyPrice < -10 ? 'bearish' : 'doji')} 
                   onValueChange={(val) => {
                     if (val === 'doji') {
-                      onChange(idx, { ...c, close: c.open });
+                      // Set close to open + 10 as requested for Doji default body
+                      onChange(idx, { 
+                        ...c, 
+                        close: c.open + 10,
+                        high: Math.max(c.open, c.open + 10) + topWickSize,
+                        low: Math.min(c.open, c.open + 10) - botWickSize
+                      });
                     } else {
-                      const body = bodySize || 20;
-                      if(val === 'bullish') onChange(idx, { ...c, close: c.open + body });
-                      else onChange(idx, { ...c, close: c.open - body });
+                      const body = bodySize > 10 ? bodySize : 40;
+                      if(val === 'bullish') {
+                        const newClose = c.open + body;
+                        onChange(idx, { ...c, close: newClose, high: newClose + topWickSize, low: c.open - botWickSize });
+                      } else {
+                        const newClose = c.open - body;
+                        onChange(idx, { ...c, close: newClose, high: c.open + topWickSize, low: newClose - botWickSize });
+                      }
                     }
                   }}
                 >
-                  <SelectTrigger className="h-6 text-[8px] bg-black border-white/5 font-bold p-1 px-2 focus:ring-0">
+                  <SelectTrigger className="h-5 text-[7px] bg-black border-white/5 font-bold p-1 px-2 focus:ring-0">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#1c212f] border-white/10 text-white">
-                    <SelectItem value="bullish" className="text-[9px]">🟩 BULLISH</SelectItem>
-                    <SelectItem value="bearish" className="text-[9px]">🟥 BEARISH</SelectItem>
-                    <SelectItem value="doji" className="text-[9px]">⬜ DOJI</SelectItem>
+                    <SelectItem value="bullish" className="text-[8px]">🟩 BULLISH</SelectItem>
+                    <SelectItem value="bearish" className="text-[8px]">🟥 BEARISH</SelectItem>
+                    <SelectItem value="doji" className="text-[8px]">⬜ DOJI</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -165,18 +181,18 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                     const val = parseInt(e.target.value) || 0;
                     onChange(idx, { ...c, offsetY: val });
                   }}
-                  className="h-6 text-[8px] bg-black border-white/5 font-mono px-2 focus-visible:ring-0"
+                  className="h-5 text-[7px] bg-black border-white/5 font-mono px-2 focus-visible:ring-0"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-3 gap-1">
               <CustomNumberInput 
                 label="Body" 
                 value={bodySize} 
-                colorClass={isBullish ? "text-emerald-500" : (isBearish ? "text-red-500" : "text-white")}
+                colorClass={bodyPrice > 10 ? "text-emerald-500" : (bodyPrice < -10 ? "text-red-500" : "text-white")}
                 onChange={(val) => {
-                  const direction = isBearish ? -1 : 1;
+                  const direction = bodyPrice < 0 ? -1 : 1;
                   const newClose = c.open + (val * direction);
                   onChange(idx, { 
                     ...c, 
