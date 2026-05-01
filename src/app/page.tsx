@@ -44,7 +44,6 @@ import { cn } from "@/lib/utils";
 interface PanelProps {
   settings: ChartSettings;
   updateSettings: (newSettings: Partial<ChartSettings>) => void;
-  onTemplateLoad: (val: string) => void;
   onApplyVolatility: () => void;
   isOpen: boolean;
   onClose: () => void;
@@ -53,7 +52,6 @@ interface PanelProps {
 const PropertiesPanel = ({ 
   settings, 
   updateSettings, 
-  onTemplateLoad,
   onApplyVolatility,
   isOpen,
   onClose
@@ -92,31 +90,6 @@ const PropertiesPanel = ({
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6 pb-12">
-          <div className="space-y-3">
-            <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Library</Label>
-            <Select onValueChange={onTemplateLoad}>
-              <SelectTrigger className="bg-black border-white/5 h-8 text-[10px] rounded-sm focus:ring-0">
-                <SelectValue placeholder="Choose Template" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#1c212f] border-white/10 text-white">
-                <SelectGroup>
-                  <SelectLabel>Single Patterns</SelectLabel>
-                  <SelectItem value="HAMMER">🔨 Hammer</SelectItem>
-                  <SelectItem value="SHOOTING_STAR">💫 Shooting Star</SelectItem>
-                </SelectGroup>
-                <SelectGroup>
-                  <SelectLabel>Multi Bar</SelectLabel>
-                  <SelectItem value="BULLISH_ENGULFING">🔥 Engulfing Bull</SelectItem>
-                  <SelectItem value="BEARISH_ENGULFING">❄️ Engulfing Bear</SelectItem>
-                  <SelectItem value="DOUBLE_BOTTOM">🇼 Double Bottom</SelectItem>
-                  <SelectItem value="DOUBLE_TOP">🇲 Double Top</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Separator className="bg-white/5" />
-
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Zap className="w-3 h-3 text-primary" />
@@ -126,7 +99,7 @@ const PropertiesPanel = ({
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center px-0.5">
-                  <Label className="text-[9px] text-muted-foreground">Anim Speed</Label>
+                  <Label className="text-[9px] text-muted-foreground">Speed</Label>
                   <span className="text-[9px] font-mono text-primary">{localSpeed}s</span>
                 </div>
                 <Slider 
@@ -157,21 +130,14 @@ const PropertiesPanel = ({
                   <input 
                     type="color" 
                     value={settings.bullColor} 
-                    onInput={(e) => {
-                      const val = e.currentTarget.value;
-                      updateSettings({ bullColor: val });
-                    }} 
+                    onChange={(e) => updateSettings({ bullColor: e.target.value })}
                     className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-110" 
                   />
                 </div>
                 <Input 
                   value={settings.bullColor} 
-                  onInput={(e) => {
-                    const val = e.currentTarget.value;
-                    updateSettings({ bullColor: val });
-                  }}
+                  onChange={(e) => updateSettings({ bullColor: e.target.value })}
                   className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2 text-center focus-visible:ring-0"
-                  placeholder="#HEX"
                 />
               </div>
               <div className="space-y-2">
@@ -179,21 +145,14 @@ const PropertiesPanel = ({
                   <input 
                     type="color" 
                     value={settings.bearColor} 
-                    onInput={(e) => {
-                      const val = e.currentTarget.value;
-                      updateSettings({ bearColor: val });
-                    }} 
+                    onChange={(e) => updateSettings({ bearColor: e.target.value })}
                     className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-110" 
                   />
                 </div>
                 <Input 
                   value={settings.bearColor} 
-                  onInput={(e) => {
-                    const val = e.currentTarget.value;
-                    updateSettings({ bearColor: val });
-                  }}
+                  onChange={(e) => updateSettings({ bearColor: e.target.value })}
                   className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2 text-center focus-visible:ring-0"
-                  placeholder="#HEX"
                 />
               </div>
             </div>
@@ -235,7 +194,7 @@ const PropertiesPanel = ({
             <Separator className="bg-white/5 !my-4" />
 
             <div className="space-y-4">
-               <div className="flex items-center justify-between">
+               <div className="flex justify-between items-center">
                   <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Market Volatility</Label>
                   <span className="text-[9px] font-mono text-primary">{(localVolatility * 100).toFixed(0)}%</span>
                </div>
@@ -270,9 +229,10 @@ interface LayersPanelProps {
   onUpdateCandle: (index: number, updated: Candlestick) => void;
   onRemoveCandle: (index: number) => void;
   onClearAll: () => void;
+  onTemplateLoad: (val: string) => void;
 }
 
-const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll }: LayersPanelProps) => (
+const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll, onTemplateLoad }: LayersPanelProps) => (
   <div className="flex flex-col h-full bg-[#0a0a0a] border-l border-white/5 text-white overflow-hidden w-[260px]">
     <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
       <div className="flex items-center gap-2">
@@ -290,7 +250,30 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
       </Button>
     </div>
     
-    <div className="p-3 bg-black/40 space-y-2">
+    <div className="p-3 bg-black/40 space-y-3">
+      <div className="space-y-2">
+        <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Library</Label>
+        <Select onValueChange={onTemplateLoad}>
+          <SelectTrigger className="bg-black border-white/5 h-8 text-[10px] rounded-sm focus:ring-0">
+            <SelectValue placeholder="Choose Template" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#1c212f] border-white/10 text-white">
+            <SelectGroup>
+              <SelectLabel>Single Patterns</SelectLabel>
+              <SelectItem value="HAMMER">🔨 Hammer</SelectItem>
+              <SelectItem value="SHOOTING_STAR">💫 Shooting Star</SelectItem>
+            </SelectGroup>
+            <SelectGroup>
+              <SelectLabel>Multi Bar</SelectLabel>
+              <SelectItem value="BULLISH_ENGULFING">🔥 Bull Engulfing</SelectItem>
+              <SelectItem value="BEARISH_ENGULFING">❄️ Bear Engulfing</SelectItem>
+              <SelectItem value="DOUBLE_BOTTOM">🇼 Double Bottom</SelectItem>
+              <SelectItem value="DOUBLE_TOP">🇲 Double Top</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid grid-cols-3 gap-1.5">
         <Button onClick={() => onAddCandle('Bullish')} className="bg-[#00b386] hover:bg-[#00b386]/90 h-7 text-[8px] font-bold border-none">BULL</Button>
         <Button onClick={() => onAddCandle('Bearish')} variant="destructive" className="bg-[#f23645] hover:bg-[#f23645]/90 h-7 text-[8px] font-bold border-none">BEAR</Button>
@@ -310,13 +293,11 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
   </div>
 );
 
-// --- Main Page Component ---
-
 export default function PricePatternStudio() {
   const [candles, setCandles] = useState<Candlestick[]>(TEMPLATES.FULL_BULLISH_WAVE);
   const [settings, setSettings] = useState<ChartSettings>({
     zoom: 0.8,
-    spacing: 1.0, 
+    spacing: 1.2, 
     speed: 0.8,
     autoCenter: true,
     bullColor: "#00b386",
@@ -351,16 +332,7 @@ export default function PricePatternStudio() {
     const wickSize = 20;
     
     let newCandle: Candlestick;
-    
-    if (isDoji) {
-      newCandle = {
-        open: lastClose,
-        close: lastClose + 10,
-        high: lastClose + 30,
-        low: lastClose - 20,
-        offsetY: 0
-      };
-    } else if (type === 'Bullish') {
+    if (type === 'Bullish') {
       newCandle = { 
         open: lastClose, 
         close: lastClose + bodySize, 
@@ -368,13 +340,21 @@ export default function PricePatternStudio() {
         low: lastClose - wickSize, 
         offsetY: 0 
       };
-    } else {
+    } else if (type === 'Bearish') {
       newCandle = { 
         open: lastClose, 
         close: lastClose - bodySize, 
         high: lastClose + wickSize, 
         low: lastClose - bodySize - wickSize, 
         offsetY: 0 
+      };
+    } else {
+      newCandle = {
+        open: lastClose,
+        close: lastClose + 10,
+        high: lastClose + 30,
+        low: lastClose - 20,
+        offsetY: 0
       };
     }
     
@@ -384,7 +364,14 @@ export default function PricePatternStudio() {
   const handleUpdateCandle = useCallback((index: number, updated: Candlestick) => {
     setCandles(prev => {
       const next = [...prev];
-      next[index] = updated;
+      next[index] = {
+        ...updated,
+        open: Math.round(updated.open),
+        high: Math.round(updated.high),
+        low: Math.round(updated.low),
+        close: Math.round(updated.close),
+        offsetY: Math.round(updated.offsetY || 0)
+      };
       return next;
     });
   }, []);
@@ -399,15 +386,12 @@ export default function PricePatternStudio() {
 
   const handleApplyVolatility = useCallback(() => {
     if (candles.length === 0) return;
-    
     setCandles(prev => prev.map(c => {
       const bodyMax = Math.max(c.open, c.close);
       const bodyMin = Math.min(c.open, c.close);
       const noiseLevel = settings.volatility || 0.5;
-      
-      const randomTop = (Math.random() * 60 + 5) * noiseLevel;
-      const randomBot = (Math.random() * 60 + 5) * noiseLevel;
-      
+      const randomTop = Math.round((Math.random() * 60 + 5) * noiseLevel);
+      const randomBot = Math.round((Math.random() * 60 + 5) * noiseLevel);
       return {
         ...c,
         high: bodyMax + randomTop,
@@ -423,9 +407,9 @@ export default function PricePatternStudio() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `chart-vector.svg`;
+    a.download = `price-chart.svg`;
     a.click();
-    toast({ title: "SVG Exported", description: "File saved." });
+    toast({ title: "SVG Exported", description: "Vector file saved." });
   }, [candles, settings, toast]);
 
   const handleReplay = useCallback(() => {
@@ -433,10 +417,6 @@ export default function PricePatternStudio() {
     setIsAnimating(false);
     setTimeout(() => setIsAnimating(true), 20);
   }, [candles.length]);
-
-  const handleStopAnimation = useCallback(() => {
-    setIsAnimating(false);
-  }, []);
 
   const handleRecordVideo = async () => {
     const canvas = chartRef.current?.getCanvas();
@@ -451,11 +431,11 @@ export default function PricePatternStudio() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `chart-animation.webm`;
+      a.download = `chart-render-4k.webm`;
       a.click();
       setIsRecording(false);
       setIsAnimating(false);
-      toast({ title: "Video Ready", description: "4K Render finished." });
+      toast({ title: "Render Success", description: "4K Video saved." });
     };
     recorder.start();
     setIsAnimating(true);
@@ -463,12 +443,10 @@ export default function PricePatternStudio() {
 
   return (
     <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none">
-      {/* Desktop Properties Sidebar */}
       <aside className={cn("hidden lg:flex flex-col flex-shrink-0 transition-all duration-300", !showProperties && "w-0 overflow-hidden")}>
         <PropertiesPanel 
           settings={settings}
           updateSettings={updateSettings}
-          onTemplateLoad={handleTemplateLoad}
           onApplyVolatility={handleApplyVolatility}
           isOpen={showProperties}
           onClose={() => setShowProperties(false)}
@@ -478,12 +456,7 @@ export default function PricePatternStudio() {
       <main className="flex-1 flex flex-col relative overflow-hidden bg-black">
         <header className="h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#0a0a0a] z-30">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setShowProperties(!showProperties)}
-              className="hidden lg:flex text-white hover:bg-white/5"
-            >
+            <Button variant="ghost" size="icon" onClick={() => setShowProperties(!showProperties)} className="hidden lg:flex text-white hover:bg-white/5">
               <Menu className="w-5 h-5" />
             </Button>
             
@@ -497,7 +470,6 @@ export default function PricePatternStudio() {
                 <PropertiesPanel 
                   settings={settings}
                   updateSettings={updateSettings}
-                  onTemplateLoad={handleTemplateLoad}
                   onApplyVolatility={handleApplyVolatility}
                   isOpen={true}
                   onClose={() => {}}
@@ -507,27 +479,8 @@ export default function PricePatternStudio() {
             
             <div className="text-[10px] font-bold uppercase tracking-[2px] text-emerald-500 flex items-center gap-2">
               <Zap className="w-3 h-3 text-emerald-500 fill-emerald-500" />
-              Studio
+              PricePattern Studio
             </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-white h-9 w-9 lg:hidden">
-                  <Layers className="w-5 h-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="p-0 w-[260px] bg-[#0a0a0a] border-l border-white/5">
-                <LayersPanel 
-                  candles={candles}
-                  onAddCandle={handleAddCandle}
-                  onUpdateCandle={handleUpdateCandle}
-                  onRemoveCandle={handleRemoveCandle}
-                  onClearAll={handleClearAll}
-                />
-              </SheetContent>
-            </Sheet>
           </div>
         </header>
 
@@ -540,7 +493,6 @@ export default function PricePatternStudio() {
           </div>
         )}
 
-        {/* Chart Area */}
         <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden bg-[#000]">
           <div className="w-full h-full flex items-center justify-center relative">
             <ChartRenderer 
@@ -553,41 +505,24 @@ export default function PricePatternStudio() {
             />
           </div>
           
-          {/* Action Toolbar Below Canvas */}
           <div className="mt-6 flex items-center gap-4 bg-[#0a0a0a] p-3 rounded-xl border border-white/5 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
             {isAnimating ? (
-              <Button 
-                className="min-w-[120px] h-10 font-bold text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all active:scale-95" 
-                onClick={handleStopAnimation} 
-              >
+              <Button className="min-w-[120px] h-10 font-bold text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all active:scale-95" onClick={() => setIsAnimating(false)}>
                 <X className="w-3.5 h-3.5" /> Stop
               </Button>
             ) : (
-              <Button 
-                className="min-w-[120px] h-10 font-bold text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95" 
-                onClick={handleReplay} 
-                disabled={candles.length === 0}
-              >
+              <Button className="min-w-[120px] h-10 font-bold text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95" onClick={handleReplay} disabled={candles.length === 0}>
                 <RefreshCw className="w-3.5 h-3.5" /> Preview
               </Button>
             )}
             
             <Separator orientation="vertical" className="h-6 bg-white/10" />
             
-            <Button 
-              variant="outline" 
-              className="h-10 px-6 text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" 
-              onClick={handleExportSVG} 
-              disabled={candles.length === 0}
-            >
+            <Button variant="outline" className="h-10 px-6 text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
               <Download className="w-3.5 h-3.5" /> SVG
             </Button>
             
-            <Button 
-              className="min-w-[140px] h-10 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2 shadow-lg shadow-emerald-900/20" 
-              onClick={handleRecordVideo} 
-              disabled={candles.length === 0}
-            >
+            <Button className="min-w-[140px] h-10 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2 shadow-lg shadow-emerald-900/20" onClick={handleRecordVideo} disabled={candles.length === 0}>
               <Video className="w-3.5 h-3.5" /> Render 4K Video
             </Button>
           </div>
@@ -596,7 +531,7 @@ export default function PricePatternStudio() {
         <footer className="h-8 bg-[#0a0a0a] border-t border-white/5 px-4 flex items-center justify-between text-[8px] font-bold text-muted-foreground uppercase tracking-[1px]">
           <div className="flex gap-6">
             <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Bars: {candles.length}</span>
-            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Professional Axis Enabled</span>
+            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Axis Zoom Enabled</span>
           </div>
           <div className="flex items-center gap-3">
             <Monitor className="w-3 h-3" />
@@ -605,7 +540,6 @@ export default function PricePatternStudio() {
         </footer>
       </main>
 
-      {/* Desktop Layers Sidebar */}
       <aside className="hidden lg:flex flex-col flex-shrink-0">
         <LayersPanel 
           candles={candles}
@@ -613,6 +547,7 @@ export default function PricePatternStudio() {
           onUpdateCandle={handleUpdateCandle}
           onRemoveCandle={handleRemoveCandle}
           onClearAll={handleClearAll}
+          onTemplateLoad={handleTemplateLoad}
         />
       </aside>
     </div>

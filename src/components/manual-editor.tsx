@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import { Candlestick } from "@/lib/chart-types";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,7 @@ const CustomNumberInput = ({
   value, 
   onChange, 
   colorClass = "text-primary",
-  min = 0,
+  min = -5000,
   compact = false
 }: { 
   label?: string, 
@@ -44,27 +44,21 @@ const CustomNumberInput = ({
   }, [value]);
 
   const handleStep = useCallback((delta: number) => {
-    const currentVal = Number.isFinite(valueRef.current) ? valueRef.current : 0;
-    const newValue = Math.max(min, Math.round(currentVal + delta));
+    const newValue = Math.max(min, Math.round(valueRef.current + delta));
     onChange(newValue);
   }, [onChange, min]);
 
   const stopAdjusting = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     if (intervalRef.current) clearInterval(intervalRef.current);
-    timerRef.current = null;
-    intervalRef.current = null;
   }, []);
 
   const startAdjusting = useCallback((delta: number) => {
     stopAdjusting();
     handleStep(delta);
-    
     timerRef.current = setTimeout(() => {
-      intervalRef.current = setInterval(() => {
-        handleStep(delta);
-      }, 50);
-    }, 350);
+      intervalRef.current = setInterval(() => handleStep(delta), 60);
+    }, 300);
   }, [handleStep, stopAdjusting]);
 
   const displayValue = Number.isFinite(value) ? Math.round(value) : 0;
@@ -106,16 +100,15 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
     <div className="space-y-2">
       {reversedIndices.map((idx) => {
         const c = candles[idx];
-        const bodyPrice = c.close - c.open;
-        
-        let statusColor = "bg-[#333]";
-        if (bodyPrice > 10) statusColor = "bg-[#00b386]";
-        else if (bodyPrice < -10) statusColor = "bg-[#f23645]";
-        else statusColor = "bg-slate-400";
-
-        const bodySize = Math.abs(bodyPrice);
+        const bodyDiff = c.close - c.open;
+        const bodySize = Math.abs(bodyDiff);
         const topWickSize = Math.max(0, c.high - Math.max(c.open, c.close));
         const botWickSize = Math.max(0, Math.min(c.open, c.close) - c.low);
+
+        let statusColor = "bg-[#333]";
+        if (bodyDiff > 10) statusColor = "bg-[#00b386]";
+        else if (bodyDiff < -10) statusColor = "bg-[#f23645]";
+        else statusColor = "bg-slate-400";
 
         return (
           <div key={`${idx}-${candles.length}`} className="bg-[#0a0a0a] border border-white/5 rounded-lg p-2 group transition-all hover:border-white/10">
@@ -139,24 +132,22 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
               <div className="space-y-1">
                 <Label className="text-[7px] uppercase text-muted-foreground tracking-widest font-bold">Type</Label>
                 <Select 
-                  value={bodyPrice > 10 ? 'bullish' : (bodyPrice < -10 ? 'bearish' : 'doji')} 
+                  value={bodyDiff > 10 ? 'bullish' : (bodyDiff < -10 ? 'bearish' : 'doji')} 
                   onValueChange={(val) => {
                     if (val === 'doji') {
+                      const newClose = c.open + 10;
                       onChange(idx, { 
                         ...c, 
-                        close: c.open + 10,
-                        high: Math.max(c.open, c.open + 10) + topWickSize,
-                        low: Math.min(c.open, c.open + 10) - botWickSize
+                        close: newClose,
+                        high: Math.max(c.open, newClose) + topWickSize,
+                        low: Math.min(c.open, newClose) - botWickSize
                       });
+                    } else if (val === 'bullish') {
+                      const newClose = c.open + Math.max(20, bodySize);
+                      onChange(idx, { ...c, close: newClose, high: newClose + topWickSize, low: c.open - botWickSize });
                     } else {
-                      const body = bodySize > 10 ? bodySize : 40;
-                      if(val === 'bullish') {
-                        const newClose = c.open + body;
-                        onChange(idx, { ...c, close: newClose, high: newClose + topWickSize, low: c.open - botWickSize });
-                      } else {
-                        const newClose = c.open - body;
-                        onChange(idx, { ...c, close: newClose, high: c.open + topWickSize, low: newClose - botWickSize });
-                      }
+                      const newClose = c.open - Math.max(20, bodySize);
+                      onChange(idx, { ...c, close: newClose, high: c.open + topWickSize, low: newClose - botWickSize });
                     }
                   }}
                 >
@@ -176,7 +167,6 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                 <CustomNumberInput 
                   value={c.offsetY || 0} 
                   onChange={(val) => onChange(idx, { ...c, offsetY: val })}
-                  min={-2000}
                   compact
                   colorClass="text-white"
                 />
@@ -187,9 +177,9 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
               <CustomNumberInput 
                 label="Body" 
                 value={bodySize} 
-                colorClass={bodyPrice > 10 ? "text-emerald-500" : (bodyPrice < -10 ? "text-red-500" : "text-white")}
+                colorClass={bodyDiff > 10 ? "text-emerald-500" : (bodyDiff < -10 ? "text-red-500" : "text-white")}
                 onChange={(val) => {
-                  const direction = bodyPrice < 0 ? -1 : 1;
+                  const direction = bodyDiff < 0 ? -1 : 1;
                   const newClose = c.open + (val * direction);
                   onChange(idx, { 
                     ...c, 
@@ -203,17 +193,15 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                 label="Top Wick" 
                 value={topWickSize} 
                 colorClass="text-emerald-500"
-                onChange={(val) => {
-                  onChange(idx, { ...c, high: Math.max(c.open, c.close) + val });
-                }} 
+                min={0}
+                onChange={(val) => onChange(idx, { ...c, high: Math.max(c.open, c.close) + val })} 
               />
               <CustomNumberInput 
                 label="Bot Wick" 
                 value={botWickSize} 
                 colorClass="text-red-500"
-                onChange={(val) => {
-                  onChange(idx, { ...c, low: Math.min(c.open, c.close) - val });
-                }} 
+                min={0}
+                onChange={(val) => onChange(idx, { ...c, low: Math.min(c.open, c.close) - val })} 
               />
             </div>
           </div>
