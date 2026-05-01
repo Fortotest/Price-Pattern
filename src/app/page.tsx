@@ -194,7 +194,7 @@ interface LayersPanelProps {
 }
 
 const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll, onTemplateLoad }: LayersPanelProps) => (
-  <div className="flex flex-col h-full bg-[#0a0a0a] border-l border-white/5 text-white overflow-hidden w-[260px]">
+  <div className="flex flex-col h-full bg-[#0a0a0a] text-white overflow-hidden w-full">
     <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
       <div className="flex items-center gap-2">
         <Layers className="w-3.5 h-3.5 text-emerald-500" />
@@ -270,6 +270,8 @@ export default function PricePatternStudio() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [showProperties, setShowProperties] = useState(true);
+  const [layersPanelWidth, setLayersPanelWidth] = useState(260);
+  const [isResizing, setIsResizing] = useState(false);
   
   const chartRef = useRef<ChartRendererHandle>(null);
   const { toast } = useToast();
@@ -301,7 +303,6 @@ export default function PricePatternStudio() {
         offsetY: 0 
       };
 
-      // Recalculate High/Low
       if (isDoji) {
         newCandle.high = lastClose + 40;
         newCandle.low = lastClose - 40;
@@ -372,6 +373,24 @@ export default function PricePatternStudio() {
     };
     recorder.start();
     setIsAnimating(true);
+  };
+
+  const handleResizeStart = (e: React.PointerEvent) => {
+    setIsResizing(true);
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handleResizeMove = (e: React.PointerEvent) => {
+    if (!isResizing) return;
+    const newWidth = window.innerWidth - e.clientX;
+    if (newWidth >= 200 && newWidth <= 600) {
+      setLayersPanelWidth(newWidth);
+    }
+  };
+
+  const handleResizeEnd = (e: React.PointerEvent) => {
+    setIsResizing(false);
+    (e.target as HTMLElement).releasePointerCapture(e.pointerId);
   };
 
   return (
@@ -471,15 +490,26 @@ export default function PricePatternStudio() {
         </footer>
       </main>
 
-      <aside className="hidden lg:flex flex-col flex-shrink-0">
-        <LayersPanel 
-          candles={candles}
-          onAddCandle={handleAddCandle}
-          onUpdateCandle={handleUpdateCandle}
-          onRemoveCandle={handleRemoveCandle}
-          onClearAll={handleClearAll}
-          onTemplateLoad={handleTemplateLoad}
+      <aside 
+        className="hidden lg:flex flex-row flex-shrink-0 bg-[#0a0a0a] border-l border-white/5"
+        style={{ width: `${layersPanelWidth}px` }}
+      >
+        <div 
+          className="w-1.5 h-full cursor-col-resize hover:bg-emerald-500/30 transition-colors z-50 bg-white/5 active:bg-emerald-500/50"
+          onPointerDown={handleResizeStart}
+          onPointerMove={handleResizeMove}
+          onPointerUp={handleResizeEnd}
         />
+        <div className="flex-1 h-full overflow-hidden">
+          <LayersPanel 
+            candles={candles}
+            onAddCandle={handleAddCandle}
+            onUpdateCandle={handleUpdateCandle}
+            onRemoveCandle={handleRemoveCandle}
+            onClearAll={handleClearAll}
+            onTemplateLoad={handleTemplateLoad}
+          />
+        </div>
       </aside>
     </div>
   );

@@ -47,23 +47,23 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
     const chartAreaWidth = CANVAS_WIDTH - Y_AXIS_WIDTH;
     const chartAreaHeight = CANVAS_HEIGHT - X_AXIS_HEIGHT;
 
-    // Grid Lines
+    // 1. Clear and Background
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Grid Lines (Only in Chart Area)
     ctx.strokeStyle = '#111';
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(chartAreaWidth, 0);
-    ctx.lineTo(chartAreaWidth, CANVAS_HEIGHT);
+    ctx.lineTo(chartAreaWidth, chartAreaHeight);
     ctx.moveTo(0, chartAreaHeight);
-    ctx.lineTo(CANVAS_WIDTH, chartAreaHeight);
+    ctx.lineTo(chartAreaWidth, chartAreaHeight);
     ctx.stroke();
 
     if (currentCandles.length === 0) return;
@@ -89,20 +89,11 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       return centerY - scaledY;
     };
 
-    // Draw Price Labels (Y-Axis)
-    ctx.fillStyle = '#444';
-    ctx.font = 'bold 36px monospace';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    
-    const stepCount = 12;
-    for(let j=0; j<=stepCount; j++) {
-      const priceVal = bounds.min + (range * (j/stepCount));
-      const yPos = getY(priceVal);
-      if(yPos >= 0 && yPos <= chartAreaHeight) {
-        ctx.fillText(priceVal.toFixed(1), chartAreaWidth + 30, yPos);
-      }
-    }
+    // 2. CLIP Area for Candlesticks
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, chartAreaWidth, chartAreaHeight);
+    ctx.clip();
 
     const limit = Math.ceil(progressValue);
     for (let i = 0; i < limit; i++) {
@@ -144,7 +135,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const isBullish = c.close >= c.open;
       const color = isBullish ? settings.bullColor : settings.bearColor;
 
-      // 1. Draw Wick - High to Low (BACK)
+      // Draw Wick (BACK)
       ctx.beginPath();
       ctx.moveTo(x, curHighY);
       ctx.lineTo(x, curLowY);
@@ -153,9 +144,9 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       ctx.lineCap = settings.wickRadius > 0 ? 'round' : 'butt';
       ctx.stroke();
 
-      // 2. Draw Body (FRONT - Covering the middle of the wick)
-      const rectY = Math.min(yOpen, curCloseY);
-      const rectHeight = Math.max(4, Math.abs(yOpen - curCloseY));
+      // Draw Body (FRONT)
+      const rectY = Math.min(curOpenY, curCloseY);
+      const rectHeight = Math.max(4, Math.abs(curOpenY - curCloseY));
       ctx.fillStyle = color;
       
       if (settings.bodyRadius > 0) {
@@ -165,8 +156,28 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       } else {
         ctx.fillRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight);
       }
+    }
+    
+    ctx.restore(); // 3. RESTORE from Clipping
 
-      // Draw X-Axis Label
+    // 4. DRAW AXES (Y-Axis Price Labels)
+    ctx.fillStyle = '#444';
+    ctx.font = 'bold 36px monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    
+    const stepCount = 12;
+    for(let j=0; j<=stepCount; j++) {
+      const priceVal = bounds.min + (range * (j/stepCount));
+      const yPos = getY(priceVal);
+      if(yPos >= 0 && yPos <= chartAreaHeight) {
+        ctx.fillText(priceVal.toFixed(1), chartAreaWidth + 30, yPos);
+      }
+    }
+
+    // 5. DRAW AXES (X-Axis Bar Labels)
+    for (let i = 0; i < limit; i++) {
+      const x = startX + (i * baseWidth);
       if(x >= 0 && x <= chartAreaWidth) {
         ctx.fillStyle = '#444';
         ctx.font = 'bold 30px monospace';
