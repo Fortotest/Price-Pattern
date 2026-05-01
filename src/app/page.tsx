@@ -231,7 +231,7 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
         disabled={candles.length === 0}
         className="h-6 px-2 text-[8px] font-bold hover:bg-red-500/10 hover:text-red-400 text-muted-foreground gap-1.5"
       >
-        <Trash2 className="w-2.5 h-2.5" /> PURGE
+        <Trash2 className="w-2.5 h-2.5" /> CLEAR
       </Button>
     </div>
     
