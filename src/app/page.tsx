@@ -242,28 +242,28 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
           onChange={(e) => onTemplateLoad(e.target.value)} 
           className="flex w-full items-center justify-between rounded-md border ring-offset-background h-10 text-[10px] bg-black border-white/5 font-bold p-1 px-2 focus:ring-0 text-white outline-none"
         >
-          <option value="custom">Kosongkan Layer</option>
+          <option value="custom">😶 Kosongkan Layer</option>
           <optgroup label="General Patterns">
-            <option value="spinning_tops">Spinning Tops</option>
-            <option value="shooting_star">Shooting Star</option>
-            <option value="hammer">Hammer</option>
-            <option value="doji">Doji</option>
-            <option value="bullish_engulfing">Bullish Engulfing</option>
-            <option value="bearish_engulfing">Bearish Engulfing</option>
-            <option value="evening_star">Evening Star</option>
-            <option value="morning_star">Morning Star</option>
-            <option value="three_soldiers">3 Soldiers</option>
-            <option value="three_crows">3 Crows</option>
+            <option value="spinning_tops">😵 Spinning Tops</option>
+            <option value="shooting_star">😰 Shooting Star</option>
+            <option value="hammer">😤 Hammer</option>
+            <option value="doji">😐 Doji</option>
+            <option value="bullish_engulfing">😎 Bullish Engulfing</option>
+            <option value="bearish_engulfing">😱 Bearish Engulfing</option>
+            <option value="evening_star">😴 Evening Star</option>
+            <option value="morning_star">🤩 Morning Star</option>
+            <option value="three_soldiers">🫡 3 Soldiers</option>
+            <option value="three_crows">🧟 3 Crows</option>
           </optgroup>
           <optgroup label="Market Structure (SNR)">
-            <option value="bullish_snr_3_valleys">📈 Bullish SNR (3 Valleys)</option>
-            <option value="bearish_snr_3_peaks">📉 Bearish SNR (3 Peaks)</option>
+            <option value="bullish_snr_3_valleys">🤑 Bullish SNR (3 Valleys)</option>
+            <option value="bearish_snr_3_peaks">🤮 Bearish SNR (3 Peaks)</option>
           </optgroup>
           <optgroup label="Advanced Price Action">
-            <option value="trend_reversal_v_shape">🔄 V-Shape Reversal</option>
-            <option value="bullish_fakeout_trap">🪤 Fakeout / Bull Trap</option>
-            <option value="valid_breakout_retest">🚀 Breakout & Retest</option>
-            <option value="strong_momentum_run">🔥 Strong Momentum (Marubozu)</option>
+            <option value="trend_reversal_v_shape">🤯 V-Shape Reversal</option>
+            <option value="bullish_fakeout_trap">🤡 Fakeout / Bull Trap</option>
+            <option value="valid_breakout_retest">🧐 Breakout & Retest</option>
+            <option value="strong_momentum_run">🥵 Strong Momentum</option>
           </optgroup>
         </select>
       </div>
