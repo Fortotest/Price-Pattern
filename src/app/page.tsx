@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useCallback } from "react";
@@ -48,7 +47,7 @@ const PropertiesPanel = ({
       <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-primary" />
-          <span className="text-[10px] font-bold uppercase tracking-wider">Studio Configuration</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider">Configuration</span>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5">
           <X className="w-3 h-3" />
@@ -242,7 +241,7 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
           onChange={(e) => onTemplateLoad(e.target.value)} 
           className="flex w-full items-center justify-between rounded-md border ring-offset-background h-10 text-[10px] bg-black border-white/5 font-bold p-1 px-2 focus:ring-0 text-white outline-none"
         >
-          <option value="custom">😶 Kosongkan Layer</option>
+          <option value="custom">Kosongkan Layer</option>
           <optgroup label="General Patterns">
             <option value="spinning_tops">😵 Spinning Tops</option>
             <option value="shooting_star">😰 Shooting Star</option>
@@ -287,7 +286,7 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
   </div>
 );
 
-export default function PricePatternStudio() {
+export default function PricePattern() {
   const [candles, setCandles] = useState<Candlestick[]>(TEMPLATES.bullish_snr_3_valleys);
   const [settings, setSettings] = useState<ChartSettings>({
     zoom: 0.8,
@@ -301,7 +300,6 @@ export default function PricePatternStudio() {
   });
   
   const [isAnimating, setIsAnimating] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
   const [showProperties, setShowProperties] = useState(true);
   const [layersPanelWidth, setLayersPanelWidth] = useState(280);
   const [isResizing, setIsResizing] = useState(false);
@@ -455,7 +453,6 @@ export default function PricePatternStudio() {
   const handleRecordVideo = async () => {
     const canvas = chartRef.current?.getCanvas();
     if (!canvas || candles.length === 0) return;
-    setIsRecording(true);
     const stream = canvas.captureStream(60);
     const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 30000000 });
     const chunks: Blob[] = [];
@@ -467,7 +464,6 @@ export default function PricePatternStudio() {
       a.href = url;
       a.download = `sequence-render.webm`;
       a.click();
-      setIsRecording(false);
       setIsAnimating(false);
       toast({ title: "Video Export", description: "Alpha channel video saved." });
     };
@@ -537,19 +533,10 @@ export default function PricePatternStudio() {
             
             <div className="text-[10px] font-bold uppercase tracking-[2px] text-emerald-500 flex items-center gap-2">
               <Zap className="w-3 h-3 text-emerald-500 fill-emerald-500" />
-              PricePattern Studio
+              PricePattern
             </div>
           </div>
         </header>
-
-        {isRecording && (
-          <div className="absolute top-16 left-6 z-20 pointer-events-none">
-            <div className="bg-red-500/20 backdrop-blur-md border border-red-500/30 px-4 py-1.5 rounded-full flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500 recording-pulse" />
-              <span className="text-[9px] font-bold text-red-400 uppercase tracking-wider">Rendering Motion...</span>
-            </div>
-          </div>
-        )}
 
         <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden bg-[#000]">
           <div className="w-full h-full flex items-center justify-center relative">

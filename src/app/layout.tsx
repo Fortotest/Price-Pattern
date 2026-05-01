@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'PricePattern Studio - Professional Candlestick Generator',
+  title: 'PricePattern - Professional Candlestick Generator',
   description: 'Create 4K animated candlestick patterns for trading education and analysis.',
 };
 
