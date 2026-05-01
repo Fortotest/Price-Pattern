@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useRef, useEffect, forwardRef, useImperativeHandle } from "react";
@@ -30,91 +29,140 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     getCanvas: () => canvasRef.current
   }));
 
-  const draw = (currentCandles: Candlestick[], progress: number = 1) => {
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+  const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+
+  const draw = (currentCandles: Candlestick[], progressValue: number = currentCandles.length) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // High quality rendering
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Pro Background
+    const grad = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+    grad.addColorStop(0, '#0b0e14');
+    grad.addColorStop(1, '#131722');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Aesthetic Grid
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+    ctx.lineWidth = 2;
+    for(let i=1; i<10; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, (CANVAS_HEIGHT/10)*i);
+        ctx.lineTo(CANVAS_WIDTH, (CANVAS_HEIGHT/10)*i);
+        ctx.stroke();
+    }
 
     if (currentCandles.length === 0) return;
 
     const bounds = getChartBounds(currentCandles);
     const range = bounds.max - bounds.min;
-    const chartHeight = CANVAS_HEIGHT * 0.8;
     
-    // Center Logic
-    const midPrice = (bounds.max + bounds.min) / 2;
+    const candleWidth = (CANVAS_WIDTH / Math.max(10, currentCandles.length)) * settings.zoom;
+    const spacing = candleWidth * 0.25;
+    const bodyWidth = candleWidth - spacing;
+    const wickWidth = Math.max(3, 4 * settings.zoom);
+
+    const startX = (CANVAS_WIDTH / 2) - ((currentCandles.length * candleWidth) / 2) + (candleWidth / 2);
+    const centerY = CANVAS_HEIGHT / 2;
+
+    const currentIndex = Math.floor(progressValue);
+    const rawP = progressValue - currentIndex;
+    const p = easeOut(Math.min(rawP, 1));
+
     const getY = (price: number) => {
-      const scaledY = ((price - midPrice) / range) * chartHeight;
-      return (CANVAS_HEIGHT / 2) - scaledY;
+      const midPrice = (bounds.max + bounds.min) / 2;
+      const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.8);
+      return centerY - scaledY;
     };
 
-    const candleWidth = (CANVAS_WIDTH / Math.max(10, currentCandles.length)) * settings.zoom;
-    const totalSpacing = candleWidth * 0.25; // 25% gap for TradingView feel
-    const realCandleWidth = candleWidth - totalSpacing;
-    const startX = (CANVAS_WIDTH - (candleWidth * currentCandles.length)) / 2;
+    for (let i = 0; i < Math.ceil(progressValue); i++) {
+      if (i >= currentCandles.length) break;
 
-    currentCandles.forEach((c, i) => {
-      const isLast = i === currentCandles.length - 1;
-      let displayCandle = { ...c };
+      const c = currentCandles[i];
+      const x = startX + (i * candleWidth);
+      const shift = (c.offsetY || 0) * settings.zoom;
       
-      if (isLast && isAnimating) {
-        if (progress < 0.25) {
-          const p = progress / 0.25;
-          displayCandle.high = c.open;
-          displayCandle.low = c.open - (c.open - c.low) * p;
-          displayCandle.close = displayCandle.low;
-        } else if (progress < 0.75) {
-          const p = (progress - 0.25) / 0.5;
-          displayCandle.high = c.low + (c.high - c.low) * p;
-          displayCandle.low = c.low;
-          displayCandle.close = displayCandle.high;
-        } else {
-          const p = (progress - 0.75) / 0.25;
-          displayCandle.high = c.high;
-          displayCandle.low = c.low;
-          displayCandle.close = c.high - (c.high - c.close) * p;
+      const yOpen = getY(c.open) + shift;
+      const yClose = getY(c.close) + shift;
+      const yHigh = getY(c.high) + shift;
+      const yLow = getY(c.low) + shift;
+
+      let curOpenY = yOpen;
+      let curCloseY = yClose;
+      let curHighY = yHigh;
+      let curLowY = yLow;
+
+      // Price Action Animation Logic
+      if (i === currentIndex && isAnimating) {
+        if (c.close >= c.open) { // Bullish
+          if (p < 0.25) {
+            const t = p / 0.25;
+            curCloseY = lerp(yOpen, yLow, t);
+            curHighY = yOpen;
+          } else if (p < 0.7) {
+            const t = (p - 0.25) / 0.45;
+            curCloseY = lerp(yLow, yHigh, t);
+            curLowY = yLow;
+          } else {
+            const t = (p - 0.7) / 0.3;
+            curCloseY = lerp(yHigh, yClose, t);
+            curHighY = yHigh;
+            curLowY = yLow;
+          }
+        } else { // Bearish
+          if (p < 0.25) {
+            const t = p / 0.25;
+            curCloseY = lerp(yOpen, yHigh, t);
+            curLowY = yOpen;
+          } else if (p < 0.7) {
+            const t = (p - 0.25) / 0.45;
+            curCloseY = lerp(yHigh, yLow, t);
+            curHighY = yHigh;
+          } else {
+            const t = (p - 0.7) / 0.3;
+            curCloseY = lerp(yLow, yClose, t);
+            curHighY = yHigh;
+            curLowY = yLow;
+          }
         }
       }
 
-      const offsetShift = (c.offsetY || 0) * settings.zoom;
-      const x = startX + i * candleWidth + totalSpacing / 2;
-      const yOpen = getY(displayCandle.open) + offsetShift;
-      const yClose = getY(displayCandle.close) + offsetShift;
-      const yHigh = getY(displayCandle.high) + offsetShift;
-      const yLow = getY(displayCandle.low) + offsetShift;
-
-      const isBullish = displayCandle.close > displayCandle.open;
-      const isDoji = Math.abs(displayCandle.close - displayCandle.open) < 0.1;
-      
-      // TradingView Pro Colors
-      const bodyColor = isDoji ? "#787b86" : isBullish ? "#089981" : "#f23645";
-      const wickColor = bodyColor; // Standard TV: wick matches body color
-
-      // Thick Wicks for 4K visibility
-      // Since it's 3840px wide, we need substantial thickness
-      ctx.lineWidth = Math.max(3, 4 * settings.zoom);
-      ctx.strokeStyle = wickColor;
-      ctx.lineCap = "round";
+      const isBullish = curCloseY <= yOpen;
+      const isDoji = Math.abs(c.close - c.open) < 0.1;
+      const color = isDoji ? "#787b86" : isBullish ? "#089981" : "#f23645";
 
       // Draw Wick
       ctx.beginPath();
-      ctx.moveTo(x + realCandleWidth / 2, yHigh);
-      ctx.lineTo(x + realCandleWidth / 2, yLow);
+      ctx.moveTo(x, curHighY);
+      ctx.lineTo(x, curLowY);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = wickWidth;
+      ctx.lineCap = "round";
       ctx.stroke();
 
       // Draw Body
-      const bodyTop = Math.min(yOpen, yClose);
-      const bodyHeight = Math.max(Math.abs(yOpen - yClose), ctx.lineWidth); // Body at least as thick as wick
+      const rectY = Math.min(yOpen, curCloseY);
+      const rectHeight = Math.max(wickWidth, Math.abs(yOpen - curCloseY));
       
-      ctx.fillStyle = bodyColor;
-      ctx.fillRect(x, bodyTop, realCandleWidth, bodyHeight);
-    });
+      ctx.fillStyle = color;
+      if (!isDoji) {
+        // Draw rounded rect manually for body
+        const radius = wickWidth / 2;
+        ctx.beginPath();
+        ctx.roundRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight, radius);
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(x - bodyWidth / 2, yOpen);
+        ctx.lineTo(x + bodyWidth / 2, yOpen);
+        ctx.stroke();
+      }
+    }
   };
 
   useEffect(() => {
@@ -122,10 +170,12 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const animate = (time: number) => {
         if (startTimeRef.current === null) startTimeRef.current = time;
         const elapsed = time - startTimeRef.current;
-        const duration = settings.speed * 1000;
-        const progress = Math.min(elapsed / duration, 1);
+        const durationPerCandle = (settings.speed || 0.8) * 1000;
+        const totalDuration = candles.length * durationPerCandle;
+        const progress = Math.min(elapsed / totalDuration, 1);
+        const progressValue = progress * candles.length;
 
-        draw(candles, progress);
+        draw(candles, progressValue);
 
         if (progress < 1) {
           animationRef.current = requestAnimationFrame(animate);
@@ -145,12 +195,12 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   }, [candles, isAnimating, settings]);
 
   return (
-    <div className="canvas-container bg-[#131722] border-2 border-primary/20 shadow-2xl overflow-hidden rounded-xl">
+    <div className="canvas-container">
       <canvas 
         ref={canvasRef} 
         width={CANVAS_WIDTH} 
         height={CANVAS_HEIGHT}
-        className="w-full h-full"
+        className="w-full h-full object-contain"
       />
     </div>
   );

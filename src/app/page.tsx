@@ -1,31 +1,25 @@
-
 "use client";
 
 import React, { useState, useRef } from "react";
 import { Candlestick, ChartSettings, MarketPattern, AIGeneratorParams } from "@/lib/chart-types";
-import { generateSVG } from "@/lib/chart-utils";
+import { generateSVG, TEMPLATES } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
 import ManualEditor from "@/components/manual-editor";
-import PatternLibrary from "@/components/pattern-library";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Download, 
-  Play, 
   Video, 
-  Settings2, 
   Sparkles, 
-  Maximize, 
+  BarChart4,
+  RefreshCw,
+  Plus,
+  Settings2,
   MousePointer2,
-  FileCode,
-  Layout,
-  Wand2,
-  BarChart4
+  ChevronDown
 } from "lucide-react";
 import { generatePattern } from "@/ai/flows/generate-pattern-from-description-flow";
-import { refinePatternWithAI } from "@/ai/flows/refine-pattern-with-ai-flow";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Select,
@@ -33,14 +27,17 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function PricePatternStudio() {
   const [candles, setCandles] = useState<Candlestick[]>([]);
   const [settings, setSettings] = useState<ChartSettings>({
     zoom: 1.0,
     spacing: 1.0,
-    speed: 0.5,
+    speed: 0.8,
     autoCenter: true
   });
   const [aiParams, setAiParams] = useState<AIGeneratorParams>({
@@ -56,14 +53,24 @@ export default function PricePatternStudio() {
   const chartRef = useRef<ChartRendererHandle>(null);
   const { toast } = useToast();
 
+  const handleTemplateLoad = (val: string) => {
+    if (val === 'custom') return;
+    const template = TEMPLATES[val as keyof typeof TEMPLATES];
+    if (template) {
+      setCandles(template);
+      setSettings(prev => ({ ...prev, zoom: template.length > 10 ? 0.7 : 1.2 }));
+      toast({ title: "Template Loaded", description: `Applied ${val} structure.` });
+    }
+  };
+
   const handleAddCandle = (type: 'Bullish' | 'Bearish') => {
-    const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 100;
-    const bodySize = 10;
-    const wickSize = 5;
+    const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
+    const bodySize = 40;
+    const wickSize = 15;
     
     const newCandle: Candlestick = type === 'Bullish' 
-      ? { open: lastClose, close: lastClose + bodySize, high: lastClose + bodySize + wickSize, low: lastClose - 2, offsetY: 0 }
-      : { open: lastClose, close: lastClose - bodySize, high: lastClose + 2, low: lastClose - bodySize - wickSize, offsetY: 0 };
+      ? { open: lastClose, close: lastClose + bodySize, high: lastClose + bodySize + wickSize, low: lastClose - 5, offsetY: 0 }
+      : { open: lastClose, close: lastClose - bodySize, high: lastClose + 5, low: lastClose - bodySize - wickSize, offsetY: 0 };
     
     setCandles([...candles, newCandle]);
   };
@@ -71,7 +78,7 @@ export default function PricePatternStudio() {
   const handleUpdateCandle = (index: number, updated: Candlestick) => {
     const newCandles = [...candles];
     newCandles[index] = updated;
-    // Auto-snap following candles as per PRD logic
+    // Continuity logic
     for (let i = index + 1; i < newCandles.length; i++) {
       const diff = newCandles[i-1].close - newCandles[i].open;
       newCandles[i] = {
@@ -92,9 +99,9 @@ export default function PricePatternStudio() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `price-pattern-${Date.now()}.svg`;
+    a.download = `CandleStick_Vector_Pro.svg`;
     a.click();
-    toast({ title: "SVG Exported", description: "Infinite resolution vector saved." });
+    toast({ title: "SVG Exported", description: "Pro Vector format saved." });
   };
 
   const handleRecordVideo = async () => {
@@ -105,7 +112,7 @@ export default function PricePatternStudio() {
     const stream = canvas.captureStream(60);
     const recorder = new MediaRecorder(stream, {
       mimeType: 'video/webm;codecs=vp9',
-      videoBitsPerSecond: 50000000 // 50Mbps for 4K quality
+      videoBitsPerSecond: 15000000 
     });
 
     const chunks: Blob[] = [];
@@ -115,27 +122,15 @@ export default function PricePatternStudio() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `price-action-replay-${Date.now()}.webm`;
+      a.download = `Candlestick_PriceAction_4K.webm`;
       a.click();
       setIsRecording(false);
-      toast({ title: "Video Exported", description: "4K cinematic replay saved." });
+      setIsAnimating(false);
+      toast({ title: "Video Exported", description: "4K Price Action replay saved." });
     };
 
     recorder.start();
-    
-    const originalCandles = [...candles];
-    setCandles([]);
-    
-    // Playback interval logic based on PRD: max(20, 3000 / count)
-    const interval = Math.max(20, 3000 / originalCandles.length);
-
-    for (const c of originalCandles) {
-      setCandles(prev => [...prev, c]);
-      setIsAnimating(true);
-      await new Promise(resolve => setTimeout(resolve, interval));
-    }
-    
-    setTimeout(() => recorder.stop(), 1500); // 1.5s delay after completion as per PRD
+    setIsAnimating(true);
   };
 
   const handleAiGenerate = async () => {
@@ -144,220 +139,219 @@ export default function PricePatternStudio() {
       const result = await generatePattern(aiParams);
       if (result && result.candlesticks) {
         setCandles(result.candlesticks);
-        
-        // Auto-zoom logic from PRD
         let newZoom = 1.0;
-        const generatedCount = result.candlesticks.length;
-        if (generatedCount > 100) newZoom = 0.3;
-        else if (generatedCount > 50) newZoom = 0.5;
-        else if (generatedCount > 20) newZoom = 0.8;
+        const n = result.candlesticks.length;
+        if (n > 100) newZoom = 0.3;
+        else if (n > 50) newZoom = 0.5;
+        else if (n > 20) newZoom = 0.8;
         else newZoom = 1.5;
-
         setSettings(prev => ({ ...prev, zoom: newZoom }));
-        
-        toast({ 
-          title: "Structure Synthesized", 
-          description: `Created ${generatedCount} candles in ${aiParams.pattern} formation.` 
-        });
+        toast({ title: "AI Generated", description: `Synthesized ${n} candles.` });
       }
     } catch (error) {
-      console.error("AI Generation Error:", error);
-      toast({ 
-        variant: "destructive", 
-        title: "AI Generation Failed",
-        description: "Check your connection or API key limits."
-      });
+      toast({ variant: "destructive", title: "AI Error", description: "Failed to generate pattern." });
     } finally {
       setIsGenerating(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#EBF1F4] font-body selection:bg-primary/20">
-      {/* Header */}
-      <header className="h-16 border-b bg-white/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-10 sticky top-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#5590C0] rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-            <BarChart4 className="w-5 h-5" />
+    <div className="min-h-screen flex bg-background text-foreground overflow-hidden font-body selection:bg-primary/30">
+      {/* Left Panel */}
+      <aside className={`w-[400px] flex flex-col h-full p-5 gap-5 border-r bg-card/40 backdrop-blur-xl transition-all duration-300 ${isRecording ? 'opacity-30 pointer-events-none grayscale' : ''}`}>
+        
+        {/* Logo & App Info */}
+        <div className="flex items-center gap-3 p-1">
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+            <BarChart4 className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="font-bold text-lg tracking-tight text-[#2D3E50]">PricePattern Studio Pro</h1>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Hybrid AI + Manual Designer</p>
+            <h1 className="text-xl font-bold tracking-tight">Candle<span className="text-primary">stick</span></h1>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Vector & Animation Pro</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center bg-secondary/50 rounded-lg p-1 border">
-             <Button variant={isRecording ? "destructive" : "ghost"} size="sm" className="h-8 text-xs font-semibold" onClick={handleRecordVideo} disabled={candles.length === 0 || isRecording}>
-               <Video className="w-3.5 h-3.5 mr-2" /> {isRecording ? "MEREKAM VIDEO..." : "Export 4K Replay"}
-             </Button>
-          </div>
-          <Button variant="outline" className="h-10 gap-2 border-[#5590C0]/20 text-[#5590C0]" onClick={handleExportSVG} disabled={candles.length === 0}>
-            <Download className="w-4 h-4" /> PNG Snapshot
-          </Button>
+        {/* AI & Global Controls */}
+        <div className="bg-secondary/30 border rounded-2xl p-5 space-y-5">
+           <div className="space-y-4">
+              <div>
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 block">Template Market</Label>
+                <Select onValueChange={handleTemplateLoad}>
+                  <SelectTrigger className="bg-background border-border/50 h-11 text-xs">
+                    <SelectValue placeholder="-- Desain Manual --" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border">
+                    <SelectItem value="custom">-- Desain Manual --</SelectItem>
+                    <SelectGroup>
+                      <SelectLabel>Pola Singkat</SelectLabel>
+                      <SelectItem value="BULLISH_ENGULFING">🟢 Bullish Engulfing</SelectItem>
+                      <SelectItem value="BEARISH_ENGULFING">🔴 Bearish Engulfing</SelectItem>
+                      <SelectItem value="MORNING_STAR">🌅 Morning Star</SelectItem>
+                    </SelectGroup>
+                    <SelectGroup>
+                      <SelectLabel>Struktur Panjang</SelectLabel>
+                      <SelectItem value="FULL_BULLISH_WAVE">📈 Full Bullish Wave</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-[10px] font-bold text-muted-foreground uppercase">Zoom</Label>
+                    <span className="text-[10px] font-mono font-bold text-primary">{settings.zoom.toFixed(1)}x</span>
+                  </div>
+                  <Slider 
+                    value={[settings.zoom]} 
+                    min={0.2} max={3} step={0.1}
+                    onValueChange={([val]) => setSettings(prev => ({ ...prev, zoom: val }))}
+                  />
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-[10px] font-bold text-muted-foreground uppercase">Durasi /Bar</Label>
+                    <span className="text-[10px] font-mono font-bold text-primary">{settings.speed.toFixed(1)}s</span>
+                  </div>
+                  <Slider 
+                    value={[settings.speed]} 
+                    min={0.1} max={2.5} step={0.1}
+                    onValueChange={([val]) => setSettings(prev => ({ ...prev, speed: val }))}
+                  />
+                </div>
+              </div>
+           </div>
         </div>
-      </header>
 
-      <main className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar */}
-        <aside className="w-[380px] border-r bg-white/40 backdrop-blur-xl flex flex-col p-6 gap-6 overflow-y-auto">
-          <section className="space-y-4">
-             <div className="flex items-center gap-2 text-primary">
-                <Sparkles className="w-4 h-4" />
-                <h3 className="text-xs font-bold uppercase tracking-widest">AI Auto-Generator</h3>
-             </div>
-             <div className="p-4 rounded-2xl bg-white border shadow-sm space-y-5">
-                <div className="space-y-2.5">
-                  <div className="flex justify-between">
-                    <Label className="text-[11px] font-bold">Candle Count</Label>
-                    <span className="text-[11px] font-mono text-primary">{aiParams.count}</span>
-                  </div>
-                  <Slider 
-                    value={[aiParams.count]} 
-                    min={2} max={200} step={1}
-                    onValueChange={([val]) => setAiParams({ ...aiParams, count: val })}
-                  />
-                </div>
+        {/* Main Editor Tabs */}
+        <Tabs defaultValue="manual" className="flex-1 flex flex-col min-h-0">
+          <TabsList className="grid w-full grid-cols-2 h-11 bg-secondary/30 p-1 mb-4 rounded-xl">
+            <TabsTrigger value="manual" className="text-xs font-bold gap-2">
+              <MousePointer2 className="w-3.5 h-3.5" /> Manual
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="text-xs font-bold gap-2">
+              <Sparkles className="w-3.5 h-3.5" /> Auto AI
+            </TabsTrigger>
+          </TabsList>
 
-                <div className="space-y-2.5">
-                  <Label className="text-[11px] font-bold">Market Pattern</Label>
-                  <Select 
-                    value={aiParams.pattern} 
-                    onValueChange={(val: MarketPattern) => setAiParams({ ...aiParams, pattern: val })}
-                  >
-                    <SelectTrigger className="h-10 text-xs">
-                      <SelectValue placeholder="Select Pattern" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Bullish Trend">Bullish Trend</SelectItem>
-                      <SelectItem value="Bearish Trend">Bearish Trend</SelectItem>
-                      <SelectItem value="Double Top">Double Top</SelectItem>
-                      <SelectItem value="Double Bottom">Double Bottom</SelectItem>
-                      <SelectItem value="Sideways">Sideways</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2.5">
-                  <div className="flex justify-between">
-                    <Label className="text-[11px] font-bold">Volatility (Noise)</Label>
-                    <span className="text-[11px] font-mono text-primary">{aiParams.volatility.toFixed(1)}</span>
-                  </div>
-                  <Slider 
-                    value={[aiParams.volatility]} 
-                    min={0.1} max={2.0} step={0.1}
-                    onValueChange={([val]) => setAiParams({ ...aiParams, volatility: val })}
-                  />
-                </div>
-
-                <Button 
-                  className="w-full h-10 text-xs font-bold gap-2 bg-[#5590C0] hover:bg-[#5590C0]/90" 
-                  onClick={handleAiGenerate}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? "Generating..." : "GENERATE STRUKTUR"}
-                </Button>
-             </div>
-          </section>
-
-          <Tabs defaultValue="manual" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4 h-11 p-1 bg-secondary/50 border">
-              <TabsTrigger value="manual" className="text-xs font-bold">
-                <MousePointer2 className="w-3.5 h-3.5 mr-2" /> Manual
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="text-xs font-bold">
-                <Settings2 className="w-3.5 h-3.5 mr-2" /> Canvas
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="manual">
-              <ManualEditor 
-                candles={candles} 
-                onChange={handleUpdateCandle} 
-                onAdd={handleAddCandle}
-                onRemove={(idx) => setCandles(candles.filter((_, i) => i !== idx))}
-                onClear={() => setCandles([])}
-              />
-            </TabsContent>
-            <TabsContent value="settings" className="space-y-6 pt-4">
-                <div className="space-y-5">
-                  <div className="space-y-2.5">
-                    <div className="flex justify-between">
-                      <Label className="text-[11px] font-bold">Zoom Scale</Label>
-                      <span className="text-[11px] font-mono text-primary">{(settings.zoom * 100).toFixed(0)}%</span>
-                    </div>
-                    <Slider 
-                      value={[settings.zoom]} 
-                      min={0.2} max={3.0} step={0.1}
-                      onValueChange={([val]) => setSettings({ ...settings, zoom: val })}
-                    />
-                  </div>
-                  <div className="space-y-2.5">
-                    <div className="flex justify-between">
-                      <Label className="text-[11px] font-bold">Replay Speed</Label>
-                      <span className="text-[11px] font-mono text-primary">{settings.speed}s</span>
-                    </div>
-                    <Slider 
-                      value={[settings.speed]} 
-                      min={0.1} max={1.0} step={0.1}
-                      onValueChange={([val]) => setSettings({ ...settings, speed: val })}
-                    />
-                  </div>
-                </div>
-            </TabsContent>
-          </Tabs>
-        </aside>
-
-        {/* Canvas Area */}
-        <section className="flex-1 bg-white/20 flex flex-col p-8 overflow-hidden relative">
-          <div className="flex-1 flex items-center justify-center min-h-0 relative">
-            <ChartRenderer 
-              ref={chartRef}
+          <TabsContent value="manual" className="flex-1 flex flex-col min-h-0 mt-0">
+            <ManualEditor 
               candles={candles} 
-              settings={settings} 
-              isAnimating={isAnimating}
-              onAnimationComplete={() => setIsAnimating(false)}
+              onChange={handleUpdateCandle} 
+              onAdd={handleAddCandle}
+              onRemove={(idx) => setCandles(candles.filter((_, i) => i !== idx))}
+              onClear={() => setCandles([])}
             />
-            
-            {candles.length === 0 && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-12">
-                <div className="w-20 h-20 bg-white/50 rounded-3xl flex items-center justify-center mb-6 shadow-xl border border-white">
-                   <Layout className="w-10 h-10 text-muted-foreground/40" />
+          </TabsContent>
+
+          <TabsContent value="ai" className="space-y-6 mt-0">
+            <div className="bg-secondary/30 border rounded-2xl p-5 space-y-5">
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] font-bold">Candle Count</Label>
+                      <span className="text-[10px] font-mono text-primary font-bold">{aiParams.count}</span>
+                    </div>
+                    <Slider 
+                      value={[aiParams.count]} 
+                      min={2} max={200} step={1}
+                      onValueChange={([val]) => setAiParams(prev => ({ ...prev, count: val }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Pattern</Label>
+                    <Select value={aiParams.pattern} onValueChange={(val: any) => setAiParams(prev => ({ ...prev, pattern: val }))}>
+                      <SelectTrigger className="h-10 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Bullish Trend">Bullish Trend</SelectItem>
+                        <SelectItem value="Bearish Trend">Bearish Trend</SelectItem>
+                        <SelectItem value="Double Top">Double Top</SelectItem>
+                        <SelectItem value="Double Bottom">Double Bottom</SelectItem>
+                        <SelectItem value="Sideways">Sideways</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button 
+                    className="w-full h-11 font-bold gap-2 bg-primary hover:bg-primary/90" 
+                    onClick={handleAiGenerate}
+                    disabled={isGenerating}
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
+                    {isGenerating ? "Generating..." : "Generate Struktur AI"}
+                  </Button>
                 </div>
-                <h3 className="text-xl font-extrabold text-[#2D3E50] mb-2">Studio Canvas Empty</h3>
-                <p className="max-w-xs text-sm text-muted-foreground font-medium">Use the AI generator or add candles manually to start building your visual analysis.</p>
-              </div>
-            )}
-
-            {isRecording && (
-              <div className="absolute top-6 right-6 flex items-center gap-3 bg-destructive/10 border border-destructive/20 text-destructive px-5 py-2.5 rounded-full backdrop-blur-md animate-pulse">
-                <div className="w-3 h-3 rounded-full bg-destructive" />
-                <span className="text-[11px] font-extrabold uppercase tracking-widest">RECORDING 4K VIDEO</span>
-              </div>
-            )}
-
-            {/* Indicator from PRD */}
-            <div className="absolute top-6 left-6 bg-white/80 backdrop-blur-md border px-4 py-2 rounded-xl shadow-sm">
-               <span className="text-[11px] font-extrabold text-primary uppercase tracking-wider">{candles.length} Candles</span>
             </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Action Buttons */}
+        <div className="space-y-3 mt-auto pt-4 shrink-0">
+          <div className="flex gap-3">
+            <Button variant="outline" className="flex-1 h-12 gap-2 border-primary/20 text-primary hover:bg-primary/5 font-bold" onClick={handleExportSVG} disabled={candles.length === 0}>
+              <Download className="w-4 h-4" /> Export SVG
+            </Button>
+            <Button className="flex-1 h-12 gap-2 bg-purple-600 hover:bg-purple-700 font-bold" onClick={handleRecordVideo} disabled={candles.length === 0}>
+              <Video className="w-4 h-4" /> Video Replay
+            </Button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Canvas Main Area */}
+      <main className="flex-1 bg-background relative flex flex-col">
+        {/* Top Floating UI */}
+        <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-start pointer-events-none z-20">
+          <div className="flex items-center gap-3 bg-card/80 backdrop-blur-md border px-4 py-2 rounded-full shadow-xl">
+             <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+             <span className="text-[10px] font-bold tracking-[0.2em] text-foreground uppercase">Live Vector Engine</span>
           </div>
           
-          <div className="h-14 flex items-center justify-between px-6 mt-6 bg-white/80 border rounded-2xl shadow-sm backdrop-blur-md">
-             <div className="flex items-center gap-8 text-[10px] font-bold text-muted-foreground tracking-widest uppercase">
-               <div className="flex flex-col">
-                 <span className="text-[9px] opacity-60">Engine</span>
-                 <span className="text-[#2D3E50]">60 FPS Canvas v2.1</span>
-               </div>
-               <div className="flex flex-col">
-                 <span className="text-[9px] opacity-60">Output</span>
-                 <span className="text-[#2D3E50]">WebM (VP9) / 4K UHD</span>
-               </div>
+          <div className="flex gap-3">
+            <div className="bg-card/80 backdrop-blur-md border px-4 py-2 rounded-full shadow-xl flex items-center gap-2">
+               <span className="text-[10px] font-mono font-bold text-primary">{candles.length}</span>
+               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Candles</span>
+            </div>
+            {isRecording && (
+              <div className="bg-destructive/10 border border-destructive/30 px-5 py-2 rounded-full backdrop-blur-md flex items-center gap-3 shadow-xl">
+                <div className="w-2 h-2 rounded-full bg-destructive recording-pulse" />
+                <span className="text-[10px] font-bold text-destructive tracking-[0.2em] uppercase">Recording 4K...</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* The Renderer */}
+        <div className="flex-1 flex items-center justify-center p-8 bg-[#0b0e14]">
+          <ChartRenderer 
+            ref={chartRef}
+            candles={candles} 
+            settings={settings} 
+            isAnimating={isAnimating}
+            onAnimationComplete={() => {
+              if(!isRecording) setIsAnimating(false);
+            }}
+          />
+        </div>
+
+        {/* Bottom Status Bar */}
+        <div className="h-14 border-t bg-card/40 backdrop-blur-md px-8 flex items-center justify-between shrink-0">
+          <div className="flex gap-8">
+             <div className="flex flex-col">
+               <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Resolution</span>
+               <span className="text-[10px] font-bold">3840 x 2160 (4K)</span>
              </div>
-             <div className="flex items-center gap-3">
-               <span className="text-[10px] font-bold text-[#089981] uppercase tracking-widest">Renderer Ready</span>
-               <div className="w-2.5 h-2.5 rounded-full bg-[#089981] shadow-[0_0_10px_rgba(8,153,129,0.5)]" />
+             <div className="flex flex-col">
+               <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Output Mode</span>
+               <span className="text-[10px] font-bold">Vector SVG / WebM Pro</span>
              </div>
           </div>
-        </section>
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">System Ready</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          </div>
+        </div>
       </main>
     </div>
   );
