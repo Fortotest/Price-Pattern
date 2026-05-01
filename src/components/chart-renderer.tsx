@@ -103,21 +103,18 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
         const rawP = progressValue - i;
         const p = easeOut(Math.min(rawP, 1));
         
-        if (p < 0.3) {
-          const t = p / 0.3;
-          curLowY = lerp(yOpen, yLow, t);
-          curHighY = yOpen;
-          curCloseY = curLowY;
-        } else if (p < 0.7) {
-          const t = (p - 0.3) / 0.4;
-          curLowY = yLow;
+        if (p < 0.5) {
+          // Phase 1: Wicks grow from Open
+          const t = p / 0.5;
           curHighY = lerp(yOpen, yHigh, t);
-          curCloseY = curHighY;
+          curLowY = lerp(yOpen, yLow, t);
+          curCloseY = yOpen; // Body stays flat at open
         } else {
-          const t = (p - 0.7) / 0.3;
-          curLowY = yLow;
+          // Phase 2: Body grows from Open to Close
+          const t = (p - 0.5) / 0.5;
           curHighY = yHigh;
-          curCloseY = lerp(yHigh, yClose, t);
+          curLowY = yLow;
+          curCloseY = lerp(yOpen, yClose, t);
         }
       }
 
@@ -133,22 +130,25 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       ctx.lineCap = settings.wickRadius > 0 ? 'round' : 'butt';
       ctx.stroke();
 
-      // Draw Body SECOND (FRONT) - Solid color to hide wick split
-      const rectY = Math.min(curOpenY, curCloseY);
-      const rectHeight = Math.max(4, Math.abs(curOpenY - curCloseY));
-      ctx.fillStyle = color;
-      
-      if (settings.bodyRadius > 0) {
-        ctx.beginPath();
-        ctx.roundRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight, settings.bodyRadius);
-        ctx.fill();
-      } else {
-        ctx.fillRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight);
+      // Draw Body SECOND (FRONT)
+      const bodyDiff = Math.abs(curOpenY - curCloseY);
+      if (bodyDiff > 0 || i < Math.floor(progressValue)) {
+        const rectY = Math.min(curOpenY, curCloseY);
+        const rectHeight = Math.max(2, bodyDiff);
+        ctx.fillStyle = color;
+        
+        if (settings.bodyRadius > 0) {
+          ctx.beginPath();
+          ctx.roundRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight, settings.bodyRadius);
+          ctx.fill();
+        } else {
+          ctx.fillRect(x - bodyWidth / 2, rectY, bodyWidth, rectHeight);
+        }
       }
     }
-    ctx.restore(); // --- RESTORE CLIP ---
+    ctx.restore();
 
-    // --- DRAW AXES (Y-Axis Price Labels) ---
+    // --- DRAW AXES (Y-Axis) ---
     ctx.fillStyle = '#555';
     ctx.font = 'bold 42px monospace';
     ctx.textAlign = 'left';
@@ -163,7 +163,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       }
     }
 
-    // --- DRAW AXES (X-Axis Bar Labels) ---
+    // --- DRAW AXES (X-Axis) ---
     for (let i = 0; i < limit; i++) {
       const x = startX + (i * baseWidth);
       if(x >= 0 && x <= chartAreaWidth) {
