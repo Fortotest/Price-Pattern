@@ -187,7 +187,7 @@ export default function PricePatternStudio() {
                   min={0.3} 
                   max={1.0} 
                   step={0.01} 
-                  onValueChange={([v]) => setSettings(s => ({...s, zoom: v}))}
+                  onValueChange={(val) => setSettings(s => ({...s, zoom: val[0]}))}
                 />
               </div>
 
@@ -201,7 +201,7 @@ export default function PricePatternStudio() {
                   min={0.5} 
                   max={3.0} 
                   step={0.05} 
-                  onValueChange={([v]) => setSettings(s => ({...s, spacing: v}))}
+                  onValueChange={(val) => setSettings(s => ({...s, spacing: val[0]}))}
                 />
               </div>
 
@@ -215,7 +215,7 @@ export default function PricePatternStudio() {
                   min={0.1} 
                   max={2.0} 
                   step={0.05} 
-                  onValueChange={([v]) => setSettings(s => ({...s, speed: v}))}
+                  onValueChange={(val) => setSettings(s => ({...s, speed: val[0]}))}
                 />
               </div>
             </div>
@@ -286,7 +286,7 @@ export default function PricePatternStudio() {
                 min={0} 
                 max={20} 
                 step={1} 
-                onValueChange={([v]) => setSettings(s => ({...s, bodyRadius: v}))}
+                onValueChange={(val) => setSettings(s => ({...s, bodyRadius: val[0]}))}
               />
             </div>
 
@@ -300,7 +300,7 @@ export default function PricePatternStudio() {
                 min={0} 
                 max={10} 
                 step={1} 
-                onValueChange={([v]) => setSettings(s => ({...s, wickRadius: v}))}
+                onValueChange={(val) => setSettings(s => ({...s, wickRadius: val[0]}))}
               />
             </div>
           </div>

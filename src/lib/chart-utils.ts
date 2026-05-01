@@ -27,11 +27,11 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
   const width = CANVAS_WIDTH;
   
   const zoom = settings.zoom || 0.8;
-  const spacingMultiplier = settings.spacing || 1.2;
+  const spacingMultiplier = settings.spacing || 1.0;
   const effectiveCount = Math.max(12, candles.length);
   
   const bodyWidth = (width / effectiveCount) * 0.8 * zoom;
-  const baseWidth = bodyWidth * spacingMultiplier;
+  const baseWidth = ((width / effectiveCount) * 0.8) * spacingMultiplier;
   const wickWidth = Math.max(8, bodyWidth * 0.15);
 
   const getY = (price: number) => {
