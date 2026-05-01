@@ -126,13 +126,13 @@ const PropertiesPanel = ({
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center px-0.5">
-                  <Label className="text-[9px] text-muted-foreground">Zoom Level</Label>
+                  <Label className="text-[9px] text-muted-foreground">Zoom Level (Y-Axis)</Label>
                   <span className="text-[9px] font-mono text-primary">{localZoom.toFixed(2)}x</span>
                 </div>
                 <Slider 
                   value={[localZoom]} 
-                  min={0.3} 
-                  max={1.0} 
+                  min={0.1} 
+                  max={2.0} 
                   step={0.01} 
                   onValueChange={(val) => {
                     setLocalZoom(val[0]);
@@ -143,14 +143,14 @@ const PropertiesPanel = ({
 
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center px-0.5">
-                  <Label className="text-[9px] text-muted-foreground">Candle Spacing</Label>
-                  <span className="text-[9px] font-mono text-primary">{localSpacing.toFixed(1)}x</span>
+                  <Label className="text-[9px] text-muted-foreground">Candle Spacing (X-Axis)</Label>
+                  <span className="text-[9px] font-mono text-primary">{localSpacing.toFixed(2)}x</span>
                 </div>
                 <Slider 
                   value={[localSpacing]} 
                   min={0.5} 
-                  max={3.0} 
-                  step={0.05} 
+                  max={5.0} 
+                  step={0.01} 
                   onValueChange={(val) => {
                     setLocalSpacing(val[0]);
                     syncSettings({ spacing: val[0] });
@@ -401,8 +401,7 @@ export default function PricePatternStudio() {
 
   const handleClearAll = useCallback(() => {
     setCandles([]);
-    toast({ title: "Layers Cleared", description: "All candlesticks removed." });
-  }, [toast]);
+  }, []);
 
   const handleExportSVG = useCallback(() => {
     if (candles.length === 0) return;
@@ -527,6 +526,7 @@ export default function PricePatternStudio() {
               settings={settings} 
               isAnimating={isAnimating}
               onAnimationComplete={() => setIsAnimating(false)}
+              onSettingsChange={updateSettings}
             />
           </div>
           
