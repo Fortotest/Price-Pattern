@@ -306,6 +306,7 @@ export default function PricePattern() {
   const [isResizing, setIsResizing] = useState(false);
   
   const chartRef = useRef<ChartRendererHandle>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
   const { toast } = useToast();
 
   const updateSettings = useCallback((newSettings: Partial<ChartSettings>) => {
@@ -458,10 +459,18 @@ export default function PricePattern() {
   const handleRecordVideo = async () => {
     const canvas = chartRef.current?.getCanvas();
     if (!canvas || candles.length === 0) return;
+    
     const stream = canvas.captureStream(60);
-    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 30000000 });
+    const recorder = new MediaRecorder(stream, { 
+      mimeType: 'video/webm;codecs=vp9', 
+      videoBitsPerSecond: 30000000 
+    });
+    
     const chunks: Blob[] = [];
-    recorder.ondataavailable = (e) => chunks.push(e.data);
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunks.push(e.data);
+    };
+    
     recorder.onstop = () => {
       const blob = new Blob(chunks, { type: 'video/webm' });
       const url = URL.createObjectURL(blob);
@@ -469,12 +478,24 @@ export default function PricePattern() {
       a.href = url;
       a.download = `sequence-render.webm`;
       a.click();
+      URL.revokeObjectURL(url);
       setIsAnimating(false);
       toast({ title: "Video Export", description: "Alpha channel video saved." });
     };
+    
+    recorderRef.current = recorder;
     recorder.start();
     setIsAnimating(true);
   };
+
+  const handleAnimationComplete = useCallback(() => {
+    if (recorderRef.current && recorderRef.current.state === 'recording') {
+      recorderRef.current.stop();
+      recorderRef.current = null;
+    } else {
+      setIsAnimating(false);
+    }
+  }, []);
 
   const handleResizeStart = (e: React.PointerEvent) => {
     setIsResizing(true);
@@ -560,7 +581,7 @@ export default function PricePattern() {
               candles={candles} 
               settings={settings} 
               isAnimating={isAnimating}
-              onAnimationComplete={() => setIsAnimating(false)}
+              onAnimationComplete={handleAnimationComplete}
               onSettingsChange={updateSettings}
             />
           </div>
