@@ -135,7 +135,7 @@ export default function PricePatternStudio() {
   };
 
   const PropertiesPanel = () => (
-    <div className="flex flex-col h-full bg-[#121212] border-r border-white/5 text-white overflow-hidden w-[280px]">
+    <div className="flex flex-col h-full bg-[#0a0a0a] border-r border-[#1a1a1a] text-white overflow-hidden w-[280px]">
       <div className="p-3 border-b border-white/5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-primary" />
@@ -148,7 +148,7 @@ export default function PricePatternStudio() {
           <div className="space-y-3">
             <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Library</Label>
             <Select onValueChange={handleTemplateLoad}>
-              <SelectTrigger className="bg-black border-white/10 h-8 text-[10px] rounded-sm">
+              <SelectTrigger className="bg-black border-white/5 h-8 text-[10px] rounded-sm focus:ring-0">
                 <SelectValue placeholder="Choose Template" />
               </SelectTrigger>
               <SelectContent className="bg-[#1c212f] border-white/10 text-white">
@@ -187,7 +187,7 @@ export default function PricePatternStudio() {
                   min={0.3} 
                   max={1.0} 
                   step={0.01} 
-                  onValueChange={([v]) => setSettings(s => ({...s, zoom: v}))}
+                  onInput={([v]) => setSettings(s => ({...s, zoom: v}))}
                 />
               </div>
 
@@ -198,10 +198,10 @@ export default function PricePatternStudio() {
                 </div>
                 <Slider 
                   value={[settings.spacing]} 
-                  min={0.8} 
+                  min={0.5} 
                   max={3.0} 
                   step={0.05} 
-                  onValueChange={([v]) => setSettings(s => ({...s, spacing: v}))}
+                  onInput={([v]) => setSettings(s => ({...s, spacing: v}))}
                 />
               </div>
 
@@ -215,7 +215,7 @@ export default function PricePatternStudio() {
                   min={0.1} 
                   max={2.0} 
                   step={0.05} 
-                  onValueChange={([v]) => setSettings(s => ({...s, speed: v}))}
+                  onInput={([v]) => setSettings(s => ({...s, speed: v}))}
                 />
               </div>
             </div>
@@ -231,7 +231,7 @@ export default function PricePatternStudio() {
             
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <div className="flex items-center justify-center h-8 rounded bg-black border border-white/10 relative overflow-hidden">
+                <div className="flex items-center justify-center h-8 rounded bg-black border border-white/5 relative overflow-hidden">
                   <input 
                     type="color" 
                     value={settings.bullColor} 
@@ -239,7 +239,7 @@ export default function PricePatternStudio() {
                       const val = e.currentTarget.value;
                       setSettings(s => ({...s, bullColor: val}));
                     }} 
-                    className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none" 
+                    className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent" 
                   />
                 </div>
                 <Input 
@@ -248,12 +248,12 @@ export default function PricePatternStudio() {
                     const val = e.currentTarget.value;
                     setSettings(s => ({...s, bullColor: val}));
                   }}
-                  className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2 text-center"
+                  className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2 text-center focus-visible:ring-0"
                   placeholder="#HEX"
                 />
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-center h-8 rounded bg-black border border-white/10 relative overflow-hidden">
+                <div className="flex items-center justify-center h-8 rounded bg-black border border-white/5 relative overflow-hidden">
                   <input 
                     type="color" 
                     value={settings.bearColor} 
@@ -261,7 +261,7 @@ export default function PricePatternStudio() {
                       const val = e.currentTarget.value;
                       setSettings(s => ({...s, bearColor: val}));
                     }} 
-                    className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none" 
+                    className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent" 
                   />
                 </div>
                 <Input 
@@ -270,7 +270,7 @@ export default function PricePatternStudio() {
                     const val = e.currentTarget.value;
                     setSettings(s => ({...s, bearColor: val}));
                   }}
-                  className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2 text-center"
+                  className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2 text-center focus-visible:ring-0"
                   placeholder="#HEX"
                 />
               </div>
@@ -286,7 +286,7 @@ export default function PricePatternStudio() {
                 min={0} 
                 max={20} 
                 step={1} 
-                onValueChange={([v]) => setSettings(s => ({...s, bodyRadius: v}))}
+                onInput={([v]) => setSettings(s => ({...s, bodyRadius: v}))}
               />
             </div>
 
@@ -300,38 +300,37 @@ export default function PricePatternStudio() {
                 min={0} 
                 max={10} 
                 step={1} 
-                onValueChange={([v]) => setSettings(s => ({...s, wickRadius: v}))}
+                onInput={([v]) => setSettings(s => ({...s, wickRadius: v}))}
               />
             </div>
           </div>
         </div>
       </ScrollArea>
 
-      <div className="p-3 bg-[#161616] border-t border-white/5 space-y-2">
-        <Button className="w-full h-8 font-bold text-[10px] gap-2 bg-slate-800 hover:bg-slate-700 border border-white/5" onClick={handleReplay} disabled={candles.length === 0 || isAnimating}>
-          <RefreshCw className={`w-3 h-3 ${isAnimating ? 'animate-spin' : ''}`} /> Preview Animation
+      <div className="p-3 bg-[#0d0d0d] border-t border-white/5 space-y-2">
+        <Button className="w-full h-8 font-bold text-[10px] gap-2 bg-[#1a1a1a] hover:bg-[#222] border border-white/5" onClick={handleReplay} disabled={candles.length === 0 || isAnimating}>
+          <RefreshCw className={`w-3 h-3 ${isAnimating ? 'animate-spin' : ''}`} /> Preview
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline" className="flex-1 h-8 text-[10px] font-bold border-white/10 bg-transparent" onClick={handleExportSVG} disabled={candles.length === 0}>SVG</Button>
-          <Button className="flex-1 h-8 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700" onClick={handleRecordVideo} disabled={candles.length === 0}>4K Video</Button>
+          <Button variant="outline" className="flex-1 h-8 text-[10px] font-bold border-white/5 bg-transparent" onClick={handleExportSVG} disabled={candles.length === 0}>SVG</Button>
+          <Button className="flex-1 h-8 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none" onClick={handleRecordVideo} disabled={candles.length === 0}>4K Video</Button>
         </div>
       </div>
     </div>
   );
 
   const LayersPanel = () => (
-    <div className="flex flex-col h-full bg-[#121212] border-l border-white/5 text-white overflow-hidden w-[260px]">
+    <div className="flex flex-col h-full bg-[#0a0a0a] border-l border-[#1a1a1a] text-white overflow-hidden w-[260px]">
       <div className="p-3 border-b border-white/5 flex items-center gap-2">
         <Layers className="w-3.5 h-3.5 text-emerald-500" />
-        <span className="text-[10px] font-bold uppercase tracking-wider">Layers Panel</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider">Layers</span>
       </div>
       
       <div className="p-3 bg-black/40 space-y-2">
         <div className="grid grid-cols-2 gap-2">
-          <Button onClick={() => handleAddCandle('Bullish')} className="bg-[#00b386] hover:bg-[#00b386]/90 h-7 text-[9px] font-bold"><Plus className="w-3 h-3 mr-1" /> Bull</Button>
-          <Button onClick={() => handleAddCandle('Bearish')} variant="destructive" className="bg-[#f23645] hover:bg-[#f23645]/90 h-7 text-[9px] font-bold"><Plus className="w-3 h-3 mr-1" /> Bear</Button>
+          <Button onClick={() => handleAddCandle('Bullish')} className="bg-[#00b386] hover:bg-[#00b386]/90 h-7 text-[9px] font-bold border-none"><Plus className="w-3 h-3 mr-1" /> Bull</Button>
+          <Button onClick={() => handleAddCandle('Bearish')} variant="destructive" className="bg-[#f23645] hover:bg-[#f23645]/90 h-7 text-[9px] font-bold border-none"><Plus className="w-3 h-3 mr-1" /> Bear</Button>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => setCandles([])} className="w-full h-6 text-[8px] font-bold text-red-400 p-0 hover:bg-red-400/5">Clear Layers</Button>
       </div>
 
       <ScrollArea className="flex-1">
@@ -353,12 +352,12 @@ export default function PricePatternStudio() {
       </aside>
 
       <main className="flex-1 flex flex-col relative overflow-hidden bg-black">
-        <header className="lg:hidden h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#121212] z-30">
+        <header className="lg:hidden h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#0a0a0a] z-30">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="text-white h-9 w-9"><Settings2 className="w-5 h-5" /></Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-[280px] bg-[#121212] border-r border-white/10">
+            <SheetContent side="left" className="p-0 w-[280px] bg-[#0a0a0a] border-r border-white/5">
               <PropertiesPanel />
             </SheetContent>
           </Sheet>
@@ -370,7 +369,7 @@ export default function PricePatternStudio() {
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="text-white h-9 w-9"><Layers className="w-5 h-5" /></Button>
             </SheetTrigger>
-            <SheetContent side="right" className="p-0 w-[260px] bg-[#121212] border-l border-white/10">
+            <SheetContent side="right" className="p-0 w-[260px] bg-[#0a0a0a] border-l border-white/5">
               <LayersPanel />
             </SheetContent>
           </Sheet>
@@ -385,8 +384,8 @@ export default function PricePatternStudio() {
           </div>
         )}
 
-        <div className="flex-1 flex items-center justify-center p-4 lg:p-8 overflow-hidden">
-          <div className="w-full max-w-[1600px] h-full flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center p-4 lg:p-8 overflow-hidden bg-[#000]">
+          <div className="w-full h-full flex items-center justify-center">
             <ChartRenderer 
               ref={chartRef}
               candles={candles} 
@@ -397,14 +396,14 @@ export default function PricePatternStudio() {
           </div>
         </div>
 
-        <footer className="h-8 bg-[#121212] border-t border-white/5 px-4 flex items-center justify-between text-[8px] font-bold text-muted-foreground uppercase tracking-[1px]">
+        <footer className="h-8 bg-[#0a0a0a] border-t border-white/5 px-4 flex items-center justify-between text-[8px] font-bold text-muted-foreground uppercase tracking-[1px]">
           <div className="flex gap-6">
-            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-primary" /> Active Candles: {candles.length}</span>
-            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-primary" /> Zoom: {settings.zoom.toFixed(2)}x</span>
+            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Bars: {candles.length}</span>
+            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Zoom: {settings.zoom.toFixed(2)}x</span>
           </div>
           <div className="flex items-center gap-3">
             <Monitor className="w-3 h-3" />
-            <span className="hidden sm:inline">Engine Active</span>
+            <span className="hidden sm:inline text-emerald-500/50">Core 4K Active</span>
           </div>
         </footer>
       </main>
