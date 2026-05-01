@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 
 interface ManualEditorProps {
   candles: Candlestick[];
@@ -40,6 +39,7 @@ const CustomNumberInput = ({
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [inputValue, setInputValue] = useState(value.toString());
 
+  // Sync local input state when value from prop changes (but not during typing)
   useEffect(() => {
     setInputValue(Math.round(value).toString());
   }, [value]);
@@ -50,10 +50,9 @@ const CustomNumberInput = ({
   }, []);
 
   const handleStep = useCallback((delta: number) => {
-    const currentVal = parseInt(inputValue) || 0;
-    const newVal = Math.max(min, currentVal + delta);
+    const newVal = Math.max(min, value + delta);
     onChange(newVal);
-  }, [onChange, min, inputValue]);
+  }, [onChange, min, value]);
 
   const startAdjusting = useCallback((delta: number) => {
     stopAdjusting();
@@ -90,7 +89,7 @@ const CustomNumberInput = ({
           value={inputValue}
           onChange={handleInputChange}
           onBlur={handleBlur}
-          className="flex-1 bg-transparent text-center font-mono text-[10px] font-bold text-white border-none outline-none focus:ring-0 w-full"
+          className="flex-1 bg-transparent text-center font-mono text-[10px] font-bold text-white border-none outline-none focus:ring-0 w-full h-full"
         />
         <div className="w-4 h-full flex flex-col border-l border-white/5 overflow-hidden rounded-r-sm">
           <button 

@@ -310,9 +310,9 @@ export default function PricePatternStudio() {
         high = open + topWick;
         low = close - botWick;
       } else { // Doji
-        const bodySize = randomRange(10, 25); // Super random 10-25
-        const topWick = randomRange(30, 80);
-        const botWick = randomRange(30, 80);
+        const bodySize = randomRange(10, 25); 
+        const topWick = randomRange(25, 50);
+        const botWick = randomRange(25, 50);
         const isBullishDoji = Math.random() > 0.5;
         close = isBullishDoji ? open + bodySize : open - bodySize;
         high = Math.max(open, close) + topWick;
