@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef } from "react";
@@ -9,9 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { 
-  Download, 
-  Video, 
-  Trash2,
   Plus,
   Monitor,
   RefreshCw,
@@ -20,7 +18,9 @@ import {
   Maximize,
   Palette,
   Layers,
-  Settings2
+  Settings2,
+  ChevronRight,
+  Download
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -65,9 +65,9 @@ export default function PricePatternStudio() {
 
   const handleAddCandle = (type: 'Bullish' | 'Bearish') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
-    const bodySize = Math.floor(Math.random() * 60) + 80; 
-    const topWick = Math.floor(Math.random() * 20) + 10; 
-    const botWick = Math.floor(Math.random() * 20) + 10; 
+    const bodySize = Math.floor(Math.random() * 41) + 80; 
+    const topWick = Math.floor(Math.random() * 11) + 15; 
+    const botWick = Math.floor(Math.random() * 11) + 15; 
     const cleanBody = Math.round(bodySize / 5) * 5;
     
     const newCandle: Candlestick = type === 'Bullish' 
@@ -116,7 +116,7 @@ export default function PricePatternStudio() {
     a.href = url;
     a.download = `chart-vector.svg`;
     a.click();
-    toast({ title: "SVG Exported", description: "File saved to downloads." });
+    toast({ title: "SVG Exported", description: "File saved." });
   };
 
   const handleReplay = () => {
@@ -142,47 +142,69 @@ export default function PricePatternStudio() {
       a.click();
       setIsRecording(false);
       setIsAnimating(false);
-      toast({ title: "Video Ready", description: "High-quality render finished." });
+      toast({ title: "Video Ready", description: "4K Render finished." });
     };
     recorder.start();
     setIsAnimating(true);
   };
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-[#121212] border-r border-white/5 text-white overflow-hidden">
-      <div className="p-4 border-b border-white/5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-emerald-500 fill-emerald-500" />
-          <span className="text-[10px] font-bold uppercase tracking-[2px] text-emerald-500">PRO STUDIO</span>
+  const LeftSidebar = () => (
+    <div className="flex flex-col h-full bg-[#121212] border-r border-white/5 text-white overflow-hidden w-[260px]">
+      <div className="p-3 border-b border-white/5 flex items-center gap-2">
+        <Layers className="w-3.5 h-3.5 text-emerald-500" />
+        <span className="text-[10px] font-bold uppercase tracking-wider">Layers Panel</span>
+      </div>
+      
+      <div className="p-3 bg-black/40 space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          <Button onClick={() => handleAddCandle('Bullish')} className="bg-[#00b386] hover:bg-[#00b386]/90 h-7 text-[9px] font-bold"><Plus className="w-3 h-3 mr-1" /> Bull</Button>
+          <Button onClick={() => handleAddCandle('Bearish')} variant="destructive" className="bg-[#f23645] hover:bg-[#f23645]/90 h-7 text-[9px] font-bold"><Plus className="w-3 h-3 mr-1" /> Bear</Button>
         </div>
-        <Settings2 className="w-3.5 h-3.5 text-muted-foreground" />
+        <Button variant="ghost" size="sm" onClick={() => setCandles([])} className="w-full h-6 text-[8px] font-bold text-red-400 p-0 hover:bg-red-400/5">Clear All Layers</Button>
+      </div>
+
+      <ScrollArea className="flex-1">
+        <div className="p-3 pb-8">
+          <ManualEditor 
+            candles={candles} 
+            onChange={handleUpdateCandle} 
+            onRemove={(idx) => setCandles(candles.filter((_, i) => i !== idx))} 
+          />
+        </div>
+      </ScrollArea>
+    </div>
+  );
+
+  const RightSidebar = () => (
+    <div className="flex flex-col h-full bg-[#121212] border-l border-white/5 text-white overflow-hidden w-[280px]">
+      <div className="p-3 border-b border-white/5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Settings2 className="w-3.5 h-3.5 text-primary" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Properties</span>
+        </div>
+        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
       </div>
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6 pb-12">
           <div className="space-y-3">
-            <Label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Market Structure</Label>
+            <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Market Library</Label>
             <Select onValueChange={handleTemplateLoad}>
-              <SelectTrigger className="bg-black border-white/10 h-9 text-[11px] rounded-md">
-                <SelectValue placeholder="Load Template" />
+              <SelectTrigger className="bg-black border-white/10 h-8 text-[10px] rounded-sm">
+                <SelectValue placeholder="Choose Template" />
               </SelectTrigger>
               <SelectContent className="bg-[#1c212f] border-white/10 text-white">
                 <SelectGroup>
-                  <SelectLabel>Single Bar</SelectLabel>
+                  <SelectLabel>Basic Shapes</SelectLabel>
                   <SelectItem value="HAMMER">🔨 Hammer Bar</SelectItem>
                   <SelectItem value="SHOOTING_STAR">💫 Shooting Star</SelectItem>
                 </SelectGroup>
                 <SelectGroup>
-                  <SelectLabel>Multi Bar</SelectLabel>
+                  <SelectLabel>Advanced Patterns</SelectLabel>
                   <SelectItem value="BULLISH_ENGULFING">🔥 Engulfing Bull</SelectItem>
                   <SelectItem value="BEARISH_ENGULFING">❄️ Engulfing Bear</SelectItem>
-                  <SelectItem value="MORNING_STAR">🌅 Morning Star</SelectItem>
-                </SelectGroup>
-                <SelectGroup>
-                  <SelectLabel>Patterns</SelectLabel>
                   <SelectItem value="DOUBLE_BOTTOM">🇼 Double Bottom</SelectItem>
                   <SelectItem value="DOUBLE_TOP">🇲 Double Top</SelectItem>
-                  <SelectItem value="FULL_BULLISH_WAVE">🌊 Wave (11 Bars)</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -190,32 +212,32 @@ export default function PricePatternStudio() {
 
           <Separator className="bg-white/5" />
 
-          <div className="space-y-5">
+          <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Maximize className="w-3 h-3 text-primary" />
-              <Label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">View Controls</Label>
+              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">View Controls</Label>
             </div>
             
-            <div className="space-y-4 px-1">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label className="text-[9px] text-muted-foreground">Zoom (Candle Size)</Label>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center px-0.5">
+                  <Label className="text-[9px] text-muted-foreground">Zoom Level</Label>
                   <span className="text-[9px] font-mono text-primary">{settings.zoom.toFixed(2)}x</span>
                 </div>
                 <Slider value={[settings.zoom]} min={0.3} max={1.0} step={0.01} onValueChange={([v]) => setSettings(s => ({...s, zoom: v}))} />
               </div>
 
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label className="text-[9px] text-muted-foreground">Spacing (Density)</Label>
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center px-0.5">
+                  <Label className="text-[9px] text-muted-foreground">Candle Spacing</Label>
                   <span className="text-[9px] font-mono text-primary">{settings.spacing.toFixed(1)}x</span>
                 </div>
                 <Slider value={[settings.spacing]} min={0.5} max={3.0} step={0.1} onValueChange={([v]) => setSettings(s => ({...s, spacing: v}))} />
               </div>
 
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label className="text-[9px] text-muted-foreground">Speed</Label>
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center px-0.5">
+                  <Label className="text-[9px] text-muted-foreground">Anim Speed</Label>
                   <span className="text-[9px] font-mono text-primary">{settings.speed}s</span>
                 </div>
                 <Slider value={[settings.speed]} min={0.1} max={2.0} step={0.05} onValueChange={([v]) => setSettings(s => ({...s, speed: v}))} />
@@ -225,63 +247,41 @@ export default function PricePatternStudio() {
 
           <Separator className="bg-white/5" />
 
-          <div className="space-y-5">
+          <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Palette className="w-3 h-3 text-primary" />
-              <Label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Visual Style</Label>
+              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Visual Styles</Label>
             </div>
             
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-[9px] text-muted-foreground">Bullish</Label>
-                <div className="flex gap-2">
-                  <input type="color" value={settings.bullColor} onChange={(e) => setSettings(s => ({...s, bullColor: e.target.value}))} className="w-full h-6 rounded bg-black border border-white/10 cursor-pointer" />
-                </div>
+              <div className="space-y-1">
+                <Label className="text-[8px] text-muted-foreground uppercase">Bullish</Label>
+                <input type="color" value={settings.bullColor} onChange={(e) => setSettings(s => ({...s, bullColor: e.target.value}))} className="w-full h-6 rounded bg-black border border-white/10 cursor-pointer" />
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-[9px] text-muted-foreground">Bearish</Label>
-                <div className="flex gap-2">
-                  <input type="color" value={settings.bearColor} onChange={(e) => setSettings(s => ({...s, bearColor: e.target.value}))} className="w-full h-6 rounded bg-black border border-white/10 cursor-pointer" />
-                </div>
+              <div className="space-y-1">
+                <Label className="text-[8px] text-muted-foreground uppercase">Bearish</Label>
+                <input type="color" value={settings.bearColor} onChange={(e) => setSettings(s => ({...s, bearColor: e.target.value}))} className="w-full h-6 rounded bg-black border border-white/10 cursor-pointer" />
               </div>
             </div>
 
-            <div className="space-y-4 px-1">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label className="text-[9px] text-muted-foreground">Body Rounding</Label>
-                  <span className="text-[9px] font-mono text-primary">{settings.bodyRadius}px</span>
-                </div>
-                <Slider value={[settings.bodyRadius]} min={0} max={12} step={1} onValueChange={([v]) => setSettings(s => ({...s, bodyRadius: v}))} />
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center px-0.5">
+                <Label className="text-[9px] text-muted-foreground">Body Radius</Label>
+                <span className="text-[9px] font-mono text-primary">{settings.bodyRadius}px</span>
               </div>
+              <Slider value={[settings.bodyRadius]} min={0} max={12} step={1} onValueChange={([v]) => setSettings(s => ({...s, bodyRadius: v}))} />
             </div>
-          </div>
-
-          <Separator className="bg-white/5" />
-
-          <div className="space-y-4 pb-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Manual Bars</Label>
-              <Button variant="ghost" size="sm" onClick={() => setCandles([])} className="h-6 text-[9px] font-bold text-red-400 p-0 hover:bg-transparent">Clear All</Button>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2">
-              <Button onClick={() => handleAddCandle('Bullish')} className="bg-[#00b386] hover:bg-[#00b386]/90 h-8 text-[10px] font-bold"><Plus className="w-3 h-3 mr-1" /> Bull</Button>
-              <Button onClick={() => handleAddCandle('Bearish')} variant="destructive" className="bg-[#f23645] hover:bg-[#f23645]/90 h-8 text-[10px] font-bold"><Plus className="w-3 h-3 mr-1" /> Bear</Button>
-            </div>
-
-            <ManualEditor candles={candles} onChange={handleUpdateCandle} onRemove={(idx) => setCandles(candles.filter((_, i) => i !== idx))} />
           </div>
         </div>
       </ScrollArea>
 
       <div className="p-3 bg-[#161616] border-t border-white/5 space-y-2 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
-        <Button className="w-full h-9 font-bold text-[11px] gap-2 bg-slate-800 hover:bg-slate-700 border border-white/5" onClick={handleReplay} disabled={candles.length === 0 || isAnimating}>
-          <RefreshCw className={`w-3.5 h-3.5 ${isAnimating ? 'animate-spin' : ''}`} /> Preview Animation
+        <Button className="w-full h-8 font-bold text-[10px] gap-2 bg-slate-800 hover:bg-slate-700 border border-white/5" onClick={handleReplay} disabled={candles.length === 0 || isAnimating}>
+          <RefreshCw className={`w-3 h-3 ${isAnimating ? 'animate-spin' : ''}`} /> Replay Animation
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline" className="flex-1 h-9 text-[11px] font-bold border-white/10 bg-transparent" onClick={handleExportSVG} disabled={candles.length === 0}>SVG</Button>
-          <Button className="flex-1 h-9 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700" onClick={handleRecordVideo} disabled={candles.length === 0}>4K Video</Button>
+          <Button variant="outline" className="flex-1 h-8 text-[10px] font-bold border-white/10 bg-transparent" onClick={handleExportSVG} disabled={candles.length === 0}>SVG</Button>
+          <Button className="flex-1 h-8 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700" onClick={handleRecordVideo} disabled={candles.length === 0}>4K Render</Button>
         </div>
       </div>
     </div>
@@ -289,26 +289,38 @@ export default function PricePatternStudio() {
 
   return (
     <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none">
-      <aside className="hidden lg:flex flex-col w-[280px]">
-        <SidebarContent />
+      {/* Left Sidebar (Desktop Only) */}
+      <aside className="hidden lg:flex flex-col flex-shrink-0">
+        <LeftSidebar />
       </aside>
 
-      <main className="flex-1 flex flex-col relative overflow-hidden">
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col relative overflow-hidden bg-black">
+        {/* Mobile Header */}
         <header className="lg:hidden h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#121212] z-30">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="text-white h-9 w-9"><Menu className="w-5 h-5" /></Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-[280px] bg-[#121212] border-r border-white/10">
-              <SidebarContent />
+            <SheetContent side="left" className="p-0 w-[260px] bg-[#121212] border-r border-white/10">
+              <LeftSidebar />
             </SheetContent>
           </Sheet>
           <div className="text-[10px] font-bold uppercase tracking-[2px] text-emerald-500 flex items-center gap-2">
             <Zap className="w-3 h-3 text-emerald-500 fill-emerald-500" />
             Studio
           </div>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-white h-9 w-9"><Settings2 className="w-5 h-5" /></Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="p-0 w-[280px] bg-[#121212] border-l border-white/10">
+              <RightSidebar />
+            </SheetContent>
+          </Sheet>
         </header>
 
+        {/* Recording Overlay */}
         {isRecording && (
           <div className="absolute top-6 left-6 z-20 pointer-events-none">
             <div className="bg-red-500/20 backdrop-blur-md border border-red-500/30 px-4 py-1.5 rounded-full flex items-center gap-2">
@@ -318,8 +330,9 @@ export default function PricePatternStudio() {
           </div>
         )}
 
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-hidden">
-          <div className="w-full max-w-[1400px]">
+        {/* Chart Viewport */}
+        <div className="flex-1 flex items-center justify-center p-4 lg:p-8 overflow-hidden">
+          <div className="w-full max-w-[1600px] h-full flex items-center justify-center">
             <ChartRenderer 
               ref={chartRef}
               candles={candles} 
@@ -330,17 +343,24 @@ export default function PricePatternStudio() {
           </div>
         </div>
 
-        <footer className="h-10 bg-[#121212] border-t border-white/5 px-6 flex items-center justify-between text-[9px] font-bold text-muted-foreground uppercase tracking-[1px]">
-          <div className="flex gap-8">
+        {/* Global Footer Status */}
+        <footer className="h-8 bg-[#121212] border-t border-white/5 px-4 flex items-center justify-between text-[8px] font-bold text-muted-foreground uppercase tracking-[1px]">
+          <div className="flex gap-6">
             <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-primary" /> Zoom: {settings.zoom.toFixed(2)}x</span>
-            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-primary" /> Dataset: {candles.length} Bars</span>
+            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-primary" /> Layers: {candles.length} Items</span>
           </div>
           <div className="flex items-center gap-3">
             <Monitor className="w-3 h-3" />
-            <span className="hidden sm:inline">3840 x 2160 PURE VECTOR</span>
+            <span className="hidden sm:inline">3840 x 2160 PURE VECTOR ENGINE</span>
           </div>
         </footer>
       </main>
+
+      {/* Right Sidebar (Desktop Only) */}
+      <aside className="hidden lg:flex flex-col flex-shrink-0">
+        <RightSidebar />
+      </aside>
     </div>
   );
 }
+
