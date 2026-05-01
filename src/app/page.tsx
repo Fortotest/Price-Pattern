@@ -447,7 +447,7 @@ export default function PricePattern() {
     a.href = url;
     a.download = `price-pattern-vector.svg`;
     a.click();
-    showNotification("Vektor HD Berhasil Diciduk! ⚡", FileCode);
+    showNotification("Berhasil di unduh", FileCode);
   }, [candles, settings]);
 
   const handleReplay = useCallback(() => {
@@ -486,7 +486,7 @@ export default function PricePattern() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         setIsAnimating(false);
-        showNotification("Video Estetik Udah Ready Nih! 🔥", Video);
+        showNotification("Berhasil di unduh", Video);
       };
       
       recorderRef.current = recorder;
