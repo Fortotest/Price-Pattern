@@ -43,10 +43,8 @@ const PropertiesPanel = ({
   isOpen,
   onClose
 }: PanelProps) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="flex flex-col h-full bg-[#0a0a0a] border-r border-white/5 text-white overflow-hidden w-[280px] animate-in slide-in-from-left duration-300">
+    <div className="flex flex-col h-full bg-[#0a0a0a] text-white overflow-hidden w-[280px]">
       <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-primary" />
@@ -123,7 +121,7 @@ const PropertiesPanel = ({
 
           <Separator className="bg-white/5" />
 
-          {/* Color Profiles - Re-branded as Brand Identity */}
+          {/* Brand Identity */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Palette className="w-3 h-3 text-primary" />
@@ -132,7 +130,6 @@ const PropertiesPanel = ({
             
             <div className="space-y-3">
               <div className="grid grid-cols-1 gap-2">
-                {/* Bullish Color Row */}
                 <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/5 focus-within:border-primary/50 transition-colors">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded border border-white/10 relative overflow-hidden bg-black/20">
@@ -150,11 +147,9 @@ const PropertiesPanel = ({
                     value={settings.bullColor}
                     onChange={(e) => updateSettings({ bullColor: e.target.value })}
                     className="bg-transparent border-none text-[10px] font-mono text-white/70 w-20 text-right focus:ring-0 outline-none p-0 uppercase"
-                    placeholder="#FFFFFF"
                   />
                 </div>
 
-                {/* Bearish Color Row */}
                 <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/5 focus-within:border-primary/50 transition-colors">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded border border-white/10 relative overflow-hidden bg-black/20">
@@ -172,13 +167,11 @@ const PropertiesPanel = ({
                     value={settings.bearColor}
                     onChange={(e) => updateSettings({ bearColor: e.target.value })}
                     className="bg-transparent border-none text-[10px] font-mono text-white/70 w-20 text-right focus:ring-0 outline-none p-0 uppercase"
-                    placeholder="#FFFFFF"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Geometry Styles */}
             <div className="space-y-3 pt-2">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] text-white/70 font-medium">Body Radius</span>
@@ -353,7 +346,7 @@ export default function PricePatternStudio() {
         close = open - bodySize;
         high = open + topWick;
         low = close - botWick;
-      } else { // Super-Random Doji
+      } else { 
         const bodySize = randomRange(10, 25); 
         const isBullish = Math.random() > 0.5;
         const topWick = randomRange(25, 50);
@@ -437,10 +430,7 @@ export default function PricePatternStudio() {
       const wickRectY = Math.min(yHigh, yLow);
       const wickRectHeight = Math.abs(yHigh - yLow);
       
-      // Draw Wick
       svgContent += `<rect x="${x - wickWidth / 2}" y="${wickRectY}" width="${wickWidth}" height="${wickRectHeight}" rx="${settings.wickRadius}" fill="${color}" />`;
-      
-      // Draw Body
       svgContent += `<rect x="${x - bodyWidth / 2}" y="${rectY}" width="${bodyWidth}" height="${rectHeight}" rx="${settings.bodyRadius}" fill="${color}" />`;
     });
 
@@ -505,16 +495,24 @@ export default function PricePatternStudio() {
 
   return (
     <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none text-white">
-      <aside className={cn("hidden lg:flex flex-col flex-shrink-0 transition-all duration-300", !showProperties && "w-0 overflow-hidden")}>
-        <PropertiesPanel 
-          settings={settings}
-          updateSettings={updateSettings}
-          isOpen={showProperties}
-          onClose={() => setShowProperties(false)}
-        />
+      {/* Sidebar with smooth transition */}
+      <aside 
+        className={cn(
+          "flex-col flex-shrink-0 bg-[#0a0a0a] border-r border-white/5 transition-all duration-300 ease-in-out hidden lg:flex",
+          showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none"
+        )}
+      >
+        <div className="w-[280px]">
+          <PropertiesPanel 
+            settings={settings}
+            updateSettings={updateSettings}
+            isOpen={showProperties}
+            onClose={() => setShowProperties(false)}
+          />
+        </div>
       </aside>
 
-      <main className="flex-1 flex flex-col relative overflow-hidden bg-black">
+      <main className="flex-1 flex flex-col relative overflow-hidden bg-black transition-all duration-300">
         <header className="h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#0a0a0a] z-30">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => setShowProperties(!showProperties)} className="hidden lg:flex text-white hover:bg-white/5">
