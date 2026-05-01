@@ -1,3 +1,4 @@
+
 export interface Candlestick {
   open: number;
   high: number;
@@ -17,4 +18,5 @@ export interface ChartSettings {
   bearColor: string;
   bodyRadius: number;
   wickRadius: number;
+  volatility?: number;
 }

@@ -22,7 +22,9 @@ import {
   Menu,
   X,
   Download,
-  Video
+  Video,
+  Sparkles,
+  Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -38,6 +40,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { refinePatternWithAI } from "@/ai/flows/refine-pattern-with-ai-flow";
 
 // --- Sub-Components ---
 
@@ -45,6 +48,8 @@ interface PanelProps {
   settings: ChartSettings;
   updateSettings: (newSettings: Partial<ChartSettings>) => void;
   onTemplateLoad: (val: string) => void;
+  onRefine: () => void;
+  isRefining: boolean;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -53,6 +58,8 @@ const PropertiesPanel = ({
   settings, 
   updateSettings, 
   onTemplateLoad,
+  onRefine,
+  isRefining,
   isOpen,
   onClose
 }: PanelProps) => {
@@ -61,6 +68,7 @@ const PropertiesPanel = ({
   const [localSpeed, setLocalSpeed] = useState(settings.speed);
   const [localBodyRadius, setLocalBodyRadius] = useState(settings.bodyRadius);
   const [localWickRadius, setLocalWickRadius] = useState(settings.wickRadius);
+  const [localVolatility, setLocalVolatility] = useState(settings.volatility || 0.5);
 
   useEffect(() => {
     setLocalZoom(settings.zoom);
@@ -68,7 +76,8 @@ const PropertiesPanel = ({
     setLocalSpeed(settings.speed);
     setLocalBodyRadius(settings.bodyRadius);
     setLocalWickRadius(settings.wickRadius);
-  }, [settings.zoom, settings.spacing, settings.speed, settings.bodyRadius, settings.wickRadius]);
+    setLocalVolatility(settings.volatility || 0.5);
+  }, [settings.zoom, settings.spacing, settings.speed, settings.bodyRadius, settings.wickRadius, settings.volatility]);
 
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const syncSettings = (newVal: Partial<ChartSettings>) => {
@@ -265,6 +274,37 @@ const PropertiesPanel = ({
                 }}
               />
             </div>
+
+            <Separator className="bg-white/5 !my-4" />
+
+            <div className="space-y-4">
+               <div className="flex items-center justify-between">
+                  <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Market Volatility</Label>
+                  <span className="text-[9px] font-mono text-primary">{(localVolatility * 100).toFixed(0)}%</span>
+               </div>
+               <Slider 
+                value={[localVolatility]} 
+                min={0.1} 
+                max={2.0} 
+                step={0.1} 
+                onValueChange={(val) => {
+                  setLocalVolatility(val[0]);
+                  syncSettings({ volatility: val[0] });
+                }}
+              />
+              <Button 
+                onClick={onRefine} 
+                disabled={isRefining}
+                className="w-full h-9 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[10px] font-bold gap-2 group transition-all"
+              >
+                {isRefining ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
+                )}
+                REFINE WITH AI
+              </Button>
+            </div>
           </div>
         </div>
       </ScrollArea>
@@ -330,11 +370,13 @@ export default function PricePatternStudio() {
     bullColor: "#00b386",
     bearColor: "#f23645",
     bodyRadius: 0, 
-    wickRadius: 0  
+    wickRadius: 0,
+    volatility: 0.5
   });
   
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isRefining, setIsRefining] = useState(false);
   const [showProperties, setShowProperties] = useState(true);
   
   const chartRef = useRef<ChartRendererHandle>(null);
@@ -403,6 +445,25 @@ export default function PricePatternStudio() {
     setCandles([]);
   }, []);
 
+  const handleRefineWithAI = async () => {
+    if (candles.length === 0) return;
+    setIsRefining(true);
+    try {
+      const result = await refinePatternWithAI({
+        patternDescription: `Apply market volatility of ${settings.volatility}. Make wicks look realistic.`,
+        candlesticks: candles
+      });
+      if (result && result.refinedCandlesticks) {
+        setCandles(result.refinedCandlesticks);
+        toast({ title: "AI Refined", description: "Market noise applied successfully." });
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Refinement Failed", description: "Please try again." });
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
   const handleExportSVG = useCallback(() => {
     if (candles.length === 0) return;
     const svg = generateSVG(candles, settings);
@@ -418,7 +479,6 @@ export default function PricePatternStudio() {
   const handleReplay = useCallback(() => {
     if (candles.length === 0) return;
     setIsAnimating(false);
-    // Use a tiny timeout to ensure the state transition is caught by ChartRenderer
     setTimeout(() => setIsAnimating(true), 20);
   }, [candles.length]);
 
@@ -457,6 +517,8 @@ export default function PricePatternStudio() {
           settings={settings}
           updateSettings={updateSettings}
           onTemplateLoad={handleTemplateLoad}
+          onRefine={handleRefineWithAI}
+          isRefining={isRefining}
           isOpen={showProperties}
           onClose={() => setShowProperties(false)}
         />
@@ -483,6 +545,8 @@ export default function PricePatternStudio() {
                   settings={settings}
                   updateSettings={updateSettings}
                   onTemplateLoad={handleTemplateLoad}
+                  onRefine={handleRefineWithAI}
+                  isRefining={isRefining}
                   isOpen={true}
                   onClose={() => {}}
                 />
