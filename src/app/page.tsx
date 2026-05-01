@@ -49,7 +49,7 @@ const PropertiesPanel = ({
   onClose
 }: PanelProps) => {
   return (
-    <div className="flex flex-col h-full bg-[#0a0a0a] text-white overflow-hidden w-[280px]">
+    <div className="flex flex-col h-full bg-[#0a0a0a] text-white overflow-hidden w-full lg:w-[280px]">
       <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-primary" />
@@ -594,19 +594,39 @@ export default function PricePattern() {
             
             <div className="text-[10px] font-bold uppercase tracking-[2px] text-emerald-500 flex items-center gap-2">
               <Zap className="w-3 h-3 text-emerald-500 fill-emerald-500" />
-              PricePattern
+              <span className="hidden xs:inline">PricePattern</span>
             </div>
           </div>
 
-          <a 
-            href="https://www.instagram.com/masffadil/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/5 group active:scale-95"
-          >
-            <Instagram className="w-3.5 h-3.5 text-pink-500 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-bold tracking-wider text-white/80 group-hover:text-white">masffadil</span>
-          </a>
+          <div className="flex items-center gap-2">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9">
+                  <Layers className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="p-0 w-[280px] bg-[#0a0a0a] border-l border-white/5">
+                <LayersPanel 
+                  candles={candles}
+                  onAddCandle={handleAddCandle}
+                  onUpdateCandle={handleUpdateCandle}
+                  onRemoveCandle={handleRemoveCandle}
+                  onClearAll={handleClearAll}
+                  onTemplateLoad={handleTemplateLoad}
+                />
+              </SheetContent>
+            </Sheet>
+
+            <a 
+              href="https://www.instagram.com/masffadil/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/5 group active:scale-95"
+            >
+              <Instagram className="w-3.5 h-3.5 text-pink-500 group-hover:scale-110 transition-transform" />
+              <span className="text-[10px] font-bold tracking-wider text-white/80 group-hover:text-white hidden sm:inline">masffadil</span>
+            </a>
+          </div>
         </header>
 
         <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden bg-[#000]">
@@ -629,25 +649,25 @@ export default function PricePattern() {
             />
           </div>
           
-          <div className="mt-6 flex items-center gap-4 bg-[#0a0a0a] p-3 rounded-xl border border-white/5 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="mt-6 flex items-center gap-2 sm:gap-4 bg-[#0a0a0a] p-2 sm:p-3 rounded-xl border border-white/5 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
             {isAnimating ? (
-              <Button className="min-w-[120px] h-10 font-bold text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all active:scale-95" onClick={() => setIsAnimating(false)}>
-                <X className="w-3.5 h-3.5" /> Stop
+              <Button className="min-w-[80px] sm:min-w-[120px] h-9 sm:h-10 font-bold text-[10px] sm:text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all active:scale-95" onClick={() => setIsAnimating(false)}>
+                <X className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Stop</span>
               </Button>
             ) : (
-              <Button className="min-w-[120px] h-10 font-bold text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95" onClick={handleReplay} disabled={candles.length === 0}>
-                <RefreshCw className="w-3.5 h-3.5" /> Preview
+              <Button className="min-w-[80px] sm:min-w-[120px] h-9 sm:h-10 font-bold text-[10px] sm:text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95" onClick={handleReplay} disabled={candles.length === 0}>
+                <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Preview</span>
               </Button>
             )}
             
             <Separator orientation="vertical" className="h-6 bg-white/10" />
             
-            <Button variant="outline" className="h-10 px-6 text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
-              <FileCode className="w-3.5 h-3.5" /> SVG
+            <Button variant="outline" className="h-9 sm:h-10 px-3 sm:px-6 text-[10px] sm:text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
+              <FileCode className="w-3.5 h-3.5" /> <span className="hidden xs:inline">SVG</span>
             </Button>
             
-            <Button className="min-w-[140px] h-10 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2 shadow-lg shadow-emerald-900/20" onClick={handleRecordVideo} disabled={candles.length === 0}>
-              <Video className="w-3.5 h-3.5" /> Video
+            <Button className="min-w-[100px] sm:min-w-[140px] h-9 sm:h-10 text-[10px] sm:text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2 shadow-lg shadow-emerald-900/20" onClick={handleRecordVideo} disabled={candles.length === 0}>
+              <Video className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Video</span>
             </Button>
           </div>
         </div>
@@ -655,7 +675,7 @@ export default function PricePattern() {
         <footer className="h-8 bg-[#0a0a0a] border-t border-white/5 px-4 flex items-center justify-between text-[8px] font-bold text-muted-foreground uppercase tracking-[1px]">
           <div className="flex gap-6">
             <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Bars: {candles.length}</span>
-            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Vector Protocol Active</span>
+            <span className="flex items-center gap-2 hidden xs:flex"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Vector Active</span>
           </div>
           <div className="flex items-center gap-3">
             <Monitor className="w-3 h-3" />
