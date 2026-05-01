@@ -461,7 +461,7 @@ export default function PricePattern() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showNotification("Berhasil di unduh", "✅");
+    showNotification("Berhasil di unduh", "🥳");
   }, [candles, settings, showNotification]);
 
   const handleReplay = useCallback(() => {
@@ -500,7 +500,7 @@ export default function PricePattern() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         setIsAnimating(false);
-        showNotification("Berhasil di unduh", "🎬");
+        showNotification("Berhasil di unduh", "🤩");
       };
       
       recorderRef.current = recorder;
