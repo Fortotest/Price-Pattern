@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Candlestick, ChartSettings } from "@/lib/chart-types";
 import { TEMPLATES, createTemplateWithNewIds, createId, CANVAS_WIDTH, CANVAS_HEIGHT, getChartBounds } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
@@ -27,9 +27,10 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
+// RAW URLs for direct audio playback
 const NOTIF_SOUND_URLS = [
-  "https://raw.githubusercontent.com/Fortotest/Market.ai/aa1fd92abd82277252b6d10912a44c3146ade1ad/hey-antek-antek-asing-prabowo.mp3?raw=true",
-  "https://raw.githubusercontent.com/Fortotest/Market.ai/055e319fa2c7c1e028057e8c69556c303b827848/hidup-jokowi.mp3?raw=true"
+  "https://raw.githubusercontent.com/Fortotest/Market.ai/aa1fd92abd82277252b6d10912a44c3146ade1ad/hey-antek-antek-asing-prabowo.mp3",
+  "https://raw.githubusercontent.com/Fortotest/Market.ai/055e319fa2c7c1e028057e8c69556c303b827848/hidup-jokowi.mp3"
 ];
 
 // --- Sub-Components ---
@@ -310,18 +311,27 @@ export default function PricePattern() {
   const chartRef = useRef<ChartRendererHandle>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
 
+  // Audio Unlocking for Mobile
+  const audioInitializedRef = useRef(false);
+  const unlockAudio = useCallback(() => {
+    if (audioInitializedRef.current) return;
+    const silentAudio = new Audio();
+    silentAudio.play().catch(() => {});
+    audioInitializedRef.current = true;
+  }, []);
+
   const playNotifSound = useCallback(() => {
     const randomUrl = NOTIF_SOUND_URLS[Math.floor(Math.random() * NOTIF_SOUND_URLS.length)];
     const audio = new Audio(randomUrl);
-    audio.volume = 1.0; // Ensure maximum volume
-    audio.play().catch(e => console.warn("Audio play failed:", e));
+    audio.volume = 1.0; 
+    audio.play().catch(e => console.warn("Audio play failed on mobile/desktop:", e));
   }, []);
 
-  const showNotification = (title: string, emoji: string) => {
+  const showNotification = useCallback((title: string, emoji: string) => {
     setNotification({ title, emoji });
     playNotifSound();
     setTimeout(() => setNotification(null), 5000);
-  };
+  }, [playNotifSound]);
 
   const updateSettings = useCallback((newSettings: Partial<ChartSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
@@ -339,6 +349,7 @@ export default function PricePattern() {
   }, []);
 
   const handleAddCandle = useCallback((type: 'Bullish' | 'Bearish' | 'Doji') => {
+    unlockAudio();
     setCandles(prev => {
       const lastClose = prev.length > 0 ? prev[prev.length - 1].close : 300;
       const randomRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -346,7 +357,6 @@ export default function PricePattern() {
       let open = lastClose;
       let close, high, low;
 
-      // Logic for random volatility and impulse candles
       const isImpulsive = Math.random() < 0.15; 
 
       if (type === 'Bullish') {
@@ -385,7 +395,7 @@ export default function PricePattern() {
 
       return [...prev, newCandle];
     });
-  }, []);
+  }, [unlockAudio]);
 
   const handleUpdateCandle = useCallback((index: number, updated: Candlestick) => {
     setCandles(prev => {
@@ -405,6 +415,7 @@ export default function PricePattern() {
   }, []);
 
   const handleExportSVG = useCallback(() => {
+    unlockAudio();
     if (candles.length === 0) return;
     
     const bounds = getChartBounds(candles);
@@ -464,15 +475,17 @@ export default function PricePattern() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     showNotification("Berhasil di unduh", "🥳");
-  }, [candles, settings, showNotification]);
+  }, [candles, settings, showNotification, unlockAudio]);
 
   const handleReplay = useCallback(() => {
+    unlockAudio();
     if (candles.length === 0) return;
     setIsAnimating(false);
     setTimeout(() => setIsAnimating(true), 50);
-  }, [candles.length]);
+  }, [candles.length, unlockAudio]);
 
   const handleRecordVideo = async () => {
+    unlockAudio();
     const canvas = chartRef.current?.getCanvas();
     if (!canvas || candles.length === 0) return;
     
@@ -539,7 +552,7 @@ export default function PricePattern() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none text-white">
+    <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none text-white" onClick={unlockAudio}>
       <aside 
         className={cn(
           "flex-col flex-shrink-0 bg-[#0a0a0a] border-r border-white/5 transition-all duration-300 ease-in-out lg:flex",
