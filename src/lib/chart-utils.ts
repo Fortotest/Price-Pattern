@@ -1,3 +1,4 @@
+
 import { Candlestick, ChartSettings } from "./chart-types";
 
 export const CANVAS_WIDTH = 3840;
@@ -25,13 +26,13 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
   const height = CANVAS_HEIGHT;
   const width = CANVAS_WIDTH;
   
-  const zoom = settings.zoom || 1.0;
+  const zoom = settings.zoom || 0.8;
   const spacingMultiplier = settings.spacing || 1.2;
   const effectiveCount = Math.max(12, candles.length);
-  const baseWidth = (width / effectiveCount) * zoom * spacingMultiplier;
-  const spacing = baseWidth * 0.35;
-  const bodyWidth = Math.max(6, baseWidth - spacing);
-  const wickWidth = Math.max(8, bodyWidth * 0.16);
+  
+  const bodyWidth = (width / effectiveCount) * 0.8 * zoom;
+  const baseWidth = bodyWidth * spacingMultiplier;
+  const wickWidth = Math.max(8, bodyWidth * 0.15);
 
   const getY = (price: number) => {
     const midPrice = (bounds.max + bounds.min) / 2;
@@ -57,7 +58,7 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
     const yLow = getY(c.low) + shift;
     
     const top = Math.min(yOpen, yClose);
-    const bodyHeight = Math.max(Math.abs(yOpen - yClose), wickWidth);
+    const bodyHeight = Math.max(Math.abs(yOpen - yClose), 2);
     const rx = settings.bodyRadius || 0;
 
     // Wick
@@ -85,6 +86,14 @@ export const TEMPLATES = {
     { open: 340, high: 345, low: 220, close: 230, offsetY: 0 },
     { open: 230, high: 355, low: 225, close: 345, offsetY: 0 },
     { open: 345, high: 350, low: 140, close: 150, offsetY: 0 }
+  ],
+  BULLISH_ENGULFING: [
+    { open: 250, high: 255, low: 200, close: 210, offsetY: 0 },
+    { open: 210, high: 280, low: 205, close: 275, offsetY: 0 }
+  ],
+  BEARISH_ENGULFING: [
+    { open: 210, high: 280, low: 205, close: 275, offsetY: 0 },
+    { open: 275, high: 280, low: 190, close: 200, offsetY: 0 }
   ],
   FULL_BULLISH_WAVE: [
     { open: 100, high: 115, low: 98, close: 112, offsetY: 0 },

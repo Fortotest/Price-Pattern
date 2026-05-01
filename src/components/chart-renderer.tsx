@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect, forwardRef, useImperativeHandle } from "react";
@@ -49,20 +50,18 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     const bounds = getChartBounds(currentCandles);
     const range = Math.max(bounds.max - bounds.min, 1);
     
-    // Zoom & Spacing Logic Separation
     const zoom = settings.zoom || 0.8;
     const spacingMultiplier = settings.spacing || 1.2;
-    
     const effectiveCount = Math.max(12, currentCandles.length);
     
-    // bodyBaseWidth is strictly tied to ZOOM
+    // bodyWidth murni dikontrol oleh Zoom
     const bodyWidth = (CANVAS_WIDTH / effectiveCount) * 0.8 * zoom;
     
-    // baseWidth (distance between candles) is tied to SPACING multiplier of bodyWidth
-    // If spacingMultiplier is 1.0, they are "dempet"
+    // baseWidth (jarak antar pusat lilin) dikontrol oleh Spacing
     const baseWidth = bodyWidth * spacingMultiplier;
     
-    const wickWidth = Math.max(4, bodyWidth * 0.12); 
+    // Wick ketebalan ditingkatkan untuk 4K (Min 8px agar terlihat jelas)
+    const wickWidth = Math.max(8, bodyWidth * 0.15); 
 
     const actualWidth = (currentCandles.length - 1) * baseWidth;
     const startX = (CANVAS_WIDTH / 2) - (actualWidth / 2);
@@ -70,7 +69,6 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
     const getY = (price: number) => {
       const midPrice = (bounds.max + bounds.min) / 2;
-      // Vertical scale also affected by zoom for proportionality
       const scaledY = ((price - midPrice) / range) * (CANVAS_HEIGHT * 0.85);
       return centerY - (scaledY);
     };
@@ -107,7 +105,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const isBullish = c.close >= c.open;
       const color = isBullish ? settings.bullColor : settings.bearColor;
 
-      // Wick
+      // Draw Wick (Sumbu)
       ctx.beginPath();
       ctx.moveTo(x, curHighY);
       ctx.lineTo(x, curLowY);
@@ -116,7 +114,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       ctx.lineCap = settings.wickRadius > 0 ? 'round' : 'butt';
       ctx.stroke();
 
-      // Body
+      // Draw Body (Badan)
       const rectY = Math.min(yOpen, curCloseY);
       const rectHeight = Math.max(2, Math.abs(yOpen - curCloseY));
       ctx.fillStyle = color;
