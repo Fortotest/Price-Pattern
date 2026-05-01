@@ -25,7 +25,7 @@ const CustomNumberInput = ({
   value, 
   onChange, 
   colorClass = "text-primary",
-  min = -5000,
+  min = -10000,
   compact = false
 }: { 
   label?: string, 
@@ -43,15 +43,16 @@ const CustomNumberInput = ({
     valueRef.current = Number.isFinite(value) ? value : 0;
   }, [value]);
 
-  const handleStep = useCallback((delta: number) => {
-    const newValue = Math.max(min, Math.round(valueRef.current + delta));
-    onChange(newValue);
-  }, [onChange, min]);
-
   const stopAdjusting = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     if (intervalRef.current) clearInterval(intervalRef.current);
   }, []);
+
+  const handleStep = useCallback((delta: number) => {
+    const newVal = Math.max(min, Math.round(valueRef.current + delta));
+    valueRef.current = newVal;
+    onChange(newVal);
+  }, [onChange, min]);
 
   const startAdjusting = useCallback((delta: number) => {
     stopAdjusting();
@@ -106,8 +107,8 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
         const botWickSize = Math.max(0, Math.min(c.open, c.close) - c.low);
 
         let statusColor = "bg-[#333]";
-        if (bodyDiff > 10) statusColor = "bg-[#00b386]";
-        else if (bodyDiff < -10) statusColor = "bg-[#f23645]";
+        if (bodyDiff > 5) statusColor = "bg-[#00b386]";
+        else if (bodyDiff < -5) statusColor = "bg-[#f23645]";
         else statusColor = "bg-slate-400";
 
         return (
@@ -132,7 +133,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
               <div className="space-y-1">
                 <Label className="text-[7px] uppercase text-muted-foreground tracking-widest font-bold">Type</Label>
                 <Select 
-                  value={bodyDiff > 10 ? 'bullish' : (bodyDiff < -10 ? 'bearish' : 'doji')} 
+                  value={bodyDiff > 5 ? 'bullish' : (bodyDiff < -5 ? 'bearish' : 'doji')} 
                   onValueChange={(val) => {
                     if (val === 'doji') {
                       const newClose = c.open + 10;
@@ -177,7 +178,8 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
               <CustomNumberInput 
                 label="Body" 
                 value={bodySize} 
-                colorClass={bodyDiff > 10 ? "text-emerald-500" : (bodyDiff < -10 ? "text-red-500" : "text-white")}
+                min={0}
+                colorClass={bodyDiff > 5 ? "text-emerald-500" : (bodyDiff < -5 ? "text-red-500" : "text-white")}
                 onChange={(val) => {
                   const direction = bodyDiff < 0 ? -1 : 1;
                   const newClose = c.open + (val * direction);
@@ -212,3 +214,4 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
 };
 
 export default ManualEditor;
+

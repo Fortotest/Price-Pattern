@@ -326,44 +326,46 @@ export default function PricePatternStudio() {
   }, []);
 
   const handleAddCandle = useCallback((type: 'Bullish' | 'Bearish' | 'Doji') => {
-    const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
-    const isDoji = type === 'Doji';
-    const bodySize = isDoji ? 10 : 50; 
-    const wickSize = 20;
-    
-    let newCandle: Candlestick;
-    if (type === 'Bullish') {
-      newCandle = { 
-        open: lastClose, 
-        close: lastClose + bodySize, 
-        high: lastClose + bodySize + wickSize, 
-        low: lastClose - wickSize, 
-        offsetY: 0 
-      };
-    } else if (type === 'Bearish') {
-      newCandle = { 
-        open: lastClose, 
-        close: lastClose - bodySize, 
-        high: lastClose + wickSize, 
-        low: lastClose - bodySize - wickSize, 
-        offsetY: 0 
-      };
-    } else {
-      newCandle = {
-        open: lastClose,
-        close: lastClose + 10,
-        high: lastClose + 30,
-        low: lastClose - 20,
-        offsetY: 0
-      };
-    }
-    
-    setCandles(prev => [...prev, newCandle]);
-  }, [candles]);
+    setCandles(prev => {
+      const lastClose = prev.length > 0 ? prev[prev.length - 1].close : 300;
+      const isDoji = type === 'Doji';
+      const bodySize = isDoji ? 10 : 50; 
+      const wickSize = 20;
+      
+      let newCandle: Candlestick;
+      if (type === 'Bullish') {
+        newCandle = { 
+          open: lastClose, 
+          close: lastClose + bodySize, 
+          high: lastClose + bodySize + wickSize, 
+          low: lastClose - wickSize, 
+          offsetY: 0 
+        };
+      } else if (type === 'Bearish') {
+        newCandle = { 
+          open: lastClose, 
+          close: lastClose - bodySize, 
+          high: lastClose + wickSize, 
+          low: lastClose - bodySize - wickSize, 
+          offsetY: 0 
+        };
+      } else {
+        newCandle = {
+          open: lastClose,
+          close: lastClose + 10,
+          high: lastClose + 30,
+          low: lastClose - 20,
+          offsetY: 0
+        };
+      }
+      return [...prev, newCandle];
+    });
+  }, []);
 
   const handleUpdateCandle = useCallback((index: number, updated: Candlestick) => {
     setCandles(prev => {
       const next = [...prev];
+      if (!next[index]) return prev;
       next[index] = {
         ...updated,
         open: Math.round(updated.open),
@@ -385,7 +387,6 @@ export default function PricePatternStudio() {
   }, []);
 
   const handleApplyVolatility = useCallback(() => {
-    if (candles.length === 0) return;
     setCandles(prev => prev.map(c => {
       const bodyMax = Math.max(c.open, c.close);
       const bodyMin = Math.min(c.open, c.close);
@@ -394,11 +395,11 @@ export default function PricePatternStudio() {
       const randomBot = Math.round((Math.random() * 60 + 5) * noiseLevel);
       return {
         ...c,
-        high: bodyMax + randomTop,
-        low: bodyMin - randomBot
+        high: Math.round(bodyMax + randomTop),
+        low: Math.round(bodyMin - randomBot)
       };
     }));
-  }, [candles.length, settings.volatility]);
+  }, [settings.volatility]);
 
   const handleExportSVG = useCallback(() => {
     if (candles.length === 0) return;
@@ -409,8 +410,7 @@ export default function PricePatternStudio() {
     a.href = url;
     a.download = `price-chart.svg`;
     a.click();
-    toast({ title: "SVG Exported", description: "Vector file saved." });
-  }, [candles, settings, toast]);
+  }, [candles, settings]);
 
   const handleReplay = useCallback(() => {
     if (candles.length === 0) return;
@@ -553,3 +553,4 @@ export default function PricePatternStudio() {
     </div>
   );
 }
+

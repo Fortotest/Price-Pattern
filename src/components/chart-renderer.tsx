@@ -17,8 +17,8 @@ export interface ChartRendererHandle {
   getCanvas: () => HTMLCanvasElement | null;
 }
 
-const Y_AXIS_WIDTH = 180; // Professional 4K Scale
-const X_AXIS_HEIGHT = 120; // Professional 4K Scale
+const Y_AXIS_WIDTH = 180; 
+const X_AXIS_HEIGHT = 120; 
 
 const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({ 
   candles, 
@@ -77,17 +77,17 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     
     const bodyWidth = (chartAreaWidth / effectiveCount) * 0.8 * zoom;
     const baseWidth = ((chartAreaWidth / effectiveCount) * 0.8) * spacingMultiplier;
-    // Wick width should be proportional but distinct
     const wickWidth = Math.max(4, bodyWidth * 0.12); 
 
     const actualWidth = (currentCandles.length - 1) * baseWidth;
     const startX = (chartAreaWidth / 2) - (actualWidth / 2);
     const centerY = chartAreaHeight / 2;
 
-    const getY = (price: number) => {
+    const getY = (price: number, priceOffset: number = 0) => {
       const midPrice = (bounds.max + bounds.min) / 2;
-      const scaledY = ((price - midPrice) / range) * (chartAreaHeight * 0.85);
-      return centerY - (scaledY);
+      const totalOffsetPrice = price + priceOffset;
+      const scaledY = ((totalOffsetPrice - midPrice) / range) * (chartAreaHeight * 0.85);
+      return centerY - scaledY;
     };
 
     // Draw Price Labels (Y-Axis)
@@ -103,7 +103,6 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       if(yPos >= 0 && yPos <= chartAreaHeight) {
         ctx.fillText(priceVal.toFixed(1), chartAreaWidth + 25, yPos);
         
-        // Grid Horizontal
         ctx.beginPath();
         ctx.moveTo(0, yPos);
         ctx.lineTo(chartAreaWidth, yPos);
@@ -112,26 +111,25 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       }
     }
 
-    for (let i = 0; i < Math.ceil(progressValue); i++) {
+    const limit = Math.ceil(progressValue);
+    for (let i = 0; i < limit; i++) {
       if (i >= currentCandles.length) break;
 
       const c = currentCandles[i];
       const x = startX + (i * baseWidth);
-      const shift = (c.offsetY || 0);
+      const priceOffset = (c.offsetY || 0);
       
-      const yOpen = getY(c.open) + shift;
-      const yClose = getY(c.close) + shift;
-      const yHigh = getY(c.high) + shift;
-      const yLow = getY(c.low) + shift;
+      const yOpen = getY(c.open, priceOffset);
+      const yClose = getY(c.close, priceOffset);
+      const yHigh = getY(c.high, priceOffset);
+      const yLow = getY(c.low, priceOffset);
 
-      // In Canvas Y coordinates: yHigh (High Price) is SMALLEST, yLow (Low Price) is LARGEST
       let curOpenY = yOpen, curCloseY = yClose, curHighY = yHigh, curLowY = yLow;
 
       if (i === Math.floor(progressValue) && isAnimating) {
         const rawP = progressValue - i;
         const p = easeOut(Math.min(rawP, 1));
         
-        // Stages: 0-0.3 (to Low), 0.3-0.7 (to High), 0.7-1.0 (to Close)
         if (p < 0.3) {
           const t = p / 0.3;
           curLowY = lerp(yOpen, yLow, t);
@@ -154,9 +152,12 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       const color = isBullish ? settings.bullColor : settings.bearColor;
 
       // Draw Wick - High to Low
+      const wickTop = Math.min(curHighY, curLowY);
+      const wickBottom = Math.max(curHighY, curLowY);
+      
       ctx.beginPath();
-      ctx.moveTo(x, curHighY);
-      ctx.lineTo(x, curLowY);
+      ctx.moveTo(x, wickTop);
+      ctx.lineTo(x, wickBottom);
       ctx.strokeStyle = color;
       ctx.lineWidth = wickWidth;
       ctx.lineCap = settings.wickRadius > 0 ? 'round' : 'butt';
@@ -182,7 +183,6 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
         ctx.textAlign = 'center';
         ctx.fillText(`Bar ${i+1}`, x, chartAreaHeight + 65);
 
-        // Vertical Grid
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, chartAreaHeight);
@@ -193,6 +193,8 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   };
 
   useEffect(() => {
+    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+
     if (isAnimating) {
       startTimeRef.current = null;
       const animate = (time: number) => {
@@ -215,11 +217,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
       };
       animationRef.current = requestAnimationFrame(animate);
     } else {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = undefined;
-      }
-      requestAnimationFrame(() => draw(candles));
+      draw(candles);
     }
     
     return () => {
@@ -286,3 +284,4 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
 
 ChartRenderer.displayName = "ChartRenderer";
 export default ChartRenderer;
+
