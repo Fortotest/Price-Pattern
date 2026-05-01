@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useRef, useEffect, useCallback, useMemo } from "react";
+import React, { useRef, useEffect, useCallback, useMemo, useState } from "react";
 import { Candlestick } from "@/lib/chart-types";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 interface ManualEditorProps {
   candles: Candlestick[];
@@ -37,10 +38,10 @@ const CustomNumberInput = ({
 }) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const valueRef = useRef(value);
+  const [inputValue, setInputValue] = useState(value.toString());
 
   useEffect(() => {
-    valueRef.current = Number.isFinite(value) ? Math.round(value) : 0;
+    setInputValue(Math.round(value).toString());
   }, [value]);
 
   const stopAdjusting = useCallback(() => {
@@ -49,10 +50,10 @@ const CustomNumberInput = ({
   }, []);
 
   const handleStep = useCallback((delta: number) => {
-    const newVal = Math.max(min, valueRef.current + delta);
-    valueRef.current = newVal;
+    const currentVal = parseInt(inputValue) || 0;
+    const newVal = Math.max(min, currentVal + delta);
     onChange(newVal);
-  }, [onChange, min]);
+  }, [onChange, min, inputValue]);
 
   const startAdjusting = useCallback((delta: number) => {
     stopAdjusting();
@@ -62,15 +63,35 @@ const CustomNumberInput = ({
     }, 300);
   }, [handleStep, stopAdjusting]);
 
-  const displayValue = Number.isFinite(value) ? Math.round(value) : 0;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    setInputValue(rawValue);
+    const parsed = parseInt(rawValue);
+    if (!isNaN(parsed)) {
+      onChange(Math.max(min, parsed));
+    }
+  };
+
+  const handleBlur = () => {
+    const parsed = parseInt(inputValue);
+    if (isNaN(parsed)) {
+      setInputValue(Math.round(value).toString());
+    } else {
+      setInputValue(Math.max(min, parsed).toString());
+    }
+  };
 
   return (
     <div className={`bg-[#0d0d0d] rounded-md flex flex-col items-center justify-between border border-white/5 group/input transition-colors hover:border-white/10 ${compact ? 'h-10' : 'h-14'} w-full`}>
       {label && <span className={`text-[7px] font-bold uppercase tracking-wider pt-1 ${colorClass}`}>{label}</span>}
       <div className="flex items-center w-full flex-1">
-        <div className="flex-1 text-center font-mono text-[10px] font-bold text-white">
-          {displayValue}
-        </div>
+        <input
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+          onBlur={handleBlur}
+          className="flex-1 bg-transparent text-center font-mono text-[10px] font-bold text-white border-none outline-none focus:ring-0 w-full"
+        />
         <div className="w-4 h-full flex flex-col border-l border-white/5 overflow-hidden rounded-r-sm">
           <button 
             onMouseDown={() => startAdjusting(1)}
@@ -140,7 +161,8 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                   value={bodyDiff > 5 ? 'bullish' : (bodyDiff < -5 ? 'bearish' : 'doji')} 
                   onValueChange={(val) => {
                     if (val === 'doji') {
-                      const newClose = c.open + 10;
+                      const randomBody = Math.floor(Math.random() * (25 - 10 + 1)) + 10;
+                      const newClose = c.open + randomBody;
                       onChange(idx, { 
                         ...c, 
                         close: newClose,
@@ -148,10 +170,10 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                         low: Math.min(c.open, newClose) - botWickSize
                       });
                     } else if (val === 'bullish') {
-                      const newClose = c.open + Math.max(20, bodySize);
+                      const newClose = c.open + Math.max(25, bodySize);
                       onChange(idx, { ...c, close: newClose, high: newClose + topWickSize, low: c.open - botWickSize });
                     } else {
-                      const newClose = c.open - Math.max(20, bodySize);
+                      const newClose = c.open - Math.max(25, bodySize);
                       onChange(idx, { ...c, close: newClose, high: c.open + topWickSize, low: newClose - botWickSize });
                     }
                   }}
