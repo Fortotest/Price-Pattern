@@ -63,23 +63,22 @@ export default function PricePatternStudio() {
 
   const handleAddCandle = (type: 'Bullish' | 'Bearish') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
-    const bodySize = (Math.floor(Math.random() * 25) + 5) * 5; 
-    const topWick = (Math.floor(Math.random() * 10) + 2) * 5;  
-    const botWick = (Math.floor(Math.random() * 10) + 2) * 5;  
+    const bodySize = 50; 
+    const wickSize = 20;
     
     const newCandle: Candlestick = type === 'Bullish' 
       ? { 
           open: lastClose, 
           close: lastClose + bodySize, 
-          high: lastClose + bodySize + topWick, 
-          low: lastClose - botWick, 
+          high: lastClose + bodySize + wickSize, 
+          low: lastClose - wickSize, 
           offsetY: 0 
         }
       : { 
           open: lastClose, 
           close: lastClose - bodySize, 
-          high: lastClose + topWick, 
-          low: lastClose - bodySize - botWick, 
+          high: lastClose + wickSize, 
+          low: lastClose - bodySize - wickSize, 
           offsetY: 0 
         };
     
@@ -236,13 +235,19 @@ export default function PricePatternStudio() {
                   <input 
                     type="color" 
                     value={settings.bullColor} 
-                    onInput={(e) => setSettings(s => ({...s, bullColor: e.currentTarget.value}))} 
+                    onInput={(e) => {
+                      const val = e.currentTarget.value;
+                      setSettings(s => ({...s, bullColor: val}));
+                    }} 
                     className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none" 
                   />
                 </div>
                 <Input 
                   value={settings.bullColor} 
-                  onInput={(e) => setSettings(s => ({...s, bullColor: e.currentTarget.value}))}
+                  onInput={(e) => {
+                    const val = e.currentTarget.value;
+                    setSettings(s => ({...s, bullColor: val}));
+                  }}
                   className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2 text-center"
                   placeholder="#HEX"
                 />
@@ -252,13 +257,19 @@ export default function PricePatternStudio() {
                   <input 
                     type="color" 
                     value={settings.bearColor} 
-                    onInput={(e) => setSettings(s => ({...s, bearColor: e.currentTarget.value}))} 
+                    onInput={(e) => {
+                      const val = e.currentTarget.value;
+                      setSettings(s => ({...s, bearColor: val}));
+                    }} 
                     className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none" 
                   />
                 </div>
                 <Input 
                   value={settings.bearColor} 
-                  onInput={(e) => setSettings(s => ({...s, bearColor: e.currentTarget.value}))}
+                  onInput={(e) => {
+                    const val = e.currentTarget.value;
+                    setSettings(s => ({...s, bearColor: val}));
+                  }}
                   className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2 text-center"
                   placeholder="#HEX"
                 />
