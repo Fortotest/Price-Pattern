@@ -22,7 +22,7 @@ interface ManualEditorProps {
 }
 
 const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove }) => {
-  // Menampilkan bar terbaru di paling atas (reversed visual only)
+  // Tampilkan bar terbaru di paling atas (reversed visual)
   const reversedIndices = Array.from({ length: candles.length }, (_, i) => candles.length - 1 - i);
 
   return (

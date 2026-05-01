@@ -9,11 +9,11 @@ import ManualEditor from "@/components/manual-editor";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { 
   Plus,
   Monitor,
   RefreshCw,
-  Menu,
   Zap,
   Maximize,
   Palette,
@@ -38,13 +38,13 @@ export default function PricePatternStudio() {
   const [candles, setCandles] = useState<Candlestick[]>(TEMPLATES.FULL_BULLISH_WAVE);
   const [settings, setSettings] = useState<ChartSettings>({
     zoom: 0.8,
-    spacing: 1.0, // Default dempet/rapi
+    spacing: 1.0, 
     speed: 0.8,
     autoCenter: true,
     bullColor: "#00b386",
     bearColor: "#f23645",
-    bodyRadius: 0, // Default kotak lancip
-    wickRadius: 0  // Default kotak lancip
+    bodyRadius: 0, 
+    wickRadius: 0  
   });
   
   const [isAnimating, setIsAnimating] = useState(false);
@@ -64,8 +64,8 @@ export default function PricePatternStudio() {
   const handleAddCandle = (type: 'Bullish' | 'Bearish') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
     
-    // Ukuran Random tapi rapi (kelipatan 5)
-    // Range body: 80 - 120 (Random & Berpengaruh)
+    // Logic random rapi (kelipatan 5)
+    // Body: 80 - 120, Wick: 15 - 30
     const bodySize = (Math.floor(Math.random() * 9) + 16) * 5; 
     const topWick = (Math.floor(Math.random() * 4) + 3) * 5;  
     const botWick = (Math.floor(Math.random() * 4) + 3) * 5;  
@@ -177,7 +177,7 @@ export default function PricePatternStudio() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Maximize className="w-3 h-3 text-primary" />
-              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Controls</Label>
+              <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">View Controls</Label>
             </div>
             
             <div className="space-y-4">
@@ -216,23 +216,39 @@ export default function PricePatternStudio() {
             </div>
             
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label className="text-[8px] text-muted-foreground uppercase">Bull Color</Label>
-                <input 
-                  type="color" 
-                  value={settings.bullColor} 
-                  onChange={(e) => setSettings(s => ({...s, bullColor: e.target.value}))} 
-                  className="w-full h-8 rounded bg-black border border-white/10 cursor-pointer p-0 opacity-100 block" 
-                />
+                <div className="space-y-1">
+                  <input 
+                    type="color" 
+                    value={settings.bullColor} 
+                    onChange={(e) => setSettings(s => ({...s, bullColor: e.target.value}))} 
+                    className="w-full h-8 rounded bg-black border border-white/10 cursor-pointer p-0 opacity-100 block" 
+                  />
+                  <Input 
+                    value={settings.bullColor} 
+                    onChange={(e) => setSettings(s => ({...s, bullColor: e.target.value}))}
+                    className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2"
+                    placeholder="#HEX"
+                  />
+                </div>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label className="text-[8px] text-muted-foreground uppercase">Bear Color</Label>
-                <input 
-                  type="color" 
-                  value={settings.bearColor} 
-                  onChange={(e) => setSettings(s => ({...s, bearColor: e.target.value}))} 
-                  className="w-full h-8 rounded bg-black border border-white/10 cursor-pointer p-0 opacity-100 block" 
-                />
+                <div className="space-y-1">
+                  <input 
+                    type="color" 
+                    value={settings.bearColor} 
+                    onChange={(e) => setSettings(s => ({...s, bearColor: e.target.value}))} 
+                    className="w-full h-8 rounded bg-black border border-white/10 cursor-pointer p-0 opacity-100 block" 
+                  />
+                  <Input 
+                    value={settings.bearColor} 
+                    onChange={(e) => setSettings(s => ({...s, bearColor: e.target.value}))}
+                    className="h-6 text-[9px] font-mono uppercase bg-black border-white/5 px-2"
+                    placeholder="#HEX"
+                  />
+                </div>
               </div>
             </div>
 
