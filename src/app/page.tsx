@@ -38,14 +38,12 @@ const NOTIF_SOUND_URLS = [
 interface PanelProps {
   settings: ChartSettings;
   updateSettings: (newSettings: Partial<ChartSettings>) => void;
-  isOpen: boolean;
   onClose: () => void;
 }
 
 const PropertiesPanel = ({ 
   settings, 
   updateSettings, 
-  isOpen,
   onClose
 }: PanelProps) => {
   return (
@@ -55,8 +53,7 @@ const PropertiesPanel = ({
           <Settings2 className="w-3.5 h-3.5 text-primary" />
           <span className="text-[10px] font-bold uppercase tracking-wider">Configuration</span>
         </div>
-        {/* Only show manual X on desktop sidebar, mobile uses Sheet close button */}
-        <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5 hidden lg:flex">
+        <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5 flex">
           <X className="w-3 h-3" />
         </Button>
       </div>
@@ -218,15 +215,19 @@ interface LayersPanelProps {
   onRemoveCandle: (index: number) => void;
   onClearAll: () => void;
   onTemplateLoad: (val: string) => void;
+  onClose: () => void;
 }
 
-const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll, onTemplateLoad }: LayersPanelProps) => (
+const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll, onTemplateLoad, onClose }: LayersPanelProps) => (
   <div className="flex flex-col h-full bg-[#0a0a0a] text-white overflow-hidden w-full">
-    <div className="p-3 border-b border-white/5 flex items-center bg-black/20">
+    <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
       <div className="flex items-center gap-2">
         <Layers className="w-3.5 h-3.5 text-emerald-500" />
         <span className="text-[10px] font-bold uppercase tracking-wider">Layer Stack</span>
       </div>
+      <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5 flex lg:hidden">
+        <X className="w-3 h-3" />
+      </Button>
     </div>
     
     <div className="p-3 bg-black/40 space-y-4">
@@ -311,6 +312,7 @@ export default function PricePattern() {
   const [isResizing, setIsResizing] = useState(false);
   const [notification, setNotification] = useState<{title: string, emoji: string} | null>(null);
   
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isLayersOpen, setIsLayersOpen] = useState(false);
   
   const chartRef = useRef<ChartRendererHandle>(null);
@@ -568,7 +570,6 @@ export default function PricePattern() {
           <PropertiesPanel 
             settings={settings}
             updateSettings={updateSettings}
-            isOpen={showProperties}
             onClose={() => setShowProperties(false)}
           />
         </div>
@@ -581,18 +582,17 @@ export default function PricePattern() {
               <Menu className="w-5 h-5" />
             </Button>
             
-            <Sheet>
+            <Sheet open={isConfigOpen} onOpenChange={setIsConfigOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9">
+                <Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9" onClick={() => setIsConfigOpen(true)}>
                   <Settings2 className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-[280px] bg-[#0a0a0a] border-r border-white/5">
+              <SheetContent side="left" className="p-0 w-[280px] bg-[#0a0a0a] border-r border-white/5 [&>button]:hidden">
                 <PropertiesPanel 
                   settings={settings}
                   updateSettings={updateSettings}
-                  isOpen={true}
-                  onClose={() => {}}
+                  onClose={() => setIsConfigOpen(false)}
                 />
               </SheetContent>
             </Sheet>
@@ -606,11 +606,11 @@ export default function PricePattern() {
           <div className="flex items-center gap-2">
             <Sheet open={isLayersOpen} onOpenChange={setIsLayersOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9">
+                <Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9" onClick={() => setIsLayersOpen(true)}>
                   <Layers className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="p-0 w-[280px] bg-[#0a0a0a] border-l border-white/5">
+              <SheetContent side="right" className="p-0 w-[280px] bg-[#0a0a0a] border-l border-white/5 [&>button]:hidden">
                 <LayersPanel 
                   candles={candles}
                   onAddCandle={handleAddCandle}
@@ -618,6 +618,7 @@ export default function PricePattern() {
                   onRemoveCandle={handleRemoveCandle}
                   onClearAll={handleClearAll}
                   onTemplateLoad={handleTemplateLoad}
+                  onClose={() => setIsLayersOpen(false)}
                 />
               </SheetContent>
             </Sheet>
@@ -707,6 +708,7 @@ export default function PricePattern() {
             onRemoveCandle={handleRemoveCandle}
             onClearAll={handleClearAll}
             onTemplateLoad={handleTemplateLoad}
+            onClose={() => setIsLayersOpen(false)}
           />
         </div>
       </aside>
