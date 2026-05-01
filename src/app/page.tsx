@@ -239,6 +239,12 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
             <option value="bullish_snr_3_valleys">📈 Bullish SNR (3 Valleys)</option>
             <option value="bearish_snr_3_peaks">📉 Bearish SNR (3 Peaks)</option>
           </optgroup>
+          <optgroup label="Advanced Price Action">
+            <option value="trend_reversal_v_shape">🔄 V-Shape Reversal</option>
+            <option value="bullish_fakeout_trap">🪤 Fakeout / Bull Trap</option>
+            <option value="valid_breakout_retest">🚀 Breakout & Retest</option>
+            <option value="strong_momentum_run">🔥 Strong Momentum (Marubozu)</option>
+          </optgroup>
         </select>
       </div>
 
