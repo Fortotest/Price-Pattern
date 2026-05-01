@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Candlestick, ChartSettings } from "@/lib/chart-types";
-import { generateSVG, TEMPLATES } from "@/lib/chart-utils";
+import { generateSVG, TEMPLATES, createTemplateWithNewIds } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
 import ManualEditor from "@/components/manual-editor";
 import { Button } from "@/components/ui/button";
@@ -321,7 +321,7 @@ export default function PricePatternStudio() {
   const handleTemplateLoad = useCallback((val: string) => {
     const template = TEMPLATES[val as keyof typeof TEMPLATES];
     if (template) {
-      setCandles(template);
+      setCandles(createTemplateWithNewIds(template));
     }
   }, []);
 
@@ -332,9 +332,11 @@ export default function PricePatternStudio() {
       const bodySize = isDoji ? 10 : 50; 
       const wickSize = 20;
       
+      const id = Math.random().toString(36).substr(2, 9);
       let newCandle: Candlestick;
       if (type === 'Bullish') {
         newCandle = { 
+          id,
           open: lastClose, 
           close: lastClose + bodySize, 
           high: lastClose + bodySize + wickSize, 
@@ -343,6 +345,7 @@ export default function PricePatternStudio() {
         };
       } else if (type === 'Bearish') {
         newCandle = { 
+          id,
           open: lastClose, 
           close: lastClose - bodySize, 
           high: lastClose + wickSize, 
@@ -351,6 +354,7 @@ export default function PricePatternStudio() {
         };
       } else {
         newCandle = {
+          id,
           open: lastClose,
           close: lastClose + 10,
           high: lastClose + 30,
@@ -391,8 +395,11 @@ export default function PricePatternStudio() {
       const bodyMax = Math.max(c.open, c.close);
       const bodyMin = Math.min(c.open, c.close);
       const noiseLevel = settings.volatility || 0.5;
-      const randomTop = Math.round((Math.random() * 60 + 5) * noiseLevel);
-      const randomBot = Math.round((Math.random() * 60 + 5) * noiseLevel);
+      
+      // Real market volatility: Wicks can be very random
+      const randomTop = Math.round((Math.random() * 80 + 2) * noiseLevel);
+      const randomBot = Math.round((Math.random() * 80 + 2) * noiseLevel);
+      
       return {
         ...c,
         high: Math.round(bodyMax + randomTop),

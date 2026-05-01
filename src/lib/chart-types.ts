@@ -1,5 +1,6 @@
 
 export interface Candlestick {
+  id: string;
   open: number;
   high: number;
   low: number;

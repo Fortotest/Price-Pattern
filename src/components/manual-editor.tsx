@@ -50,8 +50,10 @@ const CustomNumberInput = ({
 
   const handleStep = useCallback((delta: number) => {
     const newVal = Math.max(min, Math.round(valueRef.current + delta));
-    valueRef.current = newVal;
-    onChange(newVal);
+    if (Number.isFinite(newVal)) {
+      valueRef.current = newVal;
+      onChange(newVal);
+    }
   }, [onChange, min]);
 
   const startAdjusting = useCallback((delta: number) => {
@@ -112,7 +114,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
         else statusColor = "bg-slate-400";
 
         return (
-          <div key={`${idx}-${candles.length}`} className="bg-[#0a0a0a] border border-white/5 rounded-lg p-2 group transition-all hover:border-white/10">
+          <div key={c.id || idx} className="bg-[#0a0a0a] border border-white/5 rounded-lg p-2 group transition-all hover:border-white/10">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
                 <GripVertical className="w-2 h-2 text-muted-foreground/30" />
@@ -214,4 +216,3 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
 };
 
 export default ManualEditor;
-

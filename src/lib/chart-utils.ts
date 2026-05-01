@@ -72,40 +72,46 @@ export function generateSVG(candles: Candlestick[], settings: ChartSettings): st
   return svgContent;
 }
 
+const createId = () => Math.random().toString(36).substr(2, 9);
+
 export const TEMPLATES = {
-  HAMMER: [{ open: 150, high: 155, low: 80, close: 148, offsetY: 0 }],
-  SHOOTING_STAR: [{ open: 140, high: 220, low: 138, close: 135, offsetY: 0 }],
+  HAMMER: [{ id: createId(), open: 150, high: 155, low: 80, close: 148, offsetY: 0 }],
+  SHOOTING_STAR: [{ id: createId(), open: 140, high: 220, low: 138, close: 135, offsetY: 0 }],
   DOUBLE_BOTTOM: [
-    { open: 300, high: 305, low: 220, close: 230, offsetY: 0 },
-    { open: 230, high: 320, low: 225, close: 310, offsetY: 0 },
-    { open: 310, high: 315, low: 220, close: 225, offsetY: 0 },
-    { open: 225, high: 400, low: 220, close: 390, offsetY: 0 }
+    { id: createId(), open: 300, high: 305, low: 220, close: 230, offsetY: 0 },
+    { id: createId(), open: 230, high: 320, low: 225, close: 310, offsetY: 0 },
+    { id: createId(), open: 310, high: 315, low: 220, close: 225, offsetY: 0 },
+    { id: createId(), open: 225, high: 400, low: 220, close: 390, offsetY: 0 }
   ],
   DOUBLE_TOP: [
-    { open: 150, high: 350, low: 145, close: 340, offsetY: 0 },
-    { open: 340, high: 345, low: 220, close: 230, offsetY: 0 },
-    { open: 230, high: 355, low: 225, close: 345, offsetY: 0 },
-    { open: 345, high: 350, low: 140, close: 150, offsetY: 0 }
+    { id: createId(), open: 150, high: 350, low: 145, close: 340, offsetY: 0 },
+    { id: createId(), open: 340, high: 345, low: 220, close: 230, offsetY: 0 },
+    { id: createId(), open: 230, high: 355, low: 225, close: 345, offsetY: 0 },
+    { id: createId(), open: 345, high: 350, low: 140, close: 150, offsetY: 0 }
   ],
   BULLISH_ENGULFING: [
-    { open: 250, high: 255, low: 200, close: 210, offsetY: 0 },
-    { open: 210, high: 280, low: 205, close: 275, offsetY: 0 }
+    { id: createId(), open: 250, high: 255, low: 200, close: 210, offsetY: 0 },
+    { id: createId(), open: 210, high: 280, low: 205, close: 275, offsetY: 0 }
   ],
   BEARISH_ENGULFING: [
-    { open: 210, high: 280, low: 205, close: 275, offsetY: 0 },
-    { open: 275, high: 280, low: 190, close: 200, offsetY: 0 }
+    { id: createId(), open: 210, high: 280, low: 205, close: 275, offsetY: 0 },
+    { id: createId(), open: 275, high: 280, low: 190, close: 200, offsetY: 0 }
   ],
   FULL_BULLISH_WAVE: [
-    { open: 100, high: 115, low: 98, close: 112, offsetY: 0 },
-    { open: 112, high: 115, low: 110, close: 113, offsetY: 0 },
-    { open: 113, high: 118, low: 112, close: 117, offsetY: 0 },
-    { open: 117, high: 120, low: 114, close: 115, offsetY: 0 },
-    { open: 115, high: 116, low: 100, close: 101, offsetY: 0 },
-    { open: 101, high: 105, low: 100, close: 103, offsetY: 0 },
-    { open: 103, high: 122, low: 102, close: 120, offsetY: 0 },
-    { open: 120, high: 125, low: 118, close: 124, offsetY: 0 },
-    { open: 124, high: 140, low: 123, close: 138, offsetY: 0 },
-    { open: 138, high: 140, low: 130, close: 132, offsetY: 0 },
-    { open: 132, high: 160, low: 130, close: 158, offsetY: 0 }
+    { id: createId(), open: 100, high: 115, low: 98, close: 112, offsetY: 0 },
+    { id: createId(), open: 112, high: 115, low: 110, close: 113, offsetY: 0 },
+    { id: createId(), open: 113, high: 118, low: 112, close: 117, offsetY: 0 },
+    { id: createId(), open: 117, high: 120, low: 114, close: 115, offsetY: 0 },
+    { id: createId(), open: 115, high: 116, low: 100, close: 101, offsetY: 0 },
+    { id: createId(), open: 101, high: 105, low: 100, close: 103, offsetY: 0 },
+    { id: createId(), open: 103, high: 122, low: 102, close: 120, offsetY: 0 },
+    { id: createId(), open: 120, high: 125, low: 118, close: 124, offsetY: 0 },
+    { id: createId(), open: 124, high: 140, low: 123, close: 138, offsetY: 0 },
+    { id: createId(), open: 138, high: 140, low: 130, close: 132, offsetY: 0 },
+    { id: createId(), open: 132, high: 160, low: 130, close: 158, offsetY: 0 }
   ]
+};
+
+export const createTemplateWithNewIds = (template: any[]) => {
+  return template.map(c => ({ ...c, id: createId() }));
 };
