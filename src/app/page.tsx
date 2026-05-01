@@ -64,24 +64,24 @@ export default function PricePatternStudio() {
 
   const handleAddCandle = (type: 'Bullish' | 'Bearish') => {
     const lastClose = candles.length > 0 ? candles[candles.length - 1].close : 300;
-    const bodySize = Math.floor(Math.random() * 41) + 80; 
-    const topWick = Math.floor(Math.random() * 11) + 15; 
-    const botWick = Math.floor(Math.random() * 11) + 15; 
-    const cleanBody = Math.round(bodySize / 5) * 5;
+    // Format ukuran: Body ~100, Wick 15-20, Random & Rapi
+    const bodySize = (Math.floor(Math.random() * 9) + 8) * 10; // 80 - 160
+    const topWick = (Math.floor(Math.random() * 4) + 3) * 5;  // 15 - 30
+    const botWick = (Math.floor(Math.random() * 4) + 3) * 5;  // 15 - 30
     
     const newCandle: Candlestick = type === 'Bullish' 
       ? { 
           open: lastClose, 
-          close: lastClose + cleanBody, 
-          high: lastClose + cleanBody + topWick, 
+          close: lastClose + bodySize, 
+          high: lastClose + bodySize + topWick, 
           low: lastClose - botWick, 
           offsetY: 0 
         }
       : { 
           open: lastClose, 
-          close: lastClose - cleanBody, 
+          close: lastClose - bodySize, 
           high: lastClose + topWick, 
-          low: lastClose - cleanBody - botWick, 
+          low: lastClose - bodySize - botWick, 
           offsetY: 0 
         };
     
@@ -91,19 +91,7 @@ export default function PricePatternStudio() {
   const handleUpdateCandle = (index: number, updated: Candlestick) => {
     const newCandles = [...candles];
     newCandles[index] = updated;
-    // Otomatis sinkronkan 'open' candle berikutnya dengan 'close' sebelumnya
-    for (let i = index + 1; i < newCandles.length; i++) {
-      const prevClose = newCandles[i-1].close;
-      const body = Math.abs(newCandles[i].close - newCandles[i].open);
-      const isUp = newCandles[i].close >= newCandles[i].open;
-      newCandles[i] = { 
-        ...newCandles[i], 
-        open: prevClose, 
-        close: isUp ? prevClose + body : prevClose - body,
-        high: isUp ? (prevClose + body + 15) : (prevClose + 15),
-        low: isUp ? (prevClose - 15) : (prevClose - body - 15)
-      };
-    }
+    // Sinkronkan candle berikutnya jika perlu (opsional untuk workflow manual murni)
     setCandles(newCandles);
   };
 
@@ -149,34 +137,7 @@ export default function PricePatternStudio() {
   };
 
   const LeftSidebar = () => (
-    <div className="flex flex-col h-full bg-[#121212] border-r border-white/5 text-white overflow-hidden w-[260px]">
-      <div className="p-3 border-b border-white/5 flex items-center gap-2">
-        <Layers className="w-3.5 h-3.5 text-emerald-500" />
-        <span className="text-[10px] font-bold uppercase tracking-wider">Layers Panel</span>
-      </div>
-      
-      <div className="p-3 bg-black/40 space-y-2">
-        <div className="grid grid-cols-2 gap-2">
-          <Button onClick={() => handleAddCandle('Bullish')} className="bg-[#00b386] hover:bg-[#00b386]/90 h-7 text-[9px] font-bold"><Plus className="w-3 h-3 mr-1" /> Bull</Button>
-          <Button onClick={() => handleAddCandle('Bearish')} variant="destructive" className="bg-[#f23645] hover:bg-[#f23645]/90 h-7 text-[9px] font-bold"><Plus className="w-3 h-3 mr-1" /> Bear</Button>
-        </div>
-        <Button variant="ghost" size="sm" onClick={() => setCandles([])} className="w-full h-6 text-[8px] font-bold text-red-400 p-0 hover:bg-red-400/5">Clear All Layers</Button>
-      </div>
-
-      <ScrollArea className="flex-1">
-        <div className="p-3 pb-8">
-          <ManualEditor 
-            candles={candles} 
-            onChange={handleUpdateCandle} 
-            onRemove={(idx) => setCandles(candles.filter((_, i) => i !== idx))} 
-          />
-        </div>
-      </ScrollArea>
-    </div>
-  );
-
-  const RightSidebar = () => (
-    <div className="flex flex-col h-full bg-[#121212] border-l border-white/5 text-white overflow-hidden w-[280px]">
+    <div className="flex flex-col h-full bg-[#121212] border-r border-white/5 text-white overflow-hidden w-[280px]">
       <div className="p-3 border-b border-white/5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-primary" />
@@ -196,12 +157,12 @@ export default function PricePatternStudio() {
               </SelectTrigger>
               <SelectContent className="bg-[#1c212f] border-white/10 text-white">
                 <SelectGroup>
-                  <SelectLabel>Basic Shapes</SelectLabel>
+                  <SelectLabel>Single Bar</SelectLabel>
                   <SelectItem value="HAMMER">🔨 Hammer Bar</SelectItem>
                   <SelectItem value="SHOOTING_STAR">💫 Shooting Star</SelectItem>
                 </SelectGroup>
                 <SelectGroup>
-                  <SelectLabel>Advanced Patterns</SelectLabel>
+                  <SelectLabel>Multi Bar</SelectLabel>
                   <SelectItem value="BULLISH_ENGULFING">🔥 Engulfing Bull</SelectItem>
                   <SelectItem value="BEARISH_ENGULFING">❄️ Engulfing Bear</SelectItem>
                   <SelectItem value="DOUBLE_BOTTOM">🇼 Double Bottom</SelectItem>
@@ -279,21 +240,48 @@ export default function PricePatternStudio() {
       </ScrollArea>
 
       {/* Export Actions */}
-      <div className="p-3 bg-[#161616] border-t border-white/5 space-y-2 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+      <div className="p-3 bg-[#161616] border-t border-white/5 space-y-2">
         <Button className="w-full h-8 font-bold text-[10px] gap-2 bg-slate-800 hover:bg-slate-700 border border-white/5" onClick={handleReplay} disabled={candles.length === 0 || isAnimating}>
-          <RefreshCw className={`w-3 h-3 ${isAnimating ? 'animate-spin' : ''}`} /> Replay Animation
+          <RefreshCw className={`w-3 h-3 ${isAnimating ? 'animate-spin' : ''}`} /> Preview Animation
         </Button>
         <div className="flex gap-2">
           <Button variant="outline" className="flex-1 h-8 text-[10px] font-bold border-white/10 bg-transparent" onClick={handleExportSVG} disabled={candles.length === 0}>SVG</Button>
-          <Button className="flex-1 h-8 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700" onClick={handleRecordVideo} disabled={candles.length === 0}>4K Render</Button>
+          <Button className="flex-1 h-8 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700" onClick={handleRecordVideo} disabled={candles.length === 0}>4K Video</Button>
         </div>
       </div>
     </div>
   );
 
+  const RightSidebar = () => (
+    <div className="flex flex-col h-full bg-[#121212] border-l border-white/5 text-white overflow-hidden w-[260px]">
+      <div className="p-3 border-b border-white/5 flex items-center gap-2">
+        <Layers className="w-3.5 h-3.5 text-emerald-500" />
+        <span className="text-[10px] font-bold uppercase tracking-wider">Layers Panel</span>
+      </div>
+      
+      <div className="p-3 bg-black/40 space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          <Button onClick={() => handleAddCandle('Bullish')} className="bg-[#00b386] hover:bg-[#00b386]/90 h-7 text-[9px] font-bold"><Plus className="w-3 h-3 mr-1" /> Bull</Button>
+          <Button onClick={() => handleAddCandle('Bearish')} variant="destructive" className="bg-[#f23645] hover:bg-[#f23645]/90 h-7 text-[9px] font-bold"><Plus className="w-3 h-3 mr-1" /> Bear</Button>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => setCandles([])} className="w-full h-6 text-[8px] font-bold text-red-400 p-0 hover:bg-red-400/5">Clear All Layers</Button>
+      </div>
+
+      <ScrollArea className="flex-1">
+        <div className="p-3 pb-8">
+          <ManualEditor 
+            candles={candles} 
+            onChange={handleUpdateCandle} 
+            onRemove={(idx) => setCandles(candles.filter((_, i) => i !== idx))} 
+          />
+        </div>
+      </ScrollArea>
+    </div>
+  );
+
   return (
     <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none">
-      {/* Left Sidebar (Desktop Only) */}
+      {/* Left Sidebar (Properties) */}
       <aside className="hidden lg:flex flex-col flex-shrink-0">
         <LeftSidebar />
       </aside>
@@ -306,7 +294,7 @@ export default function PricePatternStudio() {
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="text-white h-9 w-9"><Menu className="w-5 h-5" /></Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-[260px] bg-[#121212] border-r border-white/10">
+            <SheetContent side="left" className="p-0 w-[280px] bg-[#121212] border-r border-white/10">
               <LeftSidebar />
             </SheetContent>
           </Sheet>
@@ -316,9 +304,9 @@ export default function PricePatternStudio() {
           </div>
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white h-9 w-9"><Settings2 className="w-5 h-5" /></Button>
+              <Button variant="ghost" size="icon" className="text-white h-9 w-9"><Layers className="w-5 h-5" /></Button>
             </SheetTrigger>
-            <SheetContent side="right" className="p-0 w-[280px] bg-[#121212] border-l border-white/10">
+            <SheetContent side="right" className="p-0 w-[260px] bg-[#121212] border-l border-white/10">
               <RightSidebar />
             </SheetContent>
           </Sheet>
@@ -350,17 +338,17 @@ export default function PricePatternStudio() {
         {/* Global Footer Status */}
         <footer className="h-8 bg-[#121212] border-t border-white/5 px-4 flex items-center justify-between text-[8px] font-bold text-muted-foreground uppercase tracking-[1px]">
           <div className="flex gap-6">
-            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-primary" /> Zoom: {settings.zoom.toFixed(2)}x</span>
-            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-primary" /> Layers: {candles.length} Items</span>
+            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-primary" /> Active Dataset: {candles.length} Candles</span>
+            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-primary" /> Render Quality: 3840 x 2160 (Lossless)</span>
           </div>
           <div className="flex items-center gap-3">
             <Monitor className="w-3 h-3" />
-            <span className="hidden sm:inline">3840 x 2160 PURE VECTOR ENGINE</span>
+            <span className="hidden sm:inline">Pro Vector Chart Engine</span>
           </div>
         </footer>
       </main>
 
-      {/* Right Sidebar (Desktop Only) */}
+      {/* Right Sidebar (Layers) */}
       <aside className="hidden lg:flex flex-col flex-shrink-0">
         <RightSidebar />
       </aside>
