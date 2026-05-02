@@ -682,7 +682,7 @@ export default function PricePattern() {
                     {/* Page Label - Bottom Left (Canva/Image Style) */}
                     <div className="absolute bottom-1 left-2 z-10 pointer-events-none">
                        <span className="text-[9px] font-bold text-white uppercase tracking-wider drop-shadow-md">
-                        {idx + 1} - {page.candles.length}b
+                        {idx + 1}
                       </span>
                     </div>
 
