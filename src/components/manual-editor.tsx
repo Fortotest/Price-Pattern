@@ -4,7 +4,6 @@
 import React, { useRef, useEffect, useCallback, useMemo, useState } from "react";
 import { Candlestick } from "@/lib/chart-types";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Trash2, GripVertical, ChevronUp, ChevronDown } from "lucide-react";
 
 interface ManualEditorProps {
@@ -19,12 +18,14 @@ const CustomNumberInput = ({
   onChange, 
   colorClass = "text-foreground",
   min = -5000,
+  ariaLabel
 }: { 
   label?: string, 
   value: number, 
   onChange: (val: number) => void,
   colorClass?: string,
   min?: number,
+  ariaLabel?: string
 }) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -77,7 +78,7 @@ const CustomNumberInput = ({
   };
 
   return (
-    <div className="bg-muted/50 rounded-md flex flex-col border border-border group/input transition-colors hover:border-muted-foreground/30 h-10 w-full overflow-hidden">
+    <div className="bg-black/40 rounded-md flex flex-col border border-border group/input transition-colors hover:border-muted-foreground/30 h-10 w-full overflow-hidden">
       {label && (
         <span className={`text-[7px] font-black uppercase tracking-widest pt-1 px-2 ${colorClass}`}>
           {label}
@@ -85,6 +86,7 @@ const CustomNumberInput = ({
       )}
       <div className="flex items-center flex-1">
         <input
+          aria-label={ariaLabel || label || "Input value"}
           type="text"
           value={inputValue}
           onChange={handleInputChange}
@@ -93,18 +95,20 @@ const CustomNumberInput = ({
         />
         <div className="w-5 h-full flex flex-col border-l border-border overflow-hidden">
           <button 
+            aria-label="Increase value"
             onPointerDown={() => startAdjusting(1)}
             onPointerUp={stopAdjusting}
             onPointerLeave={stopAdjusting}
-            className="flex-1 flex items-center justify-center bg-muted hover:bg-muted/80 border-b border-border transition-colors active:bg-primary/20"
+            className="flex-1 flex items-center justify-center bg-black/60 hover:bg-muted/30 border-b border-border transition-colors active:bg-primary/20"
           >
             <ChevronUp className="w-2.5 h-2.5 text-muted-foreground group-hover/input:text-foreground" />
           </button>
           <button 
+            aria-label="Decrease value"
             onPointerDown={() => startAdjusting(-1)}
             onPointerUp={stopAdjusting}
             onPointerLeave={stopAdjusting}
-            className="flex-1 flex items-center justify-center bg-muted hover:bg-muted/80 transition-colors active:bg-primary/20"
+            className="flex-1 flex items-center justify-center bg-black/60 hover:bg-muted/30 transition-colors active:bg-primary/20"
           >
             <ChevronDown className="w-2.5 h-2.5 text-muted-foreground group-hover/input:text-foreground" />
           </button>
@@ -123,7 +127,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
   }, [candles]);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {items.map(({ candle: c, originalIndex: idx }) => {
         const bodyDiff = c.close - c.open;
         const bodySize = Math.abs(bodyDiff);
@@ -131,40 +135,43 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
         const botWickSize = Math.max(0, Math.min(c.open, c.close) - c.low);
 
         let statusColor = "bg-muted-foreground/30";
-        if (bodyDiff > 5) statusColor = "bg-[#00e6ac]";
-        else if (bodyDiff < -5) statusColor = "bg-[#ff4d4d]";
-        else statusColor = "bg-slate-400";
+        if (bodyDiff > 5) statusColor = "bg-primary shadow-[0_0_8px_rgba(0,255,157,0.6)]";
+        else if (bodyDiff < -5) statusColor = "bg-destructive shadow-[0_0_8px_rgba(255,59,48,0.6)]";
+        else statusColor = "bg-muted-foreground";
 
         return (
-          <div key={c.id} className="bg-muted/20 border border-border rounded-xl p-3 group transition-all hover:border-muted-foreground/30 shadow-sm">
+          <div key={c.id} className="bg-black/40 border border-border rounded-lg p-2.5 group transition-all hover:border-muted-foreground/30 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <GripVertical className="w-3 h-3 text-muted-foreground/20" />
                 <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Bar #{idx + 1}</span>
-                <div className={`w-2 h-2 rounded-full ${statusColor} shadow-sm recording-pulse`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${statusColor} recording-pulse`} />
               </div>
               <Button 
+                aria-label={`Hapus bar ${idx + 1}`}
                 variant="ghost" 
                 size="icon" 
-                className="h-6 w-6 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all"
+                className="h-5 w-5 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all"
                 onClick={() => onRemove(idx)}
               >
-                <Trash2 className="w-3 h-3" />
+                <Trash2 className="w-2.5 h-2.5" />
               </Button>
             </div>
             
             <div className="grid grid-cols-2 gap-2 mb-2">
               <div className="space-y-1">
-                <Label className="text-[8px] font-black uppercase text-muted-foreground tracking-widest ml-1">Offset Y</Label>
                 <CustomNumberInput 
+                  label="Offset Y"
+                  ariaLabel={`Offset vertical bar ${idx + 1}`}
                   value={c.offsetY || 0} 
                   onChange={(val) => onChange(idx, { ...c, offsetY: val })}
                 />
               </div>
               <div className="flex flex-col justify-end">
                 <Button 
+                   aria-label={`Balik arah bar ${idx + 1}`}
                    variant="outline" 
-                   className="h-10 text-[9px] bg-background border-border font-black hover:bg-muted uppercase tracking-[1px] transition-all active:scale-95 text-foreground"
+                   className="h-10 text-[9px] bg-black border-border font-black hover:bg-muted/20 uppercase tracking-[1px] transition-all active:scale-95 text-foreground rounded-md"
                    onClick={() => {
                      const isBullish = bodyDiff >= 0;
                      const newClose = isBullish ? c.open - bodySize : c.open + bodySize;
@@ -184,9 +191,10 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
             <div className="grid grid-cols-3 gap-2">
               <CustomNumberInput 
                 label="Body" 
+                ariaLabel={`Ukuran bodi bar ${idx + 1}`}
                 value={bodySize} 
                 min={0}
-                colorClass={bodyDiff > 5 ? "text-emerald-500" : (bodyDiff < -5 ? "text-red-500" : "text-muted-foreground")}
+                colorClass={bodyDiff > 5 ? "text-primary" : (bodyDiff < -5 ? "text-destructive" : "text-muted-foreground")}
                 onChange={(val) => {
                   const direction = bodyDiff < 0 ? -1 : 1;
                   const newClose = c.open + (val * direction);
@@ -200,15 +208,17 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
               />
               <CustomNumberInput 
                 label="Top Wick" 
+                ariaLabel={`Sumbu atas bar ${idx + 1}`}
                 value={topWickSize} 
-                colorClass="text-emerald-500"
+                colorClass="text-primary"
                 min={0}
                 onChange={(val) => onChange(idx, { ...c, high: Math.max(c.open, c.close) + val })} 
               />
               <CustomNumberInput 
                 label="Bot Wick" 
+                ariaLabel={`Sumbu bawah bar ${idx + 1}`}
                 value={botWickSize} 
-                colorClass="text-red-500"
+                colorClass="text-destructive"
                 min={0}
                 onChange={(val) => onChange(idx, { ...c, low: Math.min(c.open, c.close) - val })} 
               />
