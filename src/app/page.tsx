@@ -23,12 +23,19 @@ import {
   Video,
   Instagram,
   Plus,
-  Copy
+  Copy,
+  MoreVertical
 } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const NOTIF_SOUND_URLS = [
   "https://raw.githubusercontent.com/Fortotest/Market.ai/aa1fd92abd82277252b6d10912a44c3146ade1ad/hey-antek-antek-asing-prabowo.mp3",
@@ -659,26 +666,36 @@ export default function PricePattern() {
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
                     
-                    {/* Hover Overlays - Balanced & Precise Controls */}
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3">
-                       <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-6 w-6 rounded-full bg-blue-500 text-white hover:bg-blue-600 p-0 shadow-lg border border-white/10 transform transition-all active:scale-90"
-                        onClick={(e) => { e.stopPropagation(); handleDuplicatePage(idx); }}
-                      >
-                        <Copy className="w-2.5 h-2.5" />
-                      </Button>
-                      {pages.length > 1 && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-6 w-6 rounded-full bg-red-500 text-white hover:bg-red-600 p-0 shadow-lg border border-white/10 transform transition-all active:scale-90"
-                          onClick={(e) => { e.stopPropagation(); handleDeletePage(idx); }}
-                        >
-                          <Trash2 className="w-2.5 h-2.5" />
-                        </Button>
-                      )}
+                    {/* Corner Menu - titik 3 ala Canva */}
+                    <div className="absolute top-0.5 right-0.5 z-50">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-5 w-5 rounded-full hover:bg-white/10 text-white/50 hover:text-white"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="w-3 h-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-[#0a0a0a] border-white/10 text-white">
+                          <DropdownMenuItem 
+                            onClick={(e) => { e.stopPropagation(); handleDuplicatePage(idx); }}
+                            className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 focus:bg-white/5 focus:text-emerald-500 cursor-pointer"
+                          >
+                            <Copy className="w-3 h-3" /> DUPLICATE
+                          </DropdownMenuItem>
+                          {pages.length > 1 && (
+                            <DropdownMenuItem 
+                              onClick={(e) => { e.stopPropagation(); handleDeletePage(idx); }}
+                              className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 text-red-500 focus:bg-red-500/10 focus:text-red-400 cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3" /> DELETE
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                   <div className="flex flex-col items-center leading-none">
