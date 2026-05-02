@@ -37,6 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const NOTIF_SOUND_URLS = [
   "https://raw.githubusercontent.com/Fortotest/Market.ai/aa1fd92abd82277252b6d10912a44c3146ade1ad/hey-antek-antek-asing-prabowo.mp3",
@@ -57,13 +58,13 @@ const PropertiesPanel = ({
   onClose
 }: PanelProps) => {
   return (
-    <div className="flex flex-col h-full bg-[#0a0a0a]/80 backdrop-blur-md text-white overflow-hidden w-full lg:w-[280px]">
-      <div className="p-3 border-b border-white/10 flex items-center justify-between bg-black/20">
+    <div className="flex flex-col h-full bg-card/80 backdrop-blur-md text-foreground overflow-hidden w-full lg:w-[280px]">
+      <div className="p-3 border-b border-border flex items-center justify-between bg-muted/20">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-primary" />
           <span className="text-[10px] font-bold uppercase tracking-wider">Configuration</span>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5 flex">
+        <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-muted flex lg:hidden">
           <X className="w-3 h-3" />
         </Button>
       </div>
@@ -78,7 +79,7 @@ const PropertiesPanel = ({
             
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] text-white/70 font-medium">Viewport Scale</span>
+                <span className="text-[10px] text-muted-foreground font-medium">Viewport Scale</span>
                 <span className="text-[10px] font-mono text-primary">{(settings.zoom || 0.8).toFixed(2)}x</span>
               </div>
               <Slider 
@@ -93,7 +94,7 @@ const PropertiesPanel = ({
 
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] text-white/70 font-medium">Horizontal Density</span>
+                <span className="text-[10px] text-muted-foreground font-medium">Horizontal Density</span>
                 <span className="text-[10px] font-mono text-primary">{(settings.spacing || 1.2).toFixed(2)}x</span>
               </div>
               <Slider 
@@ -107,7 +108,7 @@ const PropertiesPanel = ({
             </div>
           </div>
 
-          <Separator className="bg-white/10" />
+          <Separator className="bg-border" />
 
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -116,7 +117,7 @@ const PropertiesPanel = ({
             </div>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] text-white/70 font-medium">Sequence Duration</span>
+                <span className="text-[10px] text-muted-foreground font-medium">Sequence Duration</span>
                 <span className="text-[10px] font-mono text-primary">{(settings.speed || 0.8).toFixed(1)}s</span>
               </div>
               <Slider 
@@ -130,7 +131,7 @@ const PropertiesPanel = ({
             </div>
           </div>
 
-          <Separator className="bg-white/10" />
+          <Separator className="bg-border" />
 
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -140,9 +141,9 @@ const PropertiesPanel = ({
             
             <div className="space-y-3">
               <div className="grid grid-cols-1 gap-2">
-                <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/10 focus-within:border-primary/50 transition-colors">
+                <div className="flex items-center justify-between gap-3 bg-muted/40 p-2 rounded-lg border border-border focus-within:border-primary/50 transition-colors">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded border border-white/10 relative overflow-hidden bg-black/20">
+                    <div className="w-6 h-6 rounded border border-border relative overflow-hidden bg-muted">
                       <input 
                         type="color" 
                         value={settings.bullColor} 
@@ -150,19 +151,19 @@ const PropertiesPanel = ({
                         className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-[2]" 
                       />
                     </div>
-                    <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-tight">Bullish</span>
+                    <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-tight">Bullish</span>
                   </div>
                   <input 
                     type="text"
                     value={settings.bullColor}
                     onChange={(e) => updateSettings({ bullColor: e.target.value })}
-                    className="bg-transparent border-none text-[10px] font-mono text-white/70 w-20 text-right focus:ring-0 outline-none p-0 uppercase"
+                    className="bg-transparent border-none text-[10px] font-mono text-muted-foreground w-20 text-right focus:ring-0 outline-none p-0 uppercase"
                   />
                 </div>
 
-                <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/10 focus-within:border-primary/50 transition-colors">
+                <div className="flex items-center justify-between gap-3 bg-muted/40 p-2 rounded-lg border border-border focus-within:border-primary/50 transition-colors">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded border border-white/10 relative overflow-hidden bg-black/20">
+                    <div className="w-6 h-6 rounded border border-border relative overflow-hidden bg-muted">
                       <input 
                         type="color" 
                         value={settings.bearColor} 
@@ -170,13 +171,13 @@ const PropertiesPanel = ({
                         className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-[2]" 
                       />
                     </div>
-                    <span className="text-[9px] font-bold text-red-400 uppercase tracking-tight">Bearish</span>
+                    <span className="text-[9px] font-bold text-red-500 uppercase tracking-tight">Bearish</span>
                   </div>
                   <input 
                     type="text"
                     value={settings.bearColor}
                     onChange={(e) => updateSettings({ bearColor: e.target.value })}
-                    className="bg-transparent border-none text-[10px] font-mono text-white/70 w-20 text-right focus:ring-0 outline-none p-0 uppercase"
+                    className="bg-transparent border-none text-[10px] font-mono text-muted-foreground w-20 text-right focus:ring-0 outline-none p-0 uppercase"
                   />
                 </div>
               </div>
@@ -184,7 +185,7 @@ const PropertiesPanel = ({
 
             <div className="space-y-3 pt-2">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] text-white/70 font-medium">Body Radius</span>
+                <span className="text-[10px] text-muted-foreground font-medium">Body Radius</span>
                 <span className="text-[10px] font-mono text-primary">{settings.bodyRadius}px</span>
               </div>
               <Slider 
@@ -199,7 +200,7 @@ const PropertiesPanel = ({
 
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] text-white/70 font-medium">Wick Radius</span>
+                <span className="text-[10px] text-muted-foreground font-medium">Wick Radius</span>
                 <span className="text-[10px] font-mono text-primary">{settings.wickRadius}px</span>
               </div>
               <Slider 
@@ -229,18 +230,18 @@ interface LayersPanelProps {
 }
 
 const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll, onTemplateLoad, onClose }: LayersPanelProps) => (
-  <div className="flex flex-col h-full bg-[#0a0a0a]/80 backdrop-blur-md text-white overflow-hidden w-full">
-    <div className="p-3 border-b border-white/10 flex items-center justify-between bg-black/20">
+  <div className="flex flex-col h-full bg-card/80 backdrop-blur-md text-foreground overflow-hidden w-full">
+    <div className="p-3 border-b border-border flex items-center justify-between bg-muted/20">
       <div className="flex items-center gap-2">
-        <Layers className="w-3.5 h-3.5 text-emerald-400" />
+        <Layers className="w-3.5 h-3.5 text-emerald-500" />
         <span className="text-[10px] font-bold uppercase tracking-wider">Layer Stack</span>
       </div>
-      <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5 flex">
+      <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-muted flex lg:hidden">
         <X className="w-3 h-3" />
       </Button>
     </div>
     
-    <div className="p-3 bg-black/40 space-y-4">
+    <div className="p-3 bg-muted/40 space-y-4">
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Market Templates</Label>
@@ -249,14 +250,14 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
             size="sm" 
             onClick={onClearAll} 
             disabled={candles.length === 0}
-            className="h-5 px-1.5 text-[8px] font-bold hover:bg-red-500/20 hover:text-red-400 text-muted-foreground gap-1"
+            className="h-5 px-1.5 text-[8px] font-bold hover:bg-destructive/20 hover:text-destructive text-muted-foreground gap-1"
           >
             <Trash2 className="w-2.5 h-2.5" /> CLEAR ALL
           </Button>
         </div>
         <select 
           onChange={(e) => onTemplateLoad(e.target.value)} 
-          className="flex w-full items-center justify-between rounded-md border ring-offset-background h-10 text-[10px] bg-black border-white/10 font-bold p-1 px-2 focus:ring-0 text-white outline-none"
+          className="flex w-full items-center justify-between rounded-md border border-border h-10 text-[10px] bg-background font-bold p-1 px-2 focus:ring-0 text-foreground outline-none"
         >
           <option value="custom">Kosongkan Layer</option>
           <optgroup label="General Patterns">
@@ -287,7 +288,7 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
       <div className="grid grid-cols-3 gap-1.5">
         <Button onClick={() => onAddCandle('Bullish')} className="bg-[#00e6ac] hover:bg-[#00ff9d] h-7 text-[8px] font-bold border-none uppercase text-black">Bull</Button>
         <Button onClick={() => onAddCandle('Bearish')} variant="destructive" className="bg-[#ff4d4d] hover:bg-[#ff3b30] h-7 text-[8px] font-bold border-none uppercase">Bear</Button>
-        <Button onClick={() => onAddCandle('Doji')} variant="outline" className="bg-[#333] hover:bg-[#444] h-7 text-[8px] font-bold border-none uppercase">Doji</Button>
+        <Button onClick={() => onAddCandle('Doji')} variant="outline" className="bg-muted hover:bg-muted/80 h-7 text-[8px] font-bold border-none uppercase text-foreground">Doji</Button>
       </div>
     </div>
 
@@ -305,7 +306,7 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
 
 // --- Small Preview Helper for Navigator ---
 const PagePreview = ({ candles, settings }: { candles: Candlestick[], settings: ChartSettings }) => {
-  if (candles.length === 0) return <div className="w-full h-full flex items-center justify-center opacity-20"><Zap className="w-5 h-5 text-white/50" /></div>;
+  if (candles.length === 0) return <div className="w-full h-full flex items-center justify-center opacity-20"><Zap className="w-5 h-5 text-foreground/50" /></div>;
   
   const bounds = getChartBounds(candles);
   const range = Math.max(bounds.max - bounds.min, 1);
@@ -616,20 +617,20 @@ export default function PricePattern() {
   };
 
   return (
-    <div className="flex h-screen w-full mesh-gradient-bg overflow-hidden font-body select-none text-white relative" onClick={unlockAudio}>
-      <aside className={cn("flex-col flex-shrink-0 bg-[#0a0a0a]/50 backdrop-blur-xl border-r border-white/10 transition-all duration-300 ease-in-out lg:flex z-30", showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none")}>
+    <div className="flex h-screen w-full mesh-gradient-bg overflow-hidden font-body select-none text-foreground relative" onClick={unlockAudio}>
+      <aside className={cn("flex-col flex-shrink-0 bg-card/50 backdrop-blur-xl border-r border-border transition-all duration-300 ease-in-out lg:flex z-30", showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none")}>
         <div className="w-[280px]">
           <PropertiesPanel settings={settings} updateSettings={updateSettings} onClose={() => setShowProperties(false)} />
         </div>
       </aside>
 
       <main className="flex-1 flex flex-col relative overflow-hidden transition-all duration-300 z-10">
-        <header className="h-12 flex items-center justify-between px-4 border-b border-white/10 bg-[#0a0a0a]/50 backdrop-blur-xl z-30">
+        <header className="h-12 flex items-center justify-between px-4 border-b border-border bg-card/50 backdrop-blur-xl z-30">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => setShowProperties(!showProperties)} className="hidden lg:flex text-white hover:bg-white/10"><Menu className="w-5 h-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => setShowProperties(!showProperties)} className="hidden lg:flex text-foreground hover:bg-muted"><Menu className="w-5 h-5" /></Button>
             <Sheet open={isConfigOpen} onOpenChange={setIsConfigOpen}>
-              <SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9 hover:bg-white/10"><Settings2 className="w-5 h-5" /></Button></SheetTrigger>
-              <SheetContent side="left" className="p-0 w-[280px] bg-[#0a0a0a] border-r border-white/10 [&>button]:hidden">
+              <SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden text-foreground h-9 w-9 hover:bg-muted"><Settings2 className="w-5 h-5" /></Button></SheetTrigger>
+              <SheetContent side="left" className="p-0 w-[280px] bg-card border-r border-border [&>button]:hidden">
                 <PropertiesPanel settings={settings} updateSettings={updateSettings} onClose={() => setIsConfigOpen(false)} />
               </SheetContent>
             </Sheet>
@@ -639,18 +640,19 @@ export default function PricePattern() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Sheet open={isLayersOpen} onOpenChange={setIsLayersOpen}>
-              <SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9 hover:bg-white/10"><Layers className="w-5 h-5" /></Button></SheetTrigger>
-              <SheetContent side="right" className="p-0 w-[280px] bg-[#0a0a0a] border-l border-white/10 [&>button]:hidden">
+              <SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden text-foreground h-9 w-9 hover:bg-muted"><Layers className="w-5 h-5" /></Button></SheetTrigger>
+              <SheetContent side="right" className="p-0 w-[280px] bg-card border-l border-border [&>button]:hidden">
                 <LayersPanel candles={candles} onAddCandle={handleAddCandle} onUpdateCandle={handleUpdateCandle} onRemoveCandle={handleRemoveCandle} onClearAll={handleClearAll} onTemplateLoad={handleTemplateLoad} onClose={() => setIsLayersOpen(false)} />
               </SheetContent>
             </Sheet>
-            <a href="https://www.instagram.com/masffadil/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 group transition-all"><Instagram className="w-3.5 h-3.5 text-pink-400 group-hover:scale-110 transition-transform" /><span className="text-[10px] font-bold tracking-wider text-white group-hover:text-emerald-400 hidden sm:inline">masffadil</span></a>
+            <a href="https://www.instagram.com/masffadil/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted border border-border group transition-all"><Instagram className="w-3.5 h-3.5 text-pink-400 group-hover:scale-110 transition-transform" /><span className="text-[10px] font-bold tracking-wider text-foreground group-hover:text-primary hidden sm:inline">masffadil</span></a>
           </div>
         </header>
 
         {/* --- Top Page Navigator --- */}
-        <div className="h-[105px] bg-[#0a0a0a]/40 backdrop-blur-md border-b border-white/10 flex flex-col z-20 shrink-0">
+        <div className="h-[105px] bg-card/40 backdrop-blur-md border-b border-border flex flex-col z-20 shrink-0">
           <ScrollArea className="flex-1 w-full px-4">
             <div className="flex items-center gap-4 py-3">
               {pages.map((page, idx) => (
@@ -663,14 +665,14 @@ export default function PricePattern() {
                   onClick={() => setActivePageIndex(idx)}
                 >
                   <div className={cn(
-                    "w-22 h-16 rounded-lg border-2 flex flex-col items-center justify-center bg-black/50 overflow-hidden transition-all shadow-2xl relative",
-                    activePageIndex === idx ? "border-primary ring-4 ring-primary/20" : "border-white/10 hover:border-white/30"
+                    "w-22 h-16 rounded-lg border-2 flex flex-col items-center justify-center bg-background/50 overflow-hidden transition-all shadow-xl relative",
+                    activePageIndex === idx ? "border-primary ring-4 ring-primary/20" : "border-border hover:border-muted-foreground/30"
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
                     
                     {/* Page Index Label - Bottom Left */}
                     <div className="absolute bottom-1.5 left-2 z-10 pointer-events-none">
-                      <span className="text-[12px] font-black text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                      <span className="text-[12px] font-black text-foreground uppercase tracking-tighter drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                         {idx + 1}
                       </span>
                     </div>
@@ -682,23 +684,23 @@ export default function PricePattern() {
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-5 w-8 rounded-full bg-transparent hover:bg-primary data-[state=open]:bg-primary text-white flex items-center justify-center transition-all"
+                            className="h-5 w-8 rounded-full bg-transparent hover:bg-primary data-[state=open]:bg-primary text-foreground transition-all"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <MoreHorizontal className="w-3 h-3" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-[#0a0a0a] border-white/10 text-white min-w-[120px]">
+                        <DropdownMenuContent align="end" className="bg-popover border-border text-foreground min-w-[120px]">
                           <DropdownMenuItem 
                             onClick={(e) => { e.stopPropagation(); handleDuplicatePage(idx); }}
-                            className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 focus:bg-white/10 focus:text-primary cursor-pointer"
+                            className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 focus:bg-muted focus:text-primary cursor-pointer"
                           >
                             <Copy className="w-3 h-3" /> DUPLICATE
                           </DropdownMenuItem>
                           {pages.length > 1 && (
                             <DropdownMenuItem 
                               onClick={(e) => { e.stopPropagation(); handleDeletePage(idx); }}
-                              className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 text-red-400 focus:bg-red-500/10 focus:text-red-300 cursor-pointer"
+                              className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
                             >
                               <Trash2 className="w-3 h-3" /> DELETE
                             </DropdownMenuItem>
@@ -712,23 +714,23 @@ export default function PricePattern() {
               
               <Button 
                 variant="outline" 
-                className="w-22 h-16 border-2 border-dashed border-white/20 bg-white/[0.05] hover:bg-white/[0.1] hover:border-primary/50 flex flex-col gap-1 shrink-0 rounded-lg transition-all group"
+                className="w-22 h-16 border-2 border-dashed border-border bg-muted/20 hover:bg-muted/40 hover:border-primary/50 flex flex-col gap-1 shrink-0 rounded-lg transition-all group"
                 onClick={handleAddPage}
               >
-                <Plus className="w-4 h-4 text-white/30 group-hover:text-primary group-hover:scale-110 transition-all" />
-                <span className="text-[7px] font-black text-white/30 uppercase tracking-widest group-hover:text-primary">New Page</span>
+                <Plus className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary group-hover:scale-110 transition-all" />
+                <span className="text-[7px] font-black text-muted-foreground/50 uppercase tracking-widest group-hover:text-primary">New Page</span>
               </Button>
             </div>
-            <ScrollBar orientation="horizontal" className="bg-white/10" />
+            <ScrollBar orientation="horizontal" className="bg-border" />
           </ScrollArea>
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden">
           {notification && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in slide-in-from-top-4 duration-500">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/20 shadow-2xl">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-popover/90 backdrop-blur-xl border border-border shadow-2xl">
                 <span className="text-lg">🥳</span>
-                <span className="text-xs font-bold tracking-wider text-white uppercase">{notification.title}</span>
+                <span className="text-xs font-bold tracking-wider text-foreground uppercase">{notification.title}</span>
               </div>
             </div>
           )}
@@ -747,28 +749,28 @@ export default function PricePattern() {
           </div>
 
           {/* --- Unified Bottom Action Bar --- */}
-          <div className="w-full bg-[#0a0a0a]/50 backdrop-blur-xl border-t border-white/10 px-6 py-4 flex items-center justify-center gap-4 shrink-0 z-30">
+          <div className="w-full bg-card/50 backdrop-blur-xl border-t border-border px-6 py-4 flex items-center justify-center gap-4 shrink-0 z-30">
             {isAnimating ? (
-              <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 transition-all" onClick={() => setIsAnimating(false)}>
+              <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-destructive/20 hover:bg-destructive/30 border border-destructive/30 text-destructive transition-all" onClick={() => setIsAnimating(false)}>
                 <X className="w-4 h-4" /> <span>STOP</span>
               </Button>
             ) : (
-              <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-white/10 hover:bg-white/20 border border-white/10 transition-all" onClick={handleReplay} disabled={candles.length === 0}>
+              <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-muted/80 hover:bg-muted border border-border text-foreground transition-all" onClick={handleReplay} disabled={candles.length === 0}>
                 <RefreshCw className="w-4 h-4" /> <span>PREVIEW</span>
               </Button>
             )}
-            <Separator orientation="vertical" className="h-6 bg-white/20" />
-            <Button variant="outline" className="h-10 px-6 text-[11px] font-bold border-white/20 bg-transparent hover:bg-white/10 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
+            <Separator orientation="vertical" className="h-6 bg-border" />
+            <Button variant="outline" className="h-10 px-6 text-[11px] font-bold border-border bg-transparent hover:bg-muted gap-2 text-foreground" onClick={handleExportSVG} disabled={candles.length === 0}>
               <FileCode className="w-4 h-4" /> <span>SVG</span>
             </Button>
-            <Button className="min-w-[120px] h-10 text-[11px] font-bold bg-primary hover:bg-primary/90 text-black border-none gap-2 shadow-[0_0_15px_rgba(0,255,157,0.4)]" onClick={handleRecordVideo} disabled={candles.length === 0}>
+            <Button className="min-w-[120px] h-10 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground border-none gap-2 shadow-[0_0_15px_rgba(0,255,157,0.4)]" onClick={handleRecordVideo} disabled={candles.length === 0}>
               <Video className="w-4 h-4" /> <span>VIDEO</span>
             </Button>
           </div>
         </div>
 
         {/* --- Status Bar --- */}
-        <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1.5px] bg-[#050505]/60 backdrop-blur-md border-t border-white/10 shrink-0">
+        <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1.5px] bg-card/60 backdrop-blur-md border-t border-border shrink-0">
           <div className="flex gap-4">
             <span className="flex items-center gap-2 text-primary/80">
               <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(0,255,157,0.6)] animate-pulse" />
@@ -780,8 +782,8 @@ export default function PricePattern() {
         </div>
       </main>
 
-      <aside className="hidden lg:flex flex-row flex-shrink-0 bg-[#0a0a0a]/50 backdrop-blur-xl border-l border-white/10 z-30" style={{ width: `${layersPanelWidth}px` }}>
-        <div className="w-1.5 h-full cursor-col-resize hover:bg-primary/30 transition-colors z-50 bg-white/10" onPointerDown={handleResizeStart} onPointerMove={handleResizeMove} onPointerUp={handleResizeEnd} />
+      <aside className="hidden lg:flex flex-row flex-shrink-0 bg-card/50 backdrop-blur-xl border-l border-border z-30" style={{ width: `${layersPanelWidth}px` }}>
+        <div className="w-1.5 h-full cursor-col-resize hover:bg-primary/30 transition-colors z-50 bg-border" onPointerDown={handleResizeStart} onPointerMove={handleResizeMove} onPointerUp={handleResizeEnd} />
         <div className="flex-1 h-full overflow-hidden">
           <LayersPanel candles={candles} onAddCandle={handleAddCandle} onUpdateCandle={handleUpdateCandle} onRemoveCandle={handleRemoveCandle} onClearAll={handleClearAll} onTemplateLoad={handleTemplateLoad} onClose={() => setIsLayersOpen(false)} />
         </div>

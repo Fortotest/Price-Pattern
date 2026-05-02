@@ -17,7 +17,7 @@ const CustomNumberInput = ({
   label, 
   value, 
   onChange, 
-  colorClass = "text-white",
+  colorClass = "text-foreground",
   min = -5000,
 }: { 
   label?: string, 
@@ -77,7 +77,7 @@ const CustomNumberInput = ({
   };
 
   return (
-    <div className="bg-[#0d0d0d] rounded-md flex flex-col border border-white/5 group/input transition-colors hover:border-white/10 h-10 w-full overflow-hidden">
+    <div className="bg-muted/50 rounded-md flex flex-col border border-border group/input transition-colors hover:border-muted-foreground/30 h-10 w-full overflow-hidden">
       {label && (
         <span className={`text-[7px] font-black uppercase tracking-widest pt-1 px-2 ${colorClass}`}>
           {label}
@@ -89,24 +89,24 @@ const CustomNumberInput = ({
           value={inputValue}
           onChange={handleInputChange}
           onBlur={handleBlur}
-          className="flex-1 bg-transparent text-center font-mono text-[10px] font-bold text-white border-none outline-none focus:ring-0 w-full h-full"
+          className="flex-1 bg-transparent text-center font-mono text-[10px] font-bold text-foreground border-none outline-none focus:ring-0 w-full h-full"
         />
-        <div className="w-5 h-full flex flex-col border-l border-white/5 overflow-hidden">
+        <div className="w-5 h-full flex flex-col border-l border-border overflow-hidden">
           <button 
             onPointerDown={() => startAdjusting(1)}
             onPointerUp={stopAdjusting}
             onPointerLeave={stopAdjusting}
-            className="flex-1 flex items-center justify-center bg-[#151515] hover:bg-[#222] border-b border-white/5 transition-colors active:bg-primary/20"
+            className="flex-1 flex items-center justify-center bg-muted hover:bg-muted/80 border-b border-border transition-colors active:bg-primary/20"
           >
-            <ChevronUp className="w-2.5 h-2.5 text-white/40 group-hover/input:text-white" />
+            <ChevronUp className="w-2.5 h-2.5 text-muted-foreground group-hover/input:text-foreground" />
           </button>
           <button 
             onPointerDown={() => startAdjusting(-1)}
             onPointerUp={stopAdjusting}
             onPointerLeave={stopAdjusting}
-            className="flex-1 flex items-center justify-center bg-[#151515] hover:bg-[#222] transition-colors active:bg-primary/20"
+            className="flex-1 flex items-center justify-center bg-muted hover:bg-muted/80 transition-colors active:bg-primary/20"
           >
-            <ChevronDown className="w-2.5 h-2.5 text-white/40 group-hover/input:text-white" />
+            <ChevronDown className="w-2.5 h-2.5 text-muted-foreground group-hover/input:text-foreground" />
           </button>
         </div>
       </div>
@@ -130,23 +130,23 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
         const topWickSize = Math.max(0, c.high - Math.max(c.open, c.close));
         const botWickSize = Math.max(0, Math.min(c.open, c.close) - c.low);
 
-        let statusColor = "bg-[#333]";
-        if (bodyDiff > 5) statusColor = "bg-[#00b386]";
-        else if (bodyDiff < -5) statusColor = "bg-[#f23645]";
+        let statusColor = "bg-muted-foreground/30";
+        if (bodyDiff > 5) statusColor = "bg-[#00e6ac]";
+        else if (bodyDiff < -5) statusColor = "bg-[#ff4d4d]";
         else statusColor = "bg-slate-400";
 
         return (
-          <div key={c.id} className="bg-[#070707] border border-white/5 rounded-xl p-3 group transition-all hover:border-white/10 shadow-xl">
+          <div key={c.id} className="bg-muted/20 border border-border rounded-xl p-3 group transition-all hover:border-muted-foreground/30 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <GripVertical className="w-3 h-3 text-white/10" />
-                <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Bar #{idx + 1}</span>
-                <div className={`w-2 h-2 rounded-full ${statusColor} shadow-[0_0_8px_rgba(255,255,255,0.1)] recording-pulse`} />
+                <GripVertical className="w-3 h-3 text-muted-foreground/20" />
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Bar #{idx + 1}</span>
+                <div className={`w-2 h-2 rounded-full ${statusColor} shadow-sm recording-pulse`} />
               </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-6 w-6 text-white/20 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                className="h-6 w-6 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all"
                 onClick={() => onRemove(idx)}
               >
                 <Trash2 className="w-3 h-3" />
@@ -155,7 +155,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
             
             <div className="grid grid-cols-2 gap-2 mb-2">
               <div className="space-y-1">
-                <Label className="text-[8px] font-black uppercase text-white/30 tracking-widest ml-1">Offset Y</Label>
+                <Label className="text-[8px] font-black uppercase text-muted-foreground tracking-widest ml-1">Offset Y</Label>
                 <CustomNumberInput 
                   value={c.offsetY || 0} 
                   onChange={(val) => onChange(idx, { ...c, offsetY: val })}
@@ -164,7 +164,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
               <div className="flex flex-col justify-end">
                 <Button 
                    variant="outline" 
-                   className="h-10 text-[9px] bg-black border-white/10 font-black hover:bg-white/5 uppercase tracking-[1px] transition-all active:scale-95"
+                   className="h-10 text-[9px] bg-background border-border font-black hover:bg-muted uppercase tracking-[1px] transition-all active:scale-95 text-foreground"
                    onClick={() => {
                      const isBullish = bodyDiff >= 0;
                      const newClose = isBullish ? c.open - bodySize : c.open + bodySize;
@@ -186,7 +186,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
                 label="Body" 
                 value={bodySize} 
                 min={0}
-                colorClass={bodyDiff > 5 ? "text-emerald-500" : (bodyDiff < -5 ? "text-red-500" : "text-white/40")}
+                colorClass={bodyDiff > 5 ? "text-emerald-500" : (bodyDiff < -5 ? "text-red-500" : "text-muted-foreground")}
                 onChange={(val) => {
                   const direction = bodyDiff < 0 ? -1 : 1;
                   const newClose = c.open + (val * direction);

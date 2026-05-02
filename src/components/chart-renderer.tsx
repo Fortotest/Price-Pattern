@@ -4,6 +4,7 @@
 import React, { useRef, useEffect, forwardRef, useImperativeHandle, useState } from "react";
 import { Candlestick, ChartSettings } from "@/lib/chart-types";
 import { CANVAS_WIDTH, CANVAS_HEIGHT, getChartBounds } from "@/lib/chart-utils";
+import { useTheme } from "next-themes";
 
 interface ChartRendererProps {
   candles: Candlestick[];
@@ -31,6 +32,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | undefined>(undefined);
   const startTimeRef = useRef<number | null>(null);
+  const { theme } = useTheme();
   
   const [dragState, setDragState] = useState<{ type: 'y' | 'x' | null, startVal: number } | null>(null);
 
@@ -144,7 +146,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     ctx.restore();
 
     // --- DRAW AXES (Y-Axis) ---
-    ctx.fillStyle = '#cccccc';
+    ctx.fillStyle = theme === 'dark' ? '#cccccc' : '#555555';
     ctx.font = 'bold 44px monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
@@ -162,7 +164,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     for (let i = 0; i < limit; i++) {
       const x = startX + (i * baseWidth);
       if(x >= 0 && x <= chartAreaWidth) {
-        ctx.fillStyle = '#cccccc';
+        ctx.fillStyle = theme === 'dark' ? '#cccccc' : '#555555';
         ctx.font = 'bold 38px monospace';
         ctx.textAlign = 'center';
         ctx.fillText(`BAR ${i+1}`, x, chartAreaHeight + 80);
@@ -201,7 +203,7 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [candles, isAnimating, settings, onAnimationComplete]);
+  }, [candles, isAnimating, settings, onAnimationComplete, theme]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     const rect = containerRef.current?.getBoundingClientRect();
