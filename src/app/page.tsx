@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
@@ -58,8 +57,8 @@ const PropertiesPanel = ({
   onClose
 }: PanelProps) => {
   return (
-    <div className="flex flex-col h-full bg-card/80 backdrop-blur-md text-foreground overflow-hidden w-full lg:w-[280px]">
-      <div className="p-3 border-b border-border flex items-center justify-between bg-muted/20">
+    <div className="flex flex-col h-full bg-card/60 backdrop-blur-xl text-foreground overflow-hidden w-full lg:w-[280px]">
+      <div className="p-3 border-b border-border flex items-center justify-between bg-muted/30">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-primary" />
           <span className="text-[10px] font-bold uppercase tracking-wider">Configuration</span>
@@ -141,7 +140,7 @@ const PropertiesPanel = ({
             
             <div className="space-y-3">
               <div className="grid grid-cols-1 gap-2">
-                <div className="flex items-center justify-between gap-3 bg-muted/40 p-2 rounded-lg border border-border focus-within:border-primary/50 transition-colors">
+                <div className="flex items-center justify-between gap-3 bg-muted/20 p-2 rounded-lg border border-border focus-within:border-primary/50 transition-colors">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded border border-border relative overflow-hidden bg-muted">
                       <input 
@@ -151,7 +150,7 @@ const PropertiesPanel = ({
                         className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-[2]" 
                       />
                     </div>
-                    <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-tight">Bullish</span>
+                    <span className="text-[9px] font-bold text-[#00ff9d] uppercase tracking-tight">Bullish</span>
                   </div>
                   <input 
                     type="text"
@@ -161,7 +160,7 @@ const PropertiesPanel = ({
                   />
                 </div>
 
-                <div className="flex items-center justify-between gap-3 bg-muted/40 p-2 rounded-lg border border-border focus-within:border-primary/50 transition-colors">
+                <div className="flex items-center justify-between gap-3 bg-muted/20 p-2 rounded-lg border border-border focus-within:border-primary/50 transition-colors">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded border border-border relative overflow-hidden bg-muted">
                       <input 
@@ -171,7 +170,7 @@ const PropertiesPanel = ({
                         className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-[2]" 
                       />
                     </div>
-                    <span className="text-[9px] font-bold text-red-500 uppercase tracking-tight">Bearish</span>
+                    <span className="text-[9px] font-bold text-[#ff3b30] uppercase tracking-tight">Bearish</span>
                   </div>
                   <input 
                     type="text"
@@ -230,10 +229,10 @@ interface LayersPanelProps {
 }
 
 const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll, onTemplateLoad, onClose }: LayersPanelProps) => (
-  <div className="flex flex-col h-full bg-card/80 backdrop-blur-md text-foreground overflow-hidden w-full">
-    <div className="p-3 border-b border-border flex items-center justify-between bg-muted/20">
+  <div className="flex flex-col h-full bg-card/60 backdrop-blur-xl text-foreground overflow-hidden w-full">
+    <div className="p-3 border-b border-border flex items-center justify-between bg-muted/30">
       <div className="flex items-center gap-2">
-        <Layers className="w-3.5 h-3.5 text-emerald-500" />
+        <Layers className="w-3.5 h-3.5 text-primary" />
         <span className="text-[10px] font-bold uppercase tracking-wider">Layer Stack</span>
       </div>
       <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-muted flex lg:hidden">
@@ -241,7 +240,7 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
       </Button>
     </div>
     
-    <div className="p-3 bg-muted/40 space-y-4">
+    <div className="p-3 bg-muted/10 space-y-4">
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Market Templates</Label>
@@ -618,14 +617,14 @@ export default function PricePattern() {
 
   return (
     <div className="flex h-screen w-full mesh-gradient-bg overflow-hidden font-body select-none text-foreground relative" onClick={unlockAudio}>
-      <aside className={cn("flex-col flex-shrink-0 bg-card/50 backdrop-blur-xl border-r border-border transition-all duration-300 ease-in-out lg:flex z-30", showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none")}>
+      <aside className={cn("flex-col flex-shrink-0 bg-card/60 backdrop-blur-xl border-r border-border transition-all duration-300 ease-in-out lg:flex z-30", showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none")}>
         <div className="w-[280px]">
           <PropertiesPanel settings={settings} updateSettings={updateSettings} onClose={() => setShowProperties(false)} />
         </div>
       </aside>
 
       <main className="flex-1 flex flex-col relative overflow-hidden transition-all duration-300 z-10">
-        <header className="h-12 flex items-center justify-between px-4 border-b border-border bg-card/50 backdrop-blur-xl z-30">
+        <header className="h-12 flex items-center justify-between px-4 border-b border-border bg-card/60 backdrop-blur-xl z-30">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => setShowProperties(!showProperties)} className="hidden lg:flex text-foreground hover:bg-muted"><Menu className="w-5 h-5" /></Button>
             <Sheet open={isConfigOpen} onOpenChange={setIsConfigOpen}>
@@ -647,12 +646,12 @@ export default function PricePattern() {
                 <LayersPanel candles={candles} onAddCandle={handleAddCandle} onUpdateCandle={handleUpdateCandle} onRemoveCandle={handleRemoveCandle} onClearAll={handleClearAll} onTemplateLoad={handleTemplateLoad} onClose={() => setIsLayersOpen(false)} />
               </SheetContent>
             </Sheet>
-            <a href="https://www.instagram.com/masffadil/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted border border-border group transition-all"><Instagram className="w-3.5 h-3.5 text-pink-400 group-hover:scale-110 transition-transform" /><span className="text-[10px] font-bold tracking-wider text-foreground group-hover:text-primary hidden sm:inline">masffadil</span></a>
+            <a href="https://www.instagram.com/masffadil/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/20 hover:bg-muted border border-border group transition-all"><Instagram className="w-3.5 h-3.5 text-pink-400 group-hover:scale-110 transition-transform" /><span className="text-[10px] font-bold tracking-wider text-foreground group-hover:text-primary hidden sm:inline">masffadil</span></a>
           </div>
         </header>
 
         {/* --- Top Page Navigator --- */}
-        <div className="h-[105px] bg-card/40 backdrop-blur-md border-b border-border flex flex-col z-20 shrink-0">
+        <div className="h-[105px] bg-card/40 backdrop-blur-xl border-b border-border flex flex-col z-20 shrink-0">
           <ScrollArea className="flex-1 w-full px-4">
             <div className="flex items-center gap-4 py-3">
               {pages.map((page, idx) => (
@@ -714,7 +713,7 @@ export default function PricePattern() {
               
               <Button 
                 variant="outline" 
-                className="w-22 h-16 border-2 border-dashed border-border bg-muted/20 hover:bg-muted/40 hover:border-primary/50 flex flex-col gap-1 shrink-0 rounded-lg transition-all group"
+                className="w-22 h-16 border-2 border-dashed border-border bg-muted/10 hover:bg-muted/30 hover:border-primary/50 flex flex-col gap-1 shrink-0 rounded-lg transition-all group"
                 onClick={handleAddPage}
               >
                 <Plus className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary group-hover:scale-110 transition-all" />
@@ -749,13 +748,13 @@ export default function PricePattern() {
           </div>
 
           {/* --- Unified Bottom Action Bar --- */}
-          <div className="w-full bg-card/50 backdrop-blur-xl border-t border-border px-6 py-4 flex items-center justify-center gap-4 shrink-0 z-30">
+          <div className="w-full bg-card/60 backdrop-blur-xl border-t border-border px-6 py-4 flex items-center justify-center gap-4 shrink-0 z-30">
             {isAnimating ? (
               <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-destructive/20 hover:bg-destructive/30 border border-destructive/30 text-destructive transition-all" onClick={() => setIsAnimating(false)}>
                 <X className="w-4 h-4" /> <span>STOP</span>
               </Button>
             ) : (
-              <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-muted/80 hover:bg-muted border border-border text-foreground transition-all" onClick={handleReplay} disabled={candles.length === 0}>
+              <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-muted/40 hover:bg-muted border border-border text-foreground transition-all" onClick={handleReplay} disabled={candles.length === 0}>
                 <RefreshCw className="w-4 h-4" /> <span>PREVIEW</span>
               </Button>
             )}
@@ -770,9 +769,9 @@ export default function PricePattern() {
         </div>
 
         {/* --- Status Bar --- */}
-        <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1.5px] bg-card/60 backdrop-blur-md border-t border-border shrink-0">
+        <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1.5px] bg-card/80 backdrop-blur-xl border-t border-border shrink-0">
           <div className="flex gap-4">
-            <span className="flex items-center gap-2 text-primary/80">
+            <span className="flex items-center gap-2 text-primary">
               <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(0,255,157,0.6)] animate-pulse" />
               BARS: {candles.length}
             </span>
@@ -782,7 +781,7 @@ export default function PricePattern() {
         </div>
       </main>
 
-      <aside className="hidden lg:flex flex-row flex-shrink-0 bg-card/50 backdrop-blur-xl border-l border-border z-30" style={{ width: `${layersPanelWidth}px` }}>
+      <aside className="hidden lg:flex flex-row flex-shrink-0 bg-card/60 backdrop-blur-xl border-l border-border z-30" style={{ width: `${layersPanelWidth}px` }}>
         <div className="w-1.5 h-full cursor-col-resize hover:bg-primary/30 transition-colors z-50 bg-border" onPointerDown={handleResizeStart} onPointerMove={handleResizeMove} onPointerUp={handleResizeEnd} />
         <div className="flex-1 h-full overflow-hidden">
           <LayersPanel candles={candles} onAddCandle={handleAddCandle} onUpdateCandle={handleUpdateCandle} onRemoveCandle={handleRemoveCandle} onClearAll={handleClearAll} onTemplateLoad={handleTemplateLoad} onClose={() => setIsLayersOpen(false)} />
