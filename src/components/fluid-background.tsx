@@ -12,27 +12,28 @@ export default function FluidBackground() {
 
     const initFluid = async () => {
       try {
-        // Menggunakan library webgl-fluid yang lebih stabil
         const WebGLFluid = (await import('webgl-fluid')).default;
+        
+        // Configuration for an elegant neon smoke effect
         WebGLFluid(canvas, {
           IMMEDIATE: true,
-          TRIGGER: 'hover',
+          TRIGGER: 'hover', // Only trigger on mouse move/hover
           SIM_RESOLUTION: 128,
-          DYE_RESOLUTION: 512,
+          DYE_RESOLUTION: 1024, // High resolution for sharp smoke
           CAPTURE_RESOLUTION: 512,
-          DENSITY_DISSIPATION: 1.0,
-          VELOCITY_DISSIPATION: 0.2,
+          DENSITY_DISSIPATION: 4.0, // Fast dissipation to prevent buildup
+          VELOCITY_DISSIPATION: 0.5, // Smooth flow
           PRESSURE: 0.8,
           PRESSURE_ITERATIONS: 20,
           CURL: 30,
-          SPLAT_RADIUS: 0.25,
+          SPLAT_RADIUS: 0.2, // Leaner smoke trails
           SPLAT_FORCE: 6000,
           SHADING: true,
           COLORFUL: true,
           COLOR_UPDATE_SPEED: 10,
           PAUSED: false,
           BACK_COLOR: { r: 0, g: 0, b: 0 },
-          TRANSPARENT: true,
+          TRANSPARENT: true, // Allow background to show through
           BLOOM: true,
           BLOOM_ITERATIONS: 8,
           BLOOM_RESOLUTION: 256,
@@ -51,8 +52,7 @@ export default function FluidBackground() {
     initFluid();
 
     return () => {
-      // Library webgl-fluid tidak memiliki method destroy eksplisit,
-      // namun pembersihan dilakukan secara otomatis saat elemen canvas dilepas dari DOM.
+      // Library cleanup is handled by canvas removal
     };
   }, []);
 
@@ -62,8 +62,7 @@ export default function FluidBackground() {
       className="fixed inset-0 w-full h-full pointer-events-none"
       style={{ 
         zIndex: -1, 
-        opacity: 0.5, 
-        mixBlendMode: 'screen' 
+        backgroundColor: 'transparent'
       }}
     />
   );
