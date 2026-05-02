@@ -1,7 +1,8 @@
+
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
-import { Candlestick, ChartSettings } from "@/lib/chart-types";
+import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { Candlestick, ChartSettings, ChartPage } from "@/lib/chart-types";
 import { TEMPLATES, createTemplateWithNewIds, createId, CANVAS_WIDTH, CANVAS_HEIGHT, getChartBounds } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
 import ManualEditor from "@/components/manual-editor";
@@ -20,14 +21,17 @@ import {
   X,
   FileCode,
   Video,
-  Instagram
+  Instagram,
+  Plus,
+  Copy,
+  ChevronRight,
+  ChevronLeft
 } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
-// RAW URLs for direct audio playback
 const NOTIF_SOUND_URLS = [
   "https://raw.githubusercontent.com/Fortotest/Market.ai/aa1fd92abd82277252b6d10912a44c3146ade1ad/hey-antek-antek-asing-prabowo.mp3",
   "https://raw.githubusercontent.com/Fortotest/Market.ai/055e319fa2c7c1e028057e8c69556c303b827848/hidup-jokowi.mp3"
@@ -225,7 +229,7 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
         <Layers className="w-3.5 h-3.5 text-emerald-500" />
         <span className="text-[10px] font-bold uppercase tracking-wider">Layer Stack</span>
       </div>
-      <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5 flex lg:hidden">
+      <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5 flex">
         <X className="w-3 h-3" />
       </Button>
     </div>
@@ -294,7 +298,11 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
 );
 
 export default function PricePattern() {
-  const [candles, setCandles] = useState<Candlestick[]>(TEMPLATES.bullish_snr_3_valleys);
+  const [pages, setPages] = useState<ChartPage[]>([
+    { id: createId(), name: "Page 1", candles: createTemplateWithNewIds(TEMPLATES.bullish_snr_3_valleys) }
+  ]);
+  const [activePageIndex, setActivePageIndex] = useState(0);
+  
   const [settings, setSettings] = useState<ChartSettings>({
     zoom: 0.8,
     spacing: 1.2, 
@@ -317,6 +325,9 @@ export default function PricePattern() {
   
   const chartRef = useRef<ChartRendererHandle>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
+
+  const activePage = useMemo(() => pages[activePageIndex], [pages, activePageIndex]);
+  const candles = activePage.candles;
 
   // Audio Unlocking for Mobile
   const audioInitializedRef = useRef(false);
@@ -344,82 +355,122 @@ export default function PricePattern() {
     setSettings(prev => ({ ...prev, ...newSettings }));
   }, []);
 
+  const updateActivePageCandles = useCallback((newCandles: Candlestick[]) => {
+    setPages(prev => {
+      const updated = [...prev];
+      updated[activePageIndex] = { ...updated[activePageIndex], candles: newCandles };
+      return updated;
+    });
+  }, [activePageIndex]);
+
   const handleTemplateLoad = useCallback((val: string) => {
     if (val === "custom") {
-      setCandles([]);
+      updateActivePageCandles([]);
       return;
     }
     const template = TEMPLATES[val as keyof typeof TEMPLATES];
     if (template) {
-      setCandles(createTemplateWithNewIds(template));
+      updateActivePageCandles(createTemplateWithNewIds(template));
     }
-  }, []);
+  }, [updateActivePageCandles]);
 
   const handleAddCandle = useCallback((type: 'Bullish' | 'Bearish' | 'Doji') => {
     unlockAudio();
-    setCandles(prev => {
-      const lastClose = prev.length > 0 ? prev[prev.length - 1].close : 300;
-      const randomRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const currentCandles = pages[activePageIndex].candles;
+    const lastClose = currentCandles.length > 0 ? currentCandles[currentCandles.length - 1].close : 300;
+    const randomRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+    
+    let open = lastClose;
+    let close, high, low;
+
+    const isImpulsive = Math.random() < 0.15; 
+
+    if (type === 'Bullish') {
+      const bodySize = isImpulsive ? randomRange(250, 450) : randomRange(50, 150);
+      const topWick = randomRange(25, 60);
+      const botWick = randomRange(20, 70);
+      close = open + bodySize;
+      high = close + topWick;
+      low = open - botWick;
+    } else if (type === 'Bearish') {
+      const bodySize = isImpulsive ? randomRange(250, 450) : randomRange(50, 150);
+      const topWick = randomRange(25, 60);
+      const botWick = randomRange(20, 70);
+      close = open - bodySize;
+      high = open + topWick;
+      low = close - botWick;
+    } else { 
+      const bodySize = randomRange(10, 25); 
+      const isBullish = Math.random() > 0.5;
+      const topWick = randomRange(25, 50);
+      const botWick = randomRange(25, 50);
       
-      let open = lastClose;
-      let close, high, low;
+      close = isBullish ? open + bodySize : open - bodySize; 
+      high = Math.max(open, close) + topWick;
+      low = Math.min(open, close) - botWick;
+    }
 
-      const isImpulsive = Math.random() < 0.15; 
+    const newCandle: Candlestick = { 
+      id: createId(),
+      open, 
+      close, 
+      high, 
+      low, 
+      offsetY: 0 
+    };
 
-      if (type === 'Bullish') {
-        const bodySize = isImpulsive ? randomRange(250, 450) : randomRange(50, 150);
-        const topWick = randomRange(25, 60);
-        const botWick = randomRange(20, 70);
-        close = open + bodySize;
-        high = close + topWick;
-        low = open - botWick;
-      } else if (type === 'Bearish') {
-        const bodySize = isImpulsive ? randomRange(250, 450) : randomRange(50, 150);
-        const topWick = randomRange(25, 60);
-        const botWick = randomRange(20, 70);
-        close = open - bodySize;
-        high = open + topWick;
-        low = close - botWick;
-      } else { 
-        const bodySize = randomRange(10, 25); 
-        const isBullish = Math.random() > 0.5;
-        const topWick = randomRange(25, 50);
-        const botWick = randomRange(25, 50);
-        
-        close = isBullish ? open + bodySize : open - bodySize; 
-        high = Math.max(open, close) + topWick;
-        low = Math.min(open, close) - botWick;
-      }
-
-      const newCandle: Candlestick = { 
-        id: createId(),
-        open, 
-        close, 
-        high, 
-        low, 
-        offsetY: 0 
-      };
-
-      return [...prev, newCandle];
-    });
-  }, [unlockAudio]);
+    updateActivePageCandles([...currentCandles, newCandle]);
+  }, [activePageIndex, pages, unlockAudio, updateActivePageCandles]);
 
   const handleUpdateCandle = useCallback((index: number, updated: Candlestick) => {
-    setCandles(prev => {
-      const next = [...prev];
-      if (!next[index]) return prev;
-      next[index] = { ...updated };
-      return next;
-    });
-  }, []);
+    const next = [...pages[activePageIndex].candles];
+    if (!next[index]) return;
+    next[index] = { ...updated };
+    updateActivePageCandles(next);
+  }, [activePageIndex, pages, updateActivePageCandles]);
 
   const handleRemoveCandle = useCallback((idx: number) => {
-    setCandles(prev => prev.filter((_, i) => i !== idx));
-  }, []);
+    updateActivePageCandles(pages[activePageIndex].candles.filter((_, i) => i !== idx));
+  }, [activePageIndex, pages, updateActivePageCandles]);
 
   const handleClearAll = useCallback(() => {
-    setCandles([]);
-  }, []);
+    updateActivePageCandles([]);
+  }, [updateActivePageCandles]);
+
+  // --- Page Navigation Functions ---
+
+  const handleAddPage = useCallback(() => {
+    const newPage: ChartPage = {
+      id: createId(),
+      name: `Page ${pages.length + 1}`,
+      candles: createTemplateWithNewIds(TEMPLATES.bullish_snr_3_valleys)
+    };
+    setPages(prev => [...prev, newPage]);
+    setActivePageIndex(pages.length);
+  }, [pages]);
+
+  const handleDuplicatePage = useCallback((index: number) => {
+    const pageToDup = pages[index];
+    const newPage: ChartPage = {
+      id: createId(),
+      name: `${pageToDup.name} (Copy)`,
+      candles: createTemplateWithNewIds(pageToDup.candles)
+    };
+    const updated = [...pages];
+    updated.splice(index + 1, 0, newPage);
+    setPages(updated);
+    setActivePageIndex(index + 1);
+  }, [pages]);
+
+  const handleDeletePage = useCallback((index: number) => {
+    if (pages.length <= 1) return;
+    setPages(prev => prev.filter((_, i) => i !== index));
+    if (activePageIndex >= index && activePageIndex > 0) {
+      setActivePageIndex(prev => prev - 1);
+    }
+  }, [pages.length, activePageIndex]);
+
+  // --- Export Functions ---
 
   const handleExportSVG = useCallback(() => {
     unlockAudio();
@@ -635,8 +686,8 @@ export default function PricePattern() {
           </div>
         </header>
 
-        <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden bg-[#000]">
-          <div className="w-full h-full flex items-center justify-center relative">
+        <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden bg-[#000] relative">
+          <div className="w-full h-full flex flex-col items-center justify-center relative">
             {notification && (
               <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in slide-in-from-top-4 duration-500">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl">
@@ -645,49 +696,115 @@ export default function PricePattern() {
                 </div>
               </div>
             )}
-            <ChartRenderer 
-              ref={chartRef}
-              candles={candles} 
-              settings={settings} 
-              isAnimating={isAnimating}
-              onAnimationComplete={handleAnimationComplete}
-              onSettingsChange={updateSettings}
-            />
-          </div>
-          
-          <div className="mt-6 flex items-center gap-2 sm:gap-4 bg-[#0a0a0a] p-2 sm:p-3 rounded-xl border border-white/5 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {isAnimating ? (
-              <Button className="min-w-[80px] sm:min-w-[120px] h-9 sm:h-10 font-bold text-[10px] sm:text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all active:scale-95" onClick={() => setIsAnimating(false)}>
-                <X className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Stop</span>
+            
+            <div className="flex-1 w-full h-full flex items-center justify-center">
+              <ChartRenderer 
+                ref={chartRef}
+                candles={candles} 
+                settings={settings} 
+                isAnimating={isAnimating}
+                onAnimationComplete={handleAnimationComplete}
+                onSettingsChange={updateSettings}
+              />
+            </div>
+
+            {/* Floating Action Bar */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 sm:gap-4 bg-[#0a0a0a]/80 backdrop-blur-lg p-2 sm:p-3 rounded-xl border border-white/5 shadow-2xl">
+              {isAnimating ? (
+                <Button className="min-w-[80px] sm:min-w-[120px] h-9 sm:h-10 font-bold text-[10px] sm:text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all active:scale-95" onClick={() => setIsAnimating(false)}>
+                  <X className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Stop</span>
+                </Button>
+              ) : (
+                <Button className="min-w-[80px] sm:min-w-[120px] h-9 sm:h-10 font-bold text-[10px] sm:text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95" onClick={handleReplay} disabled={candles.length === 0}>
+                  <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Preview</span>
+                </Button>
+              )}
+              
+              <Separator orientation="vertical" className="h-6 bg-white/10" />
+              
+              <Button variant="outline" className="h-9 sm:h-10 px-3 sm:px-6 text-[10px] sm:text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
+                <FileCode className="w-3.5 h-3.5" /> <span className="hidden xs:inline">SVG</span>
               </Button>
-            ) : (
-              <Button className="min-w-[80px] sm:min-w-[120px] h-9 sm:h-10 font-bold text-[10px] sm:text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95" onClick={handleReplay} disabled={candles.length === 0}>
-                <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Preview</span>
+              
+              <Button className="min-w-[100px] sm:min-w-[140px] h-9 sm:h-10 text-[10px] sm:text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2 shadow-lg shadow-emerald-900/20" onClick={handleRecordVideo} disabled={candles.length === 0}>
+                <Video className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Video</span>
               </Button>
-            )}
-            
-            <Separator orientation="vertical" className="h-6 bg-white/10" />
-            
-            <Button variant="outline" className="h-9 sm:h-10 px-3 sm:px-6 text-[10px] sm:text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
-              <FileCode className="w-3.5 h-3.5" /> <span className="hidden xs:inline">SVG</span>
-            </Button>
-            
-            <Button className="min-w-[100px] sm:min-w-[140px] h-9 sm:h-10 text-[10px] sm:text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2 shadow-lg shadow-emerald-900/20" onClick={handleRecordVideo} disabled={candles.length === 0}>
-              <Video className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Video</span>
-            </Button>
+            </div>
           </div>
         </div>
 
-        <footer className="h-8 bg-[#0a0a0a] border-t border-white/5 px-4 flex items-center justify-between text-[8px] font-bold text-muted-foreground uppercase tracking-[1px]">
-          <div className="flex gap-6">
-            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Bars: {candles.length}</span>
-            <span className="flex items-center gap-2 hidden xs:flex"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Vector Active</span>
+        {/* Canva-style Page Navigator */}
+        <div className="h-24 bg-[#0a0a0a] border-t border-white/5 flex flex-col">
+          <ScrollArea className="flex-1 w-full px-4">
+            <div className="flex items-center gap-3 py-3">
+              {pages.map((page, idx) => (
+                <div 
+                  key={page.id} 
+                  className={cn(
+                    "group relative flex flex-col items-center gap-1 cursor-pointer transition-all shrink-0",
+                    activePageIndex === idx ? "opacity-100" : "opacity-50 hover:opacity-80"
+                  )}
+                  onClick={() => setActivePageIndex(idx)}
+                >
+                  <div className={cn(
+                    "w-20 h-14 rounded border flex flex-col items-center justify-center bg-black/40 overflow-hidden transition-all",
+                    activePageIndex === idx ? "border-emerald-500 ring-1 ring-emerald-500" : "border-white/10"
+                  )}>
+                    <div className="text-[10px] font-mono font-bold text-white/20 select-none">PAGE {idx + 1}</div>
+                    {/* Tiny preview of candles trend could go here if wanted */}
+                  </div>
+                  <span className="text-[8px] font-bold uppercase text-white/60 truncate w-20 text-center">{page.name}</span>
+                  
+                  {pages.length > 1 && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-white p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePage(idx);
+                      }}
+                    >
+                      <X className="w-2.5 h-2.5" />
+                    </Button>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute -top-1 -left-1 h-4 w-4 rounded-full bg-blue-500 text-white p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDuplicatePage(idx);
+                    }}
+                  >
+                    <Copy className="w-2.5 h-2.5" />
+                  </Button>
+                </div>
+              ))}
+              
+              <Button 
+                variant="outline" 
+                className="w-20 h-14 border-dashed border-white/20 bg-transparent hover:bg-white/5 flex flex-col gap-1 shrink-0"
+                onClick={handleAddPage}
+              >
+                <Plus className="w-4 h-4 text-white/40" />
+                <span className="text-[8px] font-bold text-white/40 uppercase">Add Page</span>
+              </Button>
+            </div>
+            <ScrollBar orientation="horizontal" className="bg-white/5" />
+          </ScrollArea>
+          
+          <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1px] bg-black/20 border-t border-white/5">
+            <div className="flex gap-4">
+              <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Page: {activePageIndex + 1} / {pages.length}</span>
+              <span className="flex items-center gap-2 hidden xs:flex"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Bars: {candles.length}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Monitor className="w-3 h-3" />
+              <span className="hidden sm:inline text-emerald-500/50">Core 4K Precision Active</span>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Monitor className="w-3 h-3" />
-            <span className="hidden sm:inline text-emerald-500/50">Core 4K Precision Active</span>
-          </div>
-        </footer>
+        </div>
       </main>
 
       <aside 

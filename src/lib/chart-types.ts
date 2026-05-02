@@ -18,3 +18,9 @@ export interface ChartSettings {
   bodyRadius: number;
   wickRadius: number;
 }
+
+export interface ChartPage {
+  id: string;
+  name: string;
+  candles: Candlestick[];
+}
