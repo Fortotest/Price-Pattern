@@ -6,6 +6,7 @@ import { Candlestick, ChartSettings, ChartPage } from "@/lib/chart-types";
 import { TEMPLATES, createTemplateWithNewIds, createId, CANVAS_WIDTH, CANVAS_HEIGHT, getChartBounds } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
 import ManualEditor from "@/components/manual-editor";
+import FluidBackground from "@/components/fluid-background";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -57,7 +58,7 @@ const PropertiesPanel = ({
   onClose
 }: PanelProps) => {
   return (
-    <div className="flex flex-col h-full bg-[#0a0a0a] text-white overflow-hidden w-full lg:w-[280px]">
+    <div className="flex flex-col h-full bg-[#0a0a0a]/80 backdrop-blur-md text-white overflow-hidden w-full lg:w-[280px]">
       <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-primary" />
@@ -229,7 +230,7 @@ interface LayersPanelProps {
 }
 
 const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll, onTemplateLoad, onClose }: LayersPanelProps) => (
-  <div className="flex flex-col h-full bg-[#0a0a0a] text-white overflow-hidden w-full">
+  <div className="flex flex-col h-full bg-[#0a0a0a]/80 backdrop-blur-md text-white overflow-hidden w-full">
     <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
       <div className="flex items-center gap-2">
         <Layers className="w-3.5 h-3.5 text-emerald-500" />
@@ -616,15 +617,17 @@ export default function PricePattern() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none text-white" onClick={unlockAudio}>
-      <aside className={cn("flex-col flex-shrink-0 bg-[#0a0a0a] border-r border-white/5 transition-all duration-300 ease-in-out lg:flex", showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none")}>
+    <div className="flex h-screen w-full mesh-gradient-bg overflow-hidden font-body select-none text-white relative" onClick={unlockAudio}>
+      <FluidBackground />
+      
+      <aside className={cn("flex-col flex-shrink-0 bg-[#0a0a0a]/40 backdrop-blur-md border-r border-white/5 transition-all duration-300 ease-in-out lg:flex z-30", showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none")}>
         <div className="w-[280px]">
           <PropertiesPanel settings={settings} updateSettings={updateSettings} onClose={() => setShowProperties(false)} />
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col relative overflow-hidden bg-black transition-all duration-300">
-        <header className="h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#0a0a0a] z-30">
+      <main className="flex-1 flex flex-col relative overflow-hidden transition-all duration-300 z-10">
+        <header className="h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#0a0a0a]/40 backdrop-blur-md z-30">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => setShowProperties(!showProperties)} className="hidden lg:flex text-white hover:bg-white/5"><Menu className="w-5 h-5" /></Button>
             <Sheet open={isConfigOpen} onOpenChange={setIsConfigOpen}>
@@ -650,7 +653,7 @@ export default function PricePattern() {
         </header>
 
         {/* --- Top Page Navigator --- */}
-        <div className="h-[105px] bg-[#0a0a0a]/50 backdrop-blur-md border-b border-white/5 flex flex-col z-20 shrink-0">
+        <div className="h-[105px] bg-[#0a0a0a]/30 backdrop-blur-md border-b border-white/5 flex flex-col z-20 shrink-0">
           <ScrollArea className="flex-1 w-full px-4">
             <div className="flex items-center gap-4 py-3">
               {pages.map((page, idx) => (
@@ -663,7 +666,7 @@ export default function PricePattern() {
                   onClick={() => setActivePageIndex(idx)}
                 >
                   <div className={cn(
-                    "w-22 h-16 rounded-lg border-2 flex flex-col items-center justify-center bg-black overflow-hidden transition-all shadow-2xl relative",
+                    "w-22 h-16 rounded-lg border-2 flex flex-col items-center justify-center bg-black/40 overflow-hidden transition-all shadow-2xl relative",
                     activePageIndex === idx ? "border-emerald-500 ring-4 ring-emerald-500/20" : "border-white/10 hover:border-white/30"
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
@@ -723,7 +726,7 @@ export default function PricePattern() {
           </ScrollArea>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center relative bg-black overflow-hidden">
+        <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden">
           {notification && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in slide-in-from-top-4 duration-500">
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl">
@@ -747,7 +750,7 @@ export default function PricePattern() {
           </div>
 
           {/* --- Unified Bottom Action Bar --- */}
-          <div className="w-full bg-[#0a0a0a] border-t border-white/5 px-6 py-4 flex items-center justify-center gap-4 shrink-0 z-30">
+          <div className="w-full bg-[#0a0a0a]/40 backdrop-blur-md border-t border-white/5 px-6 py-4 flex items-center justify-center gap-4 shrink-0 z-30">
             {/* Status BARS - Left Side of Preview */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/[0.02] border border-white/5 mr-2">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
@@ -776,7 +779,7 @@ export default function PricePattern() {
         </div>
 
         {/* --- Status Bar --- */}
-        <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1px] bg-[#050505] border-t border-white/5 shrink-0">
+        <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1px] bg-[#050505]/40 backdrop-blur-md border-t border-white/5 shrink-0">
           <div className="flex gap-4">
             <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> PAGE: {activePageIndex + 1} / {pages.length}</span>
             <span className="flex items-center gap-2 hidden xs:flex"><div className="w-1 h-1 rounded-full bg-emerald-500" /> ACTIVE_ENGINE: PRO_V2</span>
@@ -785,7 +788,7 @@ export default function PricePattern() {
         </div>
       </main>
 
-      <aside className="hidden lg:flex flex-row flex-shrink-0 bg-[#0a0a0a] border-l border-white/5" style={{ width: `${layersPanelWidth}px` }}>
+      <aside className="hidden lg:flex flex-row flex-shrink-0 bg-[#0a0a0a]/40 backdrop-blur-md border-l border-white/5 z-30" style={{ width: `${layersPanelWidth}px` }}>
         <div className="w-1.5 h-full cursor-col-resize hover:bg-emerald-500/30 transition-colors z-50 bg-white/5" onPointerDown={handleResizeStart} onPointerMove={handleResizeMove} onPointerUp={handleResizeEnd} />
         <div className="flex-1 h-full overflow-hidden">
           <LayersPanel candles={candles} onAddCandle={handleAddCandle} onUpdateCandle={handleUpdateCandle} onRemoveCandle={handleRemoveCandle} onClearAll={handleClearAll} onTemplateLoad={handleTemplateLoad} onClose={() => setIsLayersOpen(false)} />
