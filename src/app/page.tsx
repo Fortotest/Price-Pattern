@@ -303,7 +303,6 @@ const PagePreview = ({ candles, settings }: { candles: Candlestick[], settings: 
   
   const bounds = getChartBounds(candles);
   const range = Math.max(bounds.max - bounds.min, 1);
-  const padding = 5;
   const width = 80;
   const height = 44;
 
@@ -642,111 +641,112 @@ export default function PricePattern() {
           </div>
         </header>
 
-        {/* --- Canva-Style Top Page Navigator with Visual Previews --- */}
-        <div className="h-[100px] bg-[#0a0a0a] border-b border-white/5 flex flex-col z-20">
+        {/* --- Top Page Navigator --- */}
+        <div className="h-[90px] bg-[#0a0a0a] border-b border-white/5 flex flex-col z-20 shrink-0">
           <ScrollArea className="flex-1 w-full px-4">
-            <div className="flex items-center gap-3 py-3">
+            <div className="flex items-center gap-3 py-2.5">
               {pages.map((page, idx) => (
                 <div 
                   key={page.id} 
                   className={cn(
-                    "group relative flex flex-col items-center gap-1.5 cursor-pointer transition-all shrink-0",
+                    "group relative flex flex-col items-center gap-1 cursor-pointer transition-all shrink-0",
                     activePageIndex === idx ? "opacity-100" : "opacity-40 hover:opacity-100"
                   )}
                   onClick={() => setActivePageIndex(idx)}
                 >
                   <div className={cn(
-                    "w-20 h-14 rounded-md border flex flex-col items-center justify-center bg-black overflow-hidden transition-all shadow-lg",
+                    "w-16 h-11 rounded-md border flex flex-col items-center justify-center bg-black overflow-hidden transition-all shadow-lg",
                     activePageIndex === idx ? "border-emerald-500 ring-2 ring-emerald-500/30" : "border-white/10"
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
                     
-                    {/* Hover Overlays */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
                        <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-6 w-6 rounded-full bg-blue-600 text-white hover:bg-blue-700 p-0 shadow-xl"
+                        className="h-5 w-5 rounded-full bg-blue-600 text-white hover:bg-blue-700 p-0 shadow-xl"
                         onClick={(e) => { e.stopPropagation(); handleDuplicatePage(idx); }}
                       >
-                        <Copy className="w-3 h-3" />
+                        <Copy className="w-2.5 h-2.5" />
                       </Button>
                       {pages.length > 1 && (
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-6 w-6 rounded-full bg-red-600 text-white hover:bg-red-700 p-0 shadow-xl"
+                          className="h-5 w-5 rounded-full bg-red-600 text-white hover:bg-red-700 p-0 shadow-xl"
                           onClick={(e) => { e.stopPropagation(); handleDeletePage(idx); }}
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-2.5 h-2.5" />
                         </Button>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 w-20 justify-center">
-                    <span className="text-[8px] font-bold uppercase text-white/40 truncate text-center">Page {idx + 1}</span>
-                  </div>
+                  <span className="text-[7px] font-bold uppercase text-white/40 truncate text-center">P{idx + 1}</span>
                 </div>
               ))}
               
               <Button 
                 variant="outline" 
-                className="w-20 h-14 border-dashed border-white/20 bg-transparent hover:bg-white/5 hover:border-emerald-500/50 flex flex-col gap-1 shrink-0 rounded-md transition-all group"
+                className="w-16 h-11 border-dashed border-white/20 bg-transparent hover:bg-white/5 hover:border-emerald-500/50 flex flex-col gap-0.5 shrink-0 rounded-md transition-all group"
                 onClick={handleAddPage}
               >
-                <Plus className="w-4 h-4 text-white/20 group-hover:text-emerald-500 transition-colors" />
-                <span className="text-[7px] font-bold text-white/20 uppercase group-hover:text-emerald-500">Add Page</span>
+                <Plus className="w-3 h-3 text-white/20 group-hover:text-emerald-500 transition-colors" />
+                <span className="text-[6px] font-bold text-white/20 uppercase group-hover:text-emerald-500">New</span>
               </Button>
             </div>
             <ScrollBar orientation="horizontal" className="bg-white/5" />
           </ScrollArea>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-6 overflow-hidden bg-[#000] relative">
+        <div className="flex-1 flex flex-col items-center justify-center relative bg-black overflow-hidden">
           {notification && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in slide-in-from-top-4 duration-500">
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl">
-                <span className="text-lg">{notification.emoji}</span>
+                <span className="text-lg">🥳</span>
                 <span className="text-xs font-bold tracking-wider text-white uppercase">{notification.title}</span>
               </div>
             </div>
           )}
           
-          <div className="flex-1 w-full h-full flex items-center justify-center">
-            <ChartRenderer 
-              ref={chartRef}
-              candles={candles} 
-              settings={settings} 
-              isAnimating={isAnimating}
-              onAnimationComplete={handleAnimationComplete}
-              onSettingsChange={updateSettings}
-            />
+          <div className="flex-1 w-full h-full flex items-center justify-center p-4">
+            <div className="w-full h-full max-w-full max-h-full flex items-center justify-center overflow-hidden">
+               <ChartRenderer 
+                ref={chartRef}
+                candles={candles} 
+                settings={settings} 
+                isAnimating={isAnimating}
+                onAnimationComplete={handleAnimationComplete}
+                onSettingsChange={updateSettings}
+              />
+            </div>
           </div>
 
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 sm:gap-4 bg-[#0a0a0a]/80 backdrop-blur-lg p-2 sm:p-3 rounded-xl border border-white/5 shadow-2xl">
+          {/* --- Unified Bottom Action Bar --- */}
+          <div className="w-full bg-[#0a0a0a] border-t border-white/5 px-6 py-4 flex items-center justify-center gap-4 shrink-0 z-30">
             {isAnimating ? (
-              <Button className="min-w-[80px] sm:min-w-[120px] h-9 sm:h-10 font-bold text-[10px] sm:text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all" onClick={() => setIsAnimating(false)}>
-                <X className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Stop</span>
+              <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all" onClick={() => setIsAnimating(false)}>
+                <X className="w-4 h-4" /> <span>STOP</span>
               </Button>
             ) : (
-              <Button className="min-w-[80px] sm:min-w-[120px] h-9 sm:h-10 font-bold text-[10px] sm:text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all" onClick={handleReplay} disabled={candles.length === 0}>
-                <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Preview</span>
+              <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all" onClick={handleReplay} disabled={candles.length === 0}>
+                <RefreshCw className="w-4 h-4" /> <span>PREVIEW</span>
               </Button>
             )}
             <Separator orientation="vertical" className="h-6 bg-white/10" />
-            <Button variant="outline" className="h-9 sm:h-10 px-3 sm:px-6 text-[10px] sm:text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
-              <FileCode className="w-3.5 h-3.5" /> <span className="hidden xs:inline">SVG</span>
+            <Button variant="outline" className="h-10 px-6 text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
+              <FileCode className="w-4 h-4" /> <span>SVG</span>
             </Button>
-            <Button className="min-w-[100px] sm:min-w-[140px] h-9 sm:h-10 text-[10px] sm:text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2" onClick={handleRecordVideo} disabled={candles.length === 0}>
-              <Video className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Video</span>
+            <Button className="min-w-[120px] h-10 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2" onClick={handleRecordVideo} disabled={candles.length === 0}>
+              <Video className="w-4 h-4" /> <span>VIDEO</span>
             </Button>
           </div>
         </div>
 
-        <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1px] bg-[#0a0a0a] border-t border-white/5">
+        {/* --- Status Bar --- */}
+        <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1px] bg-[#050505] border-t border-white/5 shrink-0">
           <div className="flex gap-4">
-            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Page: {activePageIndex + 1} / {pages.length}</span>
-            <span className="flex items-center gap-2 hidden xs:flex"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Bars: {candles.length}</span>
+            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> PAGE: {activePageIndex + 1} / {pages.length}</span>
+            <span className="flex items-center gap-2 hidden xs:flex"><div className="w-1 h-1 rounded-full bg-emerald-500" /> BARS: {candles.length}</span>
           </div>
           <div className="flex items-center gap-3"><Monitor className="w-3 h-3" /><span className="hidden sm:inline text-emerald-500/50">Core 4K Precision Active</span></div>
         </div>
