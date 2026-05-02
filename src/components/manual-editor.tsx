@@ -17,16 +17,14 @@ const CustomNumberInput = ({
   label, 
   value, 
   onChange, 
-  colorClass = "text-primary",
+  colorClass = "text-white",
   min = -5000,
-  compact = false
 }: { 
   label?: string, 
   value: number, 
   onChange: (val: number) => void,
   colorClass?: string,
   min?: number,
-  compact?: boolean
 }) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -79,32 +77,36 @@ const CustomNumberInput = ({
   };
 
   return (
-    <div className={`bg-[#0d0d0d] rounded-md flex flex-col items-center justify-between border border-white/5 group/input transition-colors hover:border-white/10 ${compact ? 'h-10' : 'h-14'} w-full`}>
-      {label && <span className={`text-[7px] font-bold uppercase tracking-wider pt-1 ${colorClass}`}>{label}</span>}
-      <div className="flex items-center w-full flex-1">
+    <div className="bg-[#0d0d0d] rounded-md flex flex-col border border-white/5 group/input transition-colors hover:border-white/10 h-14 w-full overflow-hidden">
+      {label && (
+        <span className={`text-[8px] font-black uppercase tracking-widest pt-1.5 px-2 ${colorClass}`}>
+          {label}
+        </span>
+      )}
+      <div className="flex items-center flex-1">
         <input
           type="text"
           value={inputValue}
           onChange={handleInputChange}
           onBlur={handleBlur}
-          className="flex-1 bg-transparent text-center font-mono text-[10px] font-bold text-white border-none outline-none focus:ring-0 w-full h-full"
+          className="flex-1 bg-transparent text-center font-mono text-[11px] font-bold text-white border-none outline-none focus:ring-0 w-full h-full"
         />
-        <div className="w-4 h-full flex flex-col border-l border-white/5 overflow-hidden rounded-r-sm">
+        <div className="w-5 h-full flex flex-col border-l border-white/5 overflow-hidden">
           <button 
             onPointerDown={() => startAdjusting(1)}
             onPointerUp={stopAdjusting}
             onPointerLeave={stopAdjusting}
-            className="flex-1 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] border-b border-white/5 transition-colors active:bg-primary/20"
+            className="flex-1 flex items-center justify-center bg-[#151515] hover:bg-[#222] border-b border-white/5 transition-colors active:bg-primary/20"
           >
-            <ChevronUp className="w-2 h-2 text-white/50 group-hover/input:text-white" />
+            <ChevronUp className="w-3 h-3 text-white/40 group-hover/input:text-white" />
           </button>
           <button 
             onPointerDown={() => startAdjusting(-1)}
             onPointerUp={stopAdjusting}
             onPointerLeave={stopAdjusting}
-            className="flex-1 flex items-center justify-center bg-[#1a1a1a] hover:bg-[#222] transition-colors active:bg-primary/20"
+            className="flex-1 flex items-center justify-center bg-[#151515] hover:bg-[#222] transition-colors active:bg-primary/20"
           >
-            <ChevronDown className="w-2 h-2 text-white/50 group-hover/input:text-white" />
+            <ChevronDown className="w-3 h-3 text-white/40 group-hover/input:text-white" />
           </button>
         </div>
       </div>
@@ -121,7 +123,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
   }, [candles]);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {items.map(({ candle: c, originalIndex: idx }) => {
         const bodyDiff = c.close - c.open;
         const bodySize = Math.abs(bodyDiff);
@@ -134,37 +136,35 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
         else statusColor = "bg-slate-400";
 
         return (
-          <div key={c.id} className="bg-[#0a0a0a] border border-white/5 rounded-lg p-2 group transition-all hover:border-white/10">
-            <div className="flex items-center justify-between mb-1.5">
+          <div key={c.id} className="bg-[#070707] border border-white/5 rounded-xl p-3 group transition-all hover:border-white/10 shadow-xl">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <GripVertical className="w-2 h-2 text-muted-foreground/30" />
-                <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-tight">Bar #{idx + 1}</span>
-                <div className={`w-1.5 h-1.5 rounded-full ${statusColor}`} />
+                <GripVertical className="w-3 h-3 text-white/10" />
+                <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Bar #{idx + 1}</span>
+                <div className={`w-2 h-2 rounded-full ${statusColor} shadow-[0_0_8px_rgba(255,255,255,0.1)]`} />
               </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-4 w-4 text-muted-foreground hover:text-red-400 hover:bg-red-400/10"
+                className="h-7 w-7 text-white/20 hover:text-red-500 hover:bg-red-500/10 transition-all"
                 onClick={() => onRemove(idx)}
               >
-                <Trash2 className="w-2 h-2" />
+                <Trash2 className="w-3.5 h-3.5" />
               </Button>
             </div>
             
-            <div className="grid grid-cols-2 gap-2 mb-2">
-              <div className="space-y-1">
-                <Label className="text-[7px] uppercase text-muted-foreground tracking-widest font-bold">Offset Y</Label>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase text-white/30 tracking-widest ml-1">Offset Y</Label>
                 <CustomNumberInput 
                   value={c.offsetY || 0} 
                   onChange={(val) => onChange(idx, { ...c, offsetY: val })}
-                  compact
-                  colorClass="text-white"
                 />
               </div>
-              <div className="space-y-1 flex flex-col justify-end">
+              <div className="flex flex-col justify-end">
                 <Button 
                    variant="outline" 
-                   className="h-10 text-[7px] bg-black border-white/5 font-bold hover:bg-white/5 uppercase"
+                   className="h-14 text-[10px] bg-black border-white/10 font-black hover:bg-white/5 uppercase tracking-[2px] transition-all active:scale-95"
                    onClick={() => {
                      const isBullish = bodyDiff >= 0;
                      const newClose = isBullish ? c.open - bodySize : c.open + bodySize;
@@ -181,12 +181,12 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-1">
+            <div className="grid grid-cols-3 gap-2">
               <CustomNumberInput 
                 label="Body" 
                 value={bodySize} 
                 min={0}
-                colorClass={bodyDiff > 5 ? "text-emerald-500" : (bodyDiff < -5 ? "text-red-500" : "text-white")}
+                colorClass={bodyDiff > 5 ? "text-emerald-500" : (bodyDiff < -5 ? "text-red-500" : "text-white/40")}
                 onChange={(val) => {
                   const direction = bodyDiff < 0 ? -1 : 1;
                   const newClose = c.open + (val * direction);
