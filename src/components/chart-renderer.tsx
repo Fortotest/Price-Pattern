@@ -144,8 +144,8 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     ctx.restore();
 
     // --- DRAW AXES (Y-Axis) ---
-    ctx.fillStyle = '#888888';
-    ctx.font = 'bold 42px monospace';
+    ctx.fillStyle = '#cccccc';
+    ctx.font = 'bold 44px monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     
@@ -162,8 +162,8 @@ const ChartRenderer = forwardRef<ChartRendererHandle, ChartRendererProps>(({
     for (let i = 0; i < limit; i++) {
       const x = startX + (i * baseWidth);
       if(x >= 0 && x <= chartAreaWidth) {
-        ctx.fillStyle = '#888888';
-        ctx.font = 'bold 36px monospace';
+        ctx.fillStyle = '#cccccc';
+        ctx.font = 'bold 38px monospace';
         ctx.textAlign = 'center';
         ctx.fillText(`BAR ${i+1}`, x, chartAreaHeight + 80);
       }

@@ -58,7 +58,7 @@ const PropertiesPanel = ({
 }: PanelProps) => {
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a]/80 backdrop-blur-md text-white overflow-hidden w-full lg:w-[280px]">
-      <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
+      <div className="p-3 border-b border-white/10 flex items-center justify-between bg-black/20">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-primary" />
           <span className="text-[10px] font-bold uppercase tracking-wider">Configuration</span>
@@ -107,7 +107,7 @@ const PropertiesPanel = ({
             </div>
           </div>
 
-          <Separator className="bg-white/5" />
+          <Separator className="bg-white/10" />
 
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -130,7 +130,7 @@ const PropertiesPanel = ({
             </div>
           </div>
 
-          <Separator className="bg-white/5" />
+          <Separator className="bg-white/10" />
 
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -140,7 +140,7 @@ const PropertiesPanel = ({
             
             <div className="space-y-3">
               <div className="grid grid-cols-1 gap-2">
-                <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/5 focus-within:border-primary/50 transition-colors">
+                <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/10 focus-within:border-primary/50 transition-colors">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded border border-white/10 relative overflow-hidden bg-black/20">
                       <input 
@@ -150,7 +150,7 @@ const PropertiesPanel = ({
                         className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-[2]" 
                       />
                     </div>
-                    <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-tight">Bullish</span>
+                    <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-tight">Bullish</span>
                   </div>
                   <input 
                     type="text"
@@ -160,7 +160,7 @@ const PropertiesPanel = ({
                   />
                 </div>
 
-                <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/5 focus-within:border-primary/50 transition-colors">
+                <div className="flex items-center justify-between gap-3 bg-black/40 p-2 rounded-lg border border-white/10 focus-within:border-primary/50 transition-colors">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded border border-white/10 relative overflow-hidden bg-black/20">
                       <input 
@@ -170,7 +170,7 @@ const PropertiesPanel = ({
                         className="absolute inset-0 w-full h-full opacity-100 cursor-pointer p-0 border-none bg-transparent scale-[2]" 
                       />
                     </div>
-                    <span className="text-[9px] font-bold text-red-500 uppercase tracking-tight">Bearish</span>
+                    <span className="text-[9px] font-bold text-red-400 uppercase tracking-tight">Bearish</span>
                   </div>
                   <input 
                     type="text"
@@ -230,9 +230,9 @@ interface LayersPanelProps {
 
 const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onClearAll, onTemplateLoad, onClose }: LayersPanelProps) => (
   <div className="flex flex-col h-full bg-[#0a0a0a]/80 backdrop-blur-md text-white overflow-hidden w-full">
-    <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
+    <div className="p-3 border-b border-white/10 flex items-center justify-between bg-black/20">
       <div className="flex items-center gap-2">
-        <Layers className="w-3.5 h-3.5 text-emerald-500" />
+        <Layers className="w-3.5 h-3.5 text-emerald-400" />
         <span className="text-[10px] font-bold uppercase tracking-wider">Layer Stack</span>
       </div>
       <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-white/5 flex">
@@ -249,14 +249,14 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
             size="sm" 
             onClick={onClearAll} 
             disabled={candles.length === 0}
-            className="h-5 px-1.5 text-[8px] font-bold hover:bg-red-500/10 hover:text-red-400 text-muted-foreground gap-1"
+            className="h-5 px-1.5 text-[8px] font-bold hover:bg-red-500/20 hover:text-red-400 text-muted-foreground gap-1"
           >
             <Trash2 className="w-2.5 h-2.5" /> CLEAR ALL
           </Button>
         </div>
         <select 
           onChange={(e) => onTemplateLoad(e.target.value)} 
-          className="flex w-full items-center justify-between rounded-md border ring-offset-background h-10 text-[10px] bg-black border-white/5 font-bold p-1 px-2 focus:ring-0 text-white outline-none"
+          className="flex w-full items-center justify-between rounded-md border ring-offset-background h-10 text-[10px] bg-black border-white/10 font-bold p-1 px-2 focus:ring-0 text-white outline-none"
         >
           <option value="custom">Kosongkan Layer</option>
           <optgroup label="General Patterns">
@@ -285,8 +285,8 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
       </div>
 
       <div className="grid grid-cols-3 gap-1.5">
-        <Button onClick={() => onAddCandle('Bullish')} className="bg-[#00b386] hover:bg-[#00b386]/90 h-7 text-[8px] font-bold border-none uppercase">Bull</Button>
-        <Button onClick={() => onAddCandle('Bearish')} variant="destructive" className="bg-[#f23645] hover:bg-[#f23645]/90 h-7 text-[8px] font-bold border-none uppercase">Bear</Button>
+        <Button onClick={() => onAddCandle('Bullish')} className="bg-[#00e6ac] hover:bg-[#00ff9d] h-7 text-[8px] font-bold border-none uppercase text-black">Bull</Button>
+        <Button onClick={() => onAddCandle('Bearish')} variant="destructive" className="bg-[#ff4d4d] hover:bg-[#ff3b30] h-7 text-[8px] font-bold border-none uppercase">Bear</Button>
         <Button onClick={() => onAddCandle('Doji')} variant="outline" className="bg-[#333] hover:bg-[#444] h-7 text-[8px] font-bold border-none uppercase">Doji</Button>
       </div>
     </div>
@@ -305,7 +305,7 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
 
 // --- Small Preview Helper for Navigator ---
 const PagePreview = ({ candles, settings }: { candles: Candlestick[], settings: ChartSettings }) => {
-  if (candles.length === 0) return <div className="w-full h-full flex items-center justify-center opacity-10"><Zap className="w-5 h-5 text-white/50" /></div>;
+  if (candles.length === 0) return <div className="w-full h-full flex items-center justify-center opacity-20"><Zap className="w-5 h-5 text-white/50" /></div>;
   
   const bounds = getChartBounds(candles);
   const range = Math.max(bounds.max - bounds.min, 1);
@@ -313,7 +313,7 @@ const PagePreview = ({ candles, settings }: { candles: Candlestick[], settings: 
   const height = 80;
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-hidden preserve-3d opacity-80">
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-hidden preserve-3d opacity-90">
       {candles.map((c, i) => {
         const x = (i / Math.max(1, candles.length - 1)) * (width - 30) + 15;
         const getY = (p: number) => height - ((p - bounds.min) / range) * (height - 30) - 15;
@@ -326,12 +326,12 @@ const PagePreview = ({ candles, settings }: { candles: Candlestick[], settings: 
 
         return (
           <g key={c.id}>
-            <line x1={x} y1={yHigh} x2={x} y2={yLow} stroke={color} strokeWidth="2" strokeLinecap="round" />
+            <line x1={x} y1={yHigh} x2={x} y2={yLow} stroke={color} strokeWidth="2.5" strokeLinecap="round" />
             <rect 
-              x={x - 3} 
+              x={x - 3.5} 
               y={Math.min(yOpen, yClose)} 
-              width="6" 
-              height={Math.max(2, Math.abs(yOpen - yClose))} 
+              width="7" 
+              height={Math.max(2.5, Math.abs(yOpen - yClose))} 
               fill={color}
               rx="1.5"
             />
@@ -353,8 +353,8 @@ export default function PricePattern() {
     spacing: 1.2, 
     speed: 0.8,
     autoCenter: true,
-    bullColor: "#00b386",
-    bearColor: "#f23645",
+    bullColor: "#00ff9d",
+    bearColor: "#ff3b30",
     bodyRadius: 0, 
     wickRadius: 0
   });
@@ -617,40 +617,40 @@ export default function PricePattern() {
 
   return (
     <div className="flex h-screen w-full mesh-gradient-bg overflow-hidden font-body select-none text-white relative" onClick={unlockAudio}>
-      <aside className={cn("flex-col flex-shrink-0 bg-[#0a0a0a]/40 backdrop-blur-md border-r border-white/5 transition-all duration-300 ease-in-out lg:flex z-30", showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none")}>
+      <aside className={cn("flex-col flex-shrink-0 bg-[#0a0a0a]/50 backdrop-blur-xl border-r border-white/10 transition-all duration-300 ease-in-out lg:flex z-30", showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none")}>
         <div className="w-[280px]">
           <PropertiesPanel settings={settings} updateSettings={updateSettings} onClose={() => setShowProperties(false)} />
         </div>
       </aside>
 
       <main className="flex-1 flex flex-col relative overflow-hidden transition-all duration-300 z-10">
-        <header className="h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#0a0a0a]/40 backdrop-blur-md z-30">
+        <header className="h-12 flex items-center justify-between px-4 border-b border-white/10 bg-[#0a0a0a]/50 backdrop-blur-xl z-30">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => setShowProperties(!showProperties)} className="hidden lg:flex text-white hover:bg-white/5"><Menu className="w-5 h-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => setShowProperties(!showProperties)} className="hidden lg:flex text-white hover:bg-white/10"><Menu className="w-5 h-5" /></Button>
             <Sheet open={isConfigOpen} onOpenChange={setIsConfigOpen}>
-              <SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9"><Settings2 className="w-5 h-5" /></Button></SheetTrigger>
-              <SheetContent side="left" className="p-0 w-[280px] bg-[#0a0a0a] border-r border-white/5 [&>button]:hidden">
+              <SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9 hover:bg-white/10"><Settings2 className="w-5 h-5" /></Button></SheetTrigger>
+              <SheetContent side="left" className="p-0 w-[280px] bg-[#0a0a0a] border-r border-white/10 [&>button]:hidden">
                 <PropertiesPanel settings={settings} updateSettings={updateSettings} onClose={() => setIsConfigOpen(false)} />
               </SheetContent>
             </Sheet>
-            <div className="text-[10px] font-bold uppercase tracking-[2px] text-emerald-500 flex items-center gap-2">
-              <Zap className="w-3 h-3 text-emerald-500 fill-emerald-500" />
-              <span className="hidden xs:inline">PricePattern</span>
+            <div className="text-[10px] font-bold uppercase tracking-[2.5px] text-primary flex items-center gap-2 drop-shadow-[0_0_8px_rgba(0,255,157,0.3)]">
+              <Zap className="w-3 h-3 text-primary fill-primary" />
+              <span className="hidden xs:inline">PricePattern Studio</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Sheet open={isLayersOpen} onOpenChange={setIsLayersOpen}>
-              <SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9"><Layers className="w-5 h-5" /></Button></SheetTrigger>
-              <SheetContent side="right" className="p-0 w-[280px] bg-[#0a0a0a] border-l border-white/5 [&>button]:hidden">
+              <SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9 hover:bg-white/10"><Layers className="w-5 h-5" /></Button></SheetTrigger>
+              <SheetContent side="right" className="p-0 w-[280px] bg-[#0a0a0a] border-l border-white/10 [&>button]:hidden">
                 <LayersPanel candles={candles} onAddCandle={handleAddCandle} onUpdateCandle={handleUpdateCandle} onRemoveCandle={handleRemoveCandle} onClearAll={handleClearAll} onTemplateLoad={handleTemplateLoad} onClose={() => setIsLayersOpen(false)} />
               </SheetContent>
             </Sheet>
-            <a href="https://www.instagram.com/masffadil/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 group transition-all"><Instagram className="w-3.5 h-3.5 text-pink-500 group-hover:scale-110 transition-transform" /><span className="text-[10px] font-bold tracking-wider text-white/80 group-hover:text-white hidden sm:inline">masffadil</span></a>
+            <a href="https://www.instagram.com/masffadil/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 group transition-all"><Instagram className="w-3.5 h-3.5 text-pink-400 group-hover:scale-110 transition-transform" /><span className="text-[10px] font-bold tracking-wider text-white group-hover:text-emerald-400 hidden sm:inline">masffadil</span></a>
           </div>
         </header>
 
         {/* --- Top Page Navigator --- */}
-        <div className="h-[105px] bg-[#0a0a0a]/30 backdrop-blur-md border-b border-white/5 flex flex-col z-20 shrink-0">
+        <div className="h-[105px] bg-[#0a0a0a]/40 backdrop-blur-md border-b border-white/10 flex flex-col z-20 shrink-0">
           <ScrollArea className="flex-1 w-full px-4">
             <div className="flex items-center gap-4 py-3">
               {pages.map((page, idx) => (
@@ -658,19 +658,19 @@ export default function PricePattern() {
                   key={page.id} 
                   className={cn(
                     "group relative flex flex-col items-center gap-1.5 cursor-pointer transition-all shrink-0",
-                    activePageIndex === idx ? "opacity-100 scale-100" : "opacity-40 hover:opacity-100 scale-95 hover:scale-100"
+                    activePageIndex === idx ? "opacity-100 scale-100" : "opacity-50 hover:opacity-100 scale-95 hover:scale-100"
                   )}
                   onClick={() => setActivePageIndex(idx)}
                 >
                   <div className={cn(
-                    "w-22 h-16 rounded-lg border-2 flex flex-col items-center justify-center bg-black/40 overflow-hidden transition-all shadow-2xl relative",
-                    activePageIndex === idx ? "border-emerald-500 ring-4 ring-emerald-500/20" : "border-white/10 hover:border-white/30"
+                    "w-22 h-16 rounded-lg border-2 flex flex-col items-center justify-center bg-black/50 overflow-hidden transition-all shadow-2xl relative",
+                    activePageIndex === idx ? "border-primary ring-4 ring-primary/20" : "border-white/10 hover:border-white/30"
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
                     
                     {/* Page Index Label - Bottom Left */}
-                    <div className="absolute bottom-1 left-2 z-10 pointer-events-none">
-                      <span className="text-[11px] font-black text-white/90 uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                    <div className="absolute bottom-1.5 left-2 z-10 pointer-events-none">
+                      <span className="text-[12px] font-black text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                         {idx + 1}
                       </span>
                     </div>
@@ -682,7 +682,7 @@ export default function PricePattern() {
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-5 w-8 rounded-full bg-transparent hover:bg-emerald-500 data-[state=open]:bg-emerald-500 text-white flex items-center justify-center transition-all"
+                            className="h-5 w-8 rounded-full bg-transparent hover:bg-primary data-[state=open]:bg-primary text-white flex items-center justify-center transition-all"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <MoreHorizontal className="w-3 h-3" />
@@ -691,14 +691,14 @@ export default function PricePattern() {
                         <DropdownMenuContent align="end" className="bg-[#0a0a0a] border-white/10 text-white min-w-[120px]">
                           <DropdownMenuItem 
                             onClick={(e) => { e.stopPropagation(); handleDuplicatePage(idx); }}
-                            className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 focus:bg-white/5 focus:text-emerald-500 cursor-pointer"
+                            className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 focus:bg-white/10 focus:text-primary cursor-pointer"
                           >
                             <Copy className="w-3 h-3" /> DUPLICATE
                           </DropdownMenuItem>
                           {pages.length > 1 && (
                             <DropdownMenuItem 
                               onClick={(e) => { e.stopPropagation(); handleDeletePage(idx); }}
-                              className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 text-red-500 focus:bg-red-500/10 focus:text-red-400 cursor-pointer"
+                              className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 text-red-400 focus:bg-red-500/10 focus:text-red-300 cursor-pointer"
                             >
                               <Trash2 className="w-3 h-3" /> DELETE
                             </DropdownMenuItem>
@@ -712,21 +712,21 @@ export default function PricePattern() {
               
               <Button 
                 variant="outline" 
-                className="w-22 h-16 border-2 border-dashed border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-emerald-500/50 flex flex-col gap-1 shrink-0 rounded-lg transition-all group"
+                className="w-22 h-16 border-2 border-dashed border-white/20 bg-white/[0.05] hover:bg-white/[0.1] hover:border-primary/50 flex flex-col gap-1 shrink-0 rounded-lg transition-all group"
                 onClick={handleAddPage}
               >
-                <Plus className="w-4 h-4 text-white/20 group-hover:text-emerald-500 group-hover:scale-110 transition-all" />
-                <span className="text-[7px] font-black text-white/20 uppercase tracking-widest group-hover:text-emerald-500">New Page</span>
+                <Plus className="w-4 h-4 text-white/30 group-hover:text-primary group-hover:scale-110 transition-all" />
+                <span className="text-[7px] font-black text-white/30 uppercase tracking-widest group-hover:text-primary">New Page</span>
               </Button>
             </div>
-            <ScrollBar orientation="horizontal" className="bg-white/5" />
+            <ScrollBar orientation="horizontal" className="bg-white/10" />
           </ScrollArea>
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden">
           {notification && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in slide-in-from-top-4 duration-500">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/20 shadow-2xl">
                 <span className="text-lg">🥳</span>
                 <span className="text-xs font-bold tracking-wider text-white uppercase">{notification.title}</span>
               </div>
@@ -747,41 +747,41 @@ export default function PricePattern() {
           </div>
 
           {/* --- Unified Bottom Action Bar --- */}
-          <div className="w-full bg-[#0a0a0a]/40 backdrop-blur-md border-t border-white/5 px-6 py-4 flex items-center justify-center gap-4 shrink-0 z-30">
+          <div className="w-full bg-[#0a0a0a]/50 backdrop-blur-xl border-t border-white/10 px-6 py-4 flex items-center justify-center gap-4 shrink-0 z-30">
             {isAnimating ? (
-              <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all" onClick={() => setIsAnimating(false)}>
+              <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 transition-all" onClick={() => setIsAnimating(false)}>
                 <X className="w-4 h-4" /> <span>STOP</span>
               </Button>
             ) : (
-              <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all" onClick={handleReplay} disabled={candles.length === 0}>
+              <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-white/10 hover:bg-white/20 border border-white/10 transition-all" onClick={handleReplay} disabled={candles.length === 0}>
                 <RefreshCw className="w-4 h-4" /> <span>PREVIEW</span>
               </Button>
             )}
-            <Separator orientation="vertical" className="h-6 bg-white/10" />
-            <Button variant="outline" className="h-10 px-6 text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
+            <Separator orientation="vertical" className="h-6 bg-white/20" />
+            <Button variant="outline" className="h-10 px-6 text-[11px] font-bold border-white/20 bg-transparent hover:bg-white/10 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
               <FileCode className="w-4 h-4" /> <span>SVG</span>
             </Button>
-            <Button className="min-w-[120px] h-10 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2" onClick={handleRecordVideo} disabled={candles.length === 0}>
+            <Button className="min-w-[120px] h-10 text-[11px] font-bold bg-primary hover:bg-primary/90 text-black border-none gap-2 shadow-[0_0_15px_rgba(0,255,157,0.4)]" onClick={handleRecordVideo} disabled={candles.length === 0}>
               <Video className="w-4 h-4" /> <span>VIDEO</span>
             </Button>
           </div>
         </div>
 
         {/* --- Status Bar --- */}
-        <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1px] bg-[#050505]/40 backdrop-blur-md border-t border-white/5 shrink-0">
+        <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1.5px] bg-[#050505]/60 backdrop-blur-md border-t border-white/10 shrink-0">
           <div className="flex gap-4">
-            <span className="flex items-center gap-2">
-              <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
+            <span className="flex items-center gap-2 text-primary/80">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(0,255,157,0.6)] animate-pulse" />
               BARS: {candles.length}
             </span>
-            <span className="flex items-center gap-2 hidden xs:flex"><div className="w-1 h-1 rounded-full bg-emerald-500" /> ACTIVE_ENGINE: PRO_V2</span>
+            <span className="flex items-center gap-2 hidden xs:flex"><div className="w-1 h-1 rounded-full bg-primary/40" /> ACTIVE_ENGINE: PRO_V3_ULTRA</span>
           </div>
-          <div className="flex items-center gap-3"><Monitor className="w-3 h-3" /><span className="hidden sm:inline text-emerald-500/50">Core 4K Precision Active</span></div>
+          <div className="flex items-center gap-3"><Monitor className="w-3 h-3 text-primary/60" /><span className="hidden sm:inline text-primary/40">Core 4K Precision Active</span></div>
         </div>
       </main>
 
-      <aside className="hidden lg:flex flex-row flex-shrink-0 bg-[#0a0a0a]/40 backdrop-blur-md border-l border-white/5 z-30" style={{ width: `${layersPanelWidth}px` }}>
-        <div className="w-1.5 h-full cursor-col-resize hover:bg-emerald-500/30 transition-colors z-50 bg-white/5" onPointerDown={handleResizeStart} onPointerMove={handleResizeMove} onPointerUp={handleResizeEnd} />
+      <aside className="hidden lg:flex flex-row flex-shrink-0 bg-[#0a0a0a]/50 backdrop-blur-xl border-l border-white/10 z-30" style={{ width: `${layersPanelWidth}px` }}>
+        <div className="w-1.5 h-full cursor-col-resize hover:bg-primary/30 transition-colors z-50 bg-white/10" onPointerDown={handleResizeStart} onPointerMove={handleResizeMove} onPointerUp={handleResizeEnd} />
         <div className="flex-1 h-full overflow-hidden">
           <LayersPanel candles={candles} onAddCandle={handleAddCandle} onUpdateCandle={handleUpdateCandle} onRemoveCandle={handleRemoveCandle} onClearAll={handleClearAll} onTemplateLoad={handleTemplateLoad} onClose={() => setIsLayersOpen(false)} />
         </div>
