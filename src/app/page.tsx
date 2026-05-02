@@ -668,10 +668,11 @@ export default function PricePattern() {
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
                     
-                    {/* Page Label - Bottom Left (Displays Page Number Only) */}
-                    <div className="absolute bottom-1 left-2 z-10 pointer-events-none max-w-[80%]">
-                       <span className="text-[10px] font-bold text-white uppercase tracking-wider drop-shadow-md truncate block">
-                        {idx + 1}
+                    {/* BARS Label - Bottom Left */}
+                    <div className="absolute bottom-1 left-2 z-10 pointer-events-none flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                      <span className="text-[9px] font-bold text-white/90 uppercase tracking-wider drop-shadow-md">
+                        BARS: {page.candles.length}
                       </span>
                     </div>
 
