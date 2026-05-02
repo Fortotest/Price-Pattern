@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
@@ -503,15 +504,19 @@ export default function PricePattern() {
   }, [pages.length, activePageIndex]);
 
   const handleRenamePage = useCallback((index: number) => {
-    const currentPage = pages[index];
-    const newName = window.prompt("Enter new page name:", currentPage.name);
-    if (newName !== null && newName.trim() !== "") {
-      setPages(prev => {
-        const updated = [...prev];
-        updated[index] = { ...updated[index], name: newName.trim() };
-        return updated;
-      });
-    }
+    // We use a small timeout to let the dropdown menu close properly before showing the prompt
+    setTimeout(() => {
+      const currentPage = pages[index];
+      const currentName = currentPage.name || `Page ${index + 1}`;
+      const newName = window.prompt("Enter new page name:", currentName);
+      if (newName !== null && newName.trim() !== "") {
+        setPages(prev => {
+          const updated = [...prev];
+          updated[index] = { ...updated[index], name: newName.trim() };
+          return updated;
+        });
+      }
+    }, 100);
   }, [pages]);
 
   const handleExportSVG = useCallback(() => {
@@ -661,7 +666,7 @@ export default function PricePattern() {
           </div>
         </header>
 
-        {/* --- Top Page Navigator (Canva Style) --- */}
+        {/* --- Top Page Navigator --- */}
         <div className="h-[105px] bg-[#0a0a0a]/50 backdrop-blur-md border-b border-white/5 flex flex-col z-20 shrink-0">
           <ScrollArea className="flex-1 w-full px-4">
             <div className="flex items-center gap-4 py-3">
@@ -680,7 +685,7 @@ export default function PricePattern() {
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
                     
-                    {/* Page Label - Bottom Left (Now showing custom name) */}
+                    {/* Page Label - Bottom Left (Displays Page Name) */}
                     <div className="absolute bottom-1 left-2 z-10 pointer-events-none max-w-[80%]">
                        <span className="text-[9px] font-bold text-white uppercase tracking-wider drop-shadow-md truncate block">
                         {page.name || (idx + 1)}
@@ -702,20 +707,20 @@ export default function PricePattern() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-[#0a0a0a] border-white/10 text-white min-w-[120px]">
                           <DropdownMenuItem 
-                            onSelect={(e) => { e.preventDefault(); handleRenamePage(idx); }}
+                            onClick={(e) => { e.stopPropagation(); handleRenamePage(idx); }}
                             className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 focus:bg-white/5 focus:text-emerald-500 cursor-pointer"
                           >
                             <Edit2 className="w-3 h-3" /> RENAME
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            onSelect={(e) => { e.preventDefault(); handleDuplicatePage(idx); }}
+                            onClick={(e) => { e.stopPropagation(); handleDuplicatePage(idx); }}
                             className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 focus:bg-white/5 focus:text-emerald-500 cursor-pointer"
                           >
                             <Copy className="w-3 h-3" /> DUPLICATE
                           </DropdownMenuItem>
                           {pages.length > 1 && (
                             <DropdownMenuItem 
-                              onSelect={(e) => { e.preventDefault(); handleDeletePage(idx); }}
+                              onClick={(e) => { e.stopPropagation(); handleDeletePage(idx); }}
                               className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 text-red-500 focus:bg-red-500/10 focus:text-red-400 cursor-pointer"
                             >
                               <Trash2 className="w-3 h-3" /> DELETE
