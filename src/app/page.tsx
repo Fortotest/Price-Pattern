@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
@@ -312,10 +311,10 @@ const PagePreview = ({ candles, settings }: { candles: Candlestick[], settings: 
   const height = 80;
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-hidden preserve-3d">
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-hidden preserve-3d opacity-80">
       {candles.map((c, i) => {
-        const x = (i / Math.max(1, candles.length - 1)) * (width - 20) + 10;
-        const getY = (p: number) => height - ((p - bounds.min) / range) * (height - 20) - 10;
+        const x = (i / Math.max(1, candles.length - 1)) * (width - 30) + 15;
+        const getY = (p: number) => height - ((p - bounds.min) / range) * (height - 30) - 15;
         const yOpen = getY(c.open + (c.offsetY || 0));
         const yClose = getY(c.close + (c.offsetY || 0));
         const yHigh = getY(c.high + (c.offsetY || 0));
@@ -325,14 +324,14 @@ const PagePreview = ({ candles, settings }: { candles: Candlestick[], settings: 
 
         return (
           <g key={c.id}>
-            <line x1={x} y1={yHigh} x2={x} y2={yLow} stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+            <line x1={x} y1={yHigh} x2={x} y2={yLow} stroke={color} strokeWidth="2" strokeLinecap="round" />
             <rect 
-              x={x - 2.5} 
+              x={x - 3} 
               y={Math.min(yOpen, yClose)} 
-              width="5" 
-              height={Math.max(1.5, Math.abs(yOpen - yClose))} 
+              width="6" 
+              height={Math.max(2, Math.abs(yOpen - yClose))} 
               fill={color}
-              rx="1"
+              rx="1.5"
             />
           </g>
         );
@@ -648,7 +647,7 @@ export default function PricePattern() {
         </header>
 
         {/* --- Top Page Navigator (Canva Style) --- */}
-        <div className="h-[100px] bg-[#0a0a0a]/50 backdrop-blur-md border-b border-white/5 flex flex-col z-20 shrink-0">
+        <div className="h-[105px] bg-[#0a0a0a]/50 backdrop-blur-md border-b border-white/5 flex flex-col z-20 shrink-0">
           <ScrollArea className="flex-1 w-full px-4">
             <div className="flex items-center gap-4 py-3">
               {pages.map((page, idx) => (
@@ -661,19 +660,26 @@ export default function PricePattern() {
                   onClick={() => setActivePageIndex(idx)}
                 >
                   <div className={cn(
-                    "w-20 h-14 rounded-lg border-2 flex flex-col items-center justify-center bg-black overflow-hidden transition-all shadow-2xl relative",
+                    "w-22 h-16 rounded-lg border-2 flex flex-col items-center justify-center bg-black overflow-hidden transition-all shadow-2xl relative",
                     activePageIndex === idx ? "border-emerald-500 ring-4 ring-emerald-500/20" : "border-white/10 hover:border-white/30"
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
                     
-                    {/* Corner Menu - titik 3 ala Canva */}
-                    <div className="absolute top-0.5 right-0.5 z-50">
+                    {/* Page Label - Bottom Left (Canva/Image Style) */}
+                    <div className="absolute bottom-1 left-2 z-10">
+                       <span className="text-[9px] font-bold text-white uppercase tracking-wider drop-shadow-md">
+                        {idx + 1} - {page.candles.length}b
+                      </span>
+                    </div>
+
+                    {/* Corner Menu Pill - Top Right (Canva/Image Style) */}
+                    <div className="absolute top-1 right-1 z-20">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-5 w-5 rounded-full hover:bg-white/10 text-white/50 hover:text-white"
+                            className="h-5 w-8 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center transition-all"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <MoreVertical className="w-3 h-3" />
@@ -698,20 +704,12 @@ export default function PricePattern() {
                       </DropdownMenu>
                     </div>
                   </div>
-                  <div className="flex flex-col items-center leading-none">
-                    <span className="text-[9px] font-black uppercase text-white/60 tracking-wider">
-                      Page {idx + 1}
-                    </span>
-                    <span className="text-[7px] font-mono font-bold text-emerald-500/50 uppercase mt-0.5">
-                      {page.candles.length} BARS
-                    </span>
-                  </div>
                 </div>
               ))}
               
               <Button 
                 variant="outline" 
-                className="w-20 h-14 border-2 border-dashed border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-emerald-500/50 flex flex-col gap-1 shrink-0 rounded-lg transition-all group"
+                className="w-22 h-16 border-2 border-dashed border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-emerald-500/50 flex flex-col gap-1 shrink-0 rounded-lg transition-all group"
                 onClick={handleAddPage}
               >
                 <Plus className="w-4 h-4 text-white/20 group-hover:text-emerald-500 group-hover:scale-110 transition-all" />
