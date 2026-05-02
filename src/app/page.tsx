@@ -668,11 +668,10 @@ export default function PricePattern() {
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
                     
-                    {/* BARS Label - Bottom Left */}
-                    <div className="absolute bottom-1 left-2 z-10 pointer-events-none flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                      <span className="text-[9px] font-bold text-white/90 uppercase tracking-wider drop-shadow-md">
-                        BARS: {page.candles.length}
+                    {/* Page Index Label - Bottom Left */}
+                    <div className="absolute bottom-1 left-2 z-10 pointer-events-none">
+                      <span className="text-[11px] font-black text-white/90 uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                        {idx + 1}
                       </span>
                     </div>
 
@@ -749,6 +748,14 @@ export default function PricePattern() {
 
           {/* --- Unified Bottom Action Bar --- */}
           <div className="w-full bg-[#0a0a0a] border-t border-white/5 px-6 py-4 flex items-center justify-center gap-4 shrink-0 z-30">
+            {/* Status BARS - Left Side of Preview */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/[0.02] border border-white/5 mr-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
+              <span className="text-[10px] font-bold text-white/70 tracking-widest uppercase">
+                BARS: {candles.length}
+              </span>
+            </div>
+
             {isAnimating ? (
               <Button className="min-w-[100px] h-10 font-bold text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all" onClick={() => setIsAnimating(false)}>
                 <X className="w-4 h-4" /> <span>STOP</span>
@@ -772,7 +779,7 @@ export default function PricePattern() {
         <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1px] bg-[#050505] border-t border-white/5 shrink-0">
           <div className="flex gap-4">
             <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> PAGE: {activePageIndex + 1} / {pages.length}</span>
-            <span className="flex items-center gap-2 hidden xs:flex"><div className="w-1 h-1 rounded-full bg-emerald-500" /> BARS: {candles.length}</span>
+            <span className="flex items-center gap-2 hidden xs:flex"><div className="w-1 h-1 rounded-full bg-emerald-500" /> ACTIVE_ENGINE: PRO_V2</span>
           </div>
           <div className="flex items-center gap-3"><Monitor className="w-3 h-3" /><span className="hidden sm:inline text-emerald-500/50">Core 4K Precision Active</span></div>
         </div>
