@@ -23,7 +23,8 @@ import {
   Instagram,
   Plus,
   Copy,
-  MoreVertical
+  MoreHorizontal,
+  Edit2
 } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -35,6 +36,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 const NOTIF_SOUND_URLS = [
   "https://raw.githubusercontent.com/Fortotest/Market.ai/aa1fd92abd82277252b6d10912a44c3146ade1ad/hey-antek-antek-asing-prabowo.mp3",
@@ -368,6 +370,7 @@ export default function PricePattern() {
   
   const chartRef = useRef<ChartRendererHandle>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const { toast } = useToast();
 
   const activePage = useMemo(() => pages[activePageIndex], [pages, activePageIndex]);
   const candles = activePage.candles;
@@ -498,6 +501,17 @@ export default function PricePattern() {
       setActivePageIndex(prev => prev - 1);
     }
   }, [pages.length, activePageIndex]);
+
+  const handleRenamePage = useCallback((index: number) => {
+    const newName = prompt("Enter new page name:", pages[index].name);
+    if (newName && newName.trim()) {
+      setPages(prev => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], name: newName.trim() };
+        return updated;
+      });
+    }
+  }, [pages]);
 
   const handleExportSVG = useCallback(() => {
     unlockAudio();
@@ -666,7 +680,7 @@ export default function PricePattern() {
                     <PagePreview candles={page.candles} settings={settings} />
                     
                     {/* Page Label - Bottom Left (Canva/Image Style) */}
-                    <div className="absolute bottom-1 left-2 z-10">
+                    <div className="absolute bottom-1 left-2 z-10 pointer-events-none">
                        <span className="text-[9px] font-bold text-white uppercase tracking-wider drop-shadow-md">
                         {idx + 1} - {page.candles.length}b
                       </span>
@@ -679,13 +693,19 @@ export default function PricePattern() {
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-5 w-8 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center transition-all"
+                            className="h-5 w-8 rounded-full bg-transparent hover:bg-emerald-500 data-[state=open]:bg-emerald-500 text-white flex items-center justify-center transition-all"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <MoreVertical className="w-3 h-3" />
+                            <MoreHorizontal className="w-3 h-3" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-[#0a0a0a] border-white/10 text-white">
+                        <DropdownMenuContent align="end" className="bg-[#0a0a0a] border-white/10 text-white min-w-[120px]">
+                          <DropdownMenuItem 
+                            onClick={(e) => { e.stopPropagation(); handleRenamePage(idx); }}
+                            className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 focus:bg-white/5 focus:text-emerald-500 cursor-pointer"
+                          >
+                            <Edit2 className="w-3 h-3" /> RENAME
+                          </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={(e) => { e.stopPropagation(); handleDuplicatePage(idx); }}
                             className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 focus:bg-white/5 focus:text-emerald-500 cursor-pointer"
