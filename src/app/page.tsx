@@ -686,10 +686,71 @@ export default function PricePattern() {
           </div>
         </header>
 
-        <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden bg-[#000] relative">
+        {/* Canva-style Page Navigator - MOVED TO TOP */}
+        <div className="h-20 bg-[#0a0a0a] border-b border-white/5 flex flex-col z-20">
+          <ScrollArea className="flex-1 w-full px-4">
+            <div className="flex items-center gap-3 py-2.5">
+              {pages.map((page, idx) => (
+                <div 
+                  key={page.id} 
+                  className={cn(
+                    "group relative flex flex-col items-center gap-1 cursor-pointer transition-all shrink-0",
+                    activePageIndex === idx ? "opacity-100" : "opacity-50 hover:opacity-80"
+                  )}
+                  onClick={() => setActivePageIndex(idx)}
+                >
+                  <div className={cn(
+                    "w-16 h-11 rounded border flex flex-col items-center justify-center bg-black/40 overflow-hidden transition-all",
+                    activePageIndex === idx ? "border-emerald-500 ring-1 ring-emerald-500" : "border-white/10"
+                  )}>
+                    <div className="text-[8px] font-mono font-bold text-white/20 select-none">P{idx + 1}</div>
+                  </div>
+                  <span className="text-[7px] font-bold uppercase text-white/60 truncate w-16 text-center">{page.name}</span>
+                  
+                  {pages.length > 1 && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-red-500 text-white p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePage(idx);
+                      }}
+                    >
+                      <X className="w-2 h-2" />
+                    </Button>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute -top-1 -left-1 h-3.5 w-3.5 rounded-full bg-blue-500 text-white p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDuplicatePage(idx);
+                    }}
+                  >
+                    <Copy className="w-2 h-2" />
+                  </Button>
+                </div>
+              ))}
+              
+              <Button 
+                variant="outline" 
+                className="w-16 h-11 border-dashed border-white/20 bg-transparent hover:bg-white/5 flex flex-col gap-1 shrink-0"
+                onClick={handleAddPage}
+              >
+                <Plus className="w-3.5 h-3.5 text-white/40" />
+                <span className="text-[7px] font-bold text-white/40 uppercase">New</span>
+              </Button>
+            </div>
+            <ScrollBar orientation="horizontal" className="bg-white/5" />
+          </ScrollArea>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-6 overflow-hidden bg-[#000] relative">
           <div className="w-full h-full flex flex-col items-center justify-center relative">
             {notification && (
-              <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in slide-in-from-top-4 duration-500">
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in slide-in-from-top-4 duration-500">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl">
                   <span className="text-lg">{notification.emoji}</span>
                   <span className="text-xs font-bold tracking-wider text-white uppercase">{notification.title}</span>
@@ -709,7 +770,7 @@ export default function PricePattern() {
             </div>
 
             {/* Floating Action Bar */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 sm:gap-4 bg-[#0a0a0a]/80 backdrop-blur-lg p-2 sm:p-3 rounded-xl border border-white/5 shadow-2xl">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 sm:gap-4 bg-[#0a0a0a]/80 backdrop-blur-lg p-2 sm:p-3 rounded-xl border border-white/5 shadow-2xl">
               {isAnimating ? (
                 <Button className="min-w-[80px] sm:min-w-[120px] h-9 sm:h-10 font-bold text-[10px] sm:text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all active:scale-95" onClick={() => setIsAnimating(false)}>
                   <X className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Stop</span>
@@ -733,76 +794,15 @@ export default function PricePattern() {
           </div>
         </div>
 
-        {/* Canva-style Page Navigator */}
-        <div className="h-24 bg-[#0a0a0a] border-t border-white/5 flex flex-col">
-          <ScrollArea className="flex-1 w-full px-4">
-            <div className="flex items-center gap-3 py-3">
-              {pages.map((page, idx) => (
-                <div 
-                  key={page.id} 
-                  className={cn(
-                    "group relative flex flex-col items-center gap-1 cursor-pointer transition-all shrink-0",
-                    activePageIndex === idx ? "opacity-100" : "opacity-50 hover:opacity-80"
-                  )}
-                  onClick={() => setActivePageIndex(idx)}
-                >
-                  <div className={cn(
-                    "w-20 h-14 rounded border flex flex-col items-center justify-center bg-black/40 overflow-hidden transition-all",
-                    activePageIndex === idx ? "border-emerald-500 ring-1 ring-emerald-500" : "border-white/10"
-                  )}>
-                    <div className="text-[10px] font-mono font-bold text-white/20 select-none">PAGE {idx + 1}</div>
-                    {/* Tiny preview of candles trend could go here if wanted */}
-                  </div>
-                  <span className="text-[8px] font-bold uppercase text-white/60 truncate w-20 text-center">{page.name}</span>
-                  
-                  {pages.length > 1 && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-white p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeletePage(idx);
-                      }}
-                    >
-                      <X className="w-2.5 h-2.5" />
-                    </Button>
-                  )}
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="absolute -top-1 -left-1 h-4 w-4 rounded-full bg-blue-500 text-white p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDuplicatePage(idx);
-                    }}
-                  >
-                    <Copy className="w-2.5 h-2.5" />
-                  </Button>
-                </div>
-              ))}
-              
-              <Button 
-                variant="outline" 
-                className="w-20 h-14 border-dashed border-white/20 bg-transparent hover:bg-white/5 flex flex-col gap-1 shrink-0"
-                onClick={handleAddPage}
-              >
-                <Plus className="w-4 h-4 text-white/40" />
-                <span className="text-[8px] font-bold text-white/40 uppercase">Add Page</span>
-              </Button>
-            </div>
-            <ScrollBar orientation="horizontal" className="bg-white/5" />
-          </ScrollArea>
-          
-          <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1px] bg-black/20 border-t border-white/5">
-            <div className="flex gap-4">
-              <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Page: {activePageIndex + 1} / {pages.length}</span>
-              <span className="flex items-center gap-2 hidden xs:flex"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Bars: {candles.length}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Monitor className="w-3 h-3" />
-              <span className="hidden sm:inline text-emerald-500/50">Core 4K Precision Active</span>
-            </div>
+        {/* Footer Status Bar */}
+        <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1px] bg-[#0a0a0a] border-t border-white/5">
+          <div className="flex gap-4">
+            <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Page: {activePageIndex + 1} / {pages.length}</span>
+            <span className="flex items-center gap-2 hidden xs:flex"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Bars: {candles.length}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Monitor className="w-3 h-3" />
+            <span className="hidden sm:inline text-emerald-500/50">Core 4K Precision Active</span>
           </div>
         </div>
       </main>
