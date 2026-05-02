@@ -659,24 +659,24 @@ export default function PricePattern() {
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
                     
-                    {/* Hover Overlays */}
-                    <div className="absolute inset-0 bg-black/70 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center gap-2">
+                    {/* Hover Overlays - Balanced & Precise Controls */}
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3">
                        <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-7 w-7 rounded-full bg-blue-500 text-white hover:bg-blue-600 p-0 shadow-lg border border-white/20 transform hover:scale-110 transition-transform"
+                        className="h-6 w-6 rounded-full bg-blue-500 text-white hover:bg-blue-600 p-0 shadow-lg border border-white/10 transform transition-all active:scale-90"
                         onClick={(e) => { e.stopPropagation(); handleDuplicatePage(idx); }}
                       >
-                        <Copy className="w-3 h-3" />
+                        <Copy className="w-2.5 h-2.5" />
                       </Button>
                       {pages.length > 1 && (
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-7 w-7 rounded-full bg-red-500 text-white hover:bg-red-600 p-0 shadow-lg border border-white/20 transform hover:scale-110 transition-transform"
+                          className="h-6 w-6 rounded-full bg-red-500 text-white hover:bg-red-600 p-0 shadow-lg border border-white/10 transform transition-all active:scale-90"
                           onClick={(e) => { e.stopPropagation(); handleDeletePage(idx); }}
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-2.5 h-2.5" />
                         </Button>
                       )}
                     </div>
