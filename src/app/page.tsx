@@ -681,7 +681,9 @@ export default function PricePattern() {
                       )}
                     </div>
                   </div>
-                  <span className="text-[7px] font-bold uppercase text-white/40 truncate text-center">P{idx + 1}</span>
+                  <span className="text-[7px] font-bold uppercase text-white/40 truncate text-center">
+                    P{idx + 1} • {page.candles.length} BARS
+                  </span>
                 </div>
               ))}
               
