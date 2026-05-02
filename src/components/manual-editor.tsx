@@ -77,9 +77,9 @@ const CustomNumberInput = ({
   };
 
   return (
-    <div className="bg-[#0d0d0d] rounded-md flex flex-col border border-white/5 group/input transition-colors hover:border-white/10 h-14 w-full overflow-hidden">
+    <div className="bg-[#0d0d0d] rounded-md flex flex-col border border-white/5 group/input transition-colors hover:border-white/10 h-10 w-full overflow-hidden">
       {label && (
-        <span className={`text-[8px] font-black uppercase tracking-widest pt-1.5 px-2 ${colorClass}`}>
+        <span className={`text-[7px] font-black uppercase tracking-widest pt-1 px-2 ${colorClass}`}>
           {label}
         </span>
       )}
@@ -89,7 +89,7 @@ const CustomNumberInput = ({
           value={inputValue}
           onChange={handleInputChange}
           onBlur={handleBlur}
-          className="flex-1 bg-transparent text-center font-mono text-[11px] font-bold text-white border-none outline-none focus:ring-0 w-full h-full"
+          className="flex-1 bg-transparent text-center font-mono text-[10px] font-bold text-white border-none outline-none focus:ring-0 w-full h-full"
         />
         <div className="w-5 h-full flex flex-col border-l border-white/5 overflow-hidden">
           <button 
@@ -98,7 +98,7 @@ const CustomNumberInput = ({
             onPointerLeave={stopAdjusting}
             className="flex-1 flex items-center justify-center bg-[#151515] hover:bg-[#222] border-b border-white/5 transition-colors active:bg-primary/20"
           >
-            <ChevronUp className="w-3 h-3 text-white/40 group-hover/input:text-white" />
+            <ChevronUp className="w-2.5 h-2.5 text-white/40 group-hover/input:text-white" />
           </button>
           <button 
             onPointerDown={() => startAdjusting(-1)}
@@ -106,7 +106,7 @@ const CustomNumberInput = ({
             onPointerLeave={stopAdjusting}
             className="flex-1 flex items-center justify-center bg-[#151515] hover:bg-[#222] transition-colors active:bg-primary/20"
           >
-            <ChevronDown className="w-3 h-3 text-white/40 group-hover/input:text-white" />
+            <ChevronDown className="w-2.5 h-2.5 text-white/40 group-hover/input:text-white" />
           </button>
         </div>
       </div>
@@ -137,25 +137,25 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
 
         return (
           <div key={c.id} className="bg-[#070707] border border-white/5 rounded-xl p-3 group transition-all hover:border-white/10 shadow-xl">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <GripVertical className="w-3 h-3 text-white/10" />
                 <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Bar #{idx + 1}</span>
-                <div className={`w-2 h-2 rounded-full ${statusColor} shadow-[0_0_8px_rgba(255,255,255,0.1)]`} />
+                <div className={`w-2 h-2 rounded-full ${statusColor} shadow-[0_0_8px_rgba(255,255,255,0.1)] recording-pulse`} />
               </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-7 w-7 text-white/20 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                className="h-6 w-6 text-white/20 hover:text-red-500 hover:bg-red-500/10 transition-all"
                 onClick={() => onRemove(idx)}
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 className="w-3 h-3" />
               </Button>
             </div>
             
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase text-white/30 tracking-widest ml-1">Offset Y</Label>
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <div className="space-y-1">
+                <Label className="text-[8px] font-black uppercase text-white/30 tracking-widest ml-1">Offset Y</Label>
                 <CustomNumberInput 
                   value={c.offsetY || 0} 
                   onChange={(val) => onChange(idx, { ...c, offsetY: val })}
@@ -164,7 +164,7 @@ const ManualEditor: React.FC<ManualEditorProps> = ({ candles, onChange, onRemove
               <div className="flex flex-col justify-end">
                 <Button 
                    variant="outline" 
-                   className="h-14 text-[10px] bg-black border-white/10 font-black hover:bg-white/5 uppercase tracking-[2px] transition-all active:scale-95"
+                   className="h-10 text-[9px] bg-black border-white/10 font-black hover:bg-white/5 uppercase tracking-[1px] transition-all active:scale-95"
                    onClick={() => {
                      const isBullish = bodyDiff >= 0;
                      const newClose = isBullish ? c.open - bodySize : c.open + bodySize;
