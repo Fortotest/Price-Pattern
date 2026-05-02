@@ -23,9 +23,7 @@ import {
   Video,
   Instagram,
   Plus,
-  Copy,
-  ChevronRight,
-  ChevronLeft
+  Copy
 } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -299,18 +297,18 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
 
 // --- Small Preview Helper for Navigator ---
 const PagePreview = ({ candles, settings }: { candles: Candlestick[], settings: ChartSettings }) => {
-  if (candles.length === 0) return <div className="w-full h-full flex items-center justify-center opacity-10"><Zap className="w-4 h-4" /></div>;
+  if (candles.length === 0) return <div className="w-full h-full flex items-center justify-center opacity-10"><Zap className="w-5 h-5 text-white/50" /></div>;
   
   const bounds = getChartBounds(candles);
   const range = Math.max(bounds.max - bounds.min, 1);
-  const width = 80;
-  const height = 44;
+  const width = 120;
+  const height = 80;
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-hidden">
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-hidden preserve-3d">
       {candles.map((c, i) => {
-        const x = (i / Math.max(1, candles.length - 1)) * (width - 10) + 5;
-        const getY = (p: number) => height - ((p - bounds.min) / range) * (height - 10) - 5;
+        const x = (i / Math.max(1, candles.length - 1)) * (width - 20) + 10;
+        const getY = (p: number) => height - ((p - bounds.min) / range) * (height - 20) - 10;
         const yOpen = getY(c.open + (c.offsetY || 0));
         const yClose = getY(c.close + (c.offsetY || 0));
         const yHigh = getY(c.high + (c.offsetY || 0));
@@ -320,13 +318,14 @@ const PagePreview = ({ candles, settings }: { candles: Candlestick[], settings: 
 
         return (
           <g key={c.id}>
-            <line x1={x} y1={yHigh} x2={x} y2={yLow} stroke={color} strokeWidth="1" />
+            <line x1={x} y1={yHigh} x2={x} y2={yLow} stroke={color} strokeWidth="1.5" strokeLinecap="round" />
             <rect 
-              x={x - 2} 
+              x={x - 2.5} 
               y={Math.min(yOpen, yClose)} 
-              width="4" 
-              height={Math.max(1, Math.abs(yOpen - yClose))} 
-              fill={color} 
+              width="5" 
+              height={Math.max(1.5, Math.abs(yOpen - yClose))} 
+              fill={color}
+              rx="1"
             />
           </g>
         );
@@ -641,59 +640,65 @@ export default function PricePattern() {
           </div>
         </header>
 
-        {/* --- Top Page Navigator --- */}
-        <div className="h-[90px] bg-[#0a0a0a] border-b border-white/5 flex flex-col z-20 shrink-0">
+        {/* --- Top Page Navigator (Canva Style) --- */}
+        <div className="h-[100px] bg-[#0a0a0a]/50 backdrop-blur-md border-b border-white/5 flex flex-col z-20 shrink-0">
           <ScrollArea className="flex-1 w-full px-4">
-            <div className="flex items-center gap-3 py-2.5">
+            <div className="flex items-center gap-4 py-3">
               {pages.map((page, idx) => (
                 <div 
                   key={page.id} 
                   className={cn(
-                    "group relative flex flex-col items-center gap-1 cursor-pointer transition-all shrink-0",
-                    activePageIndex === idx ? "opacity-100" : "opacity-40 hover:opacity-100"
+                    "group relative flex flex-col items-center gap-1.5 cursor-pointer transition-all shrink-0",
+                    activePageIndex === idx ? "opacity-100 scale-100" : "opacity-40 hover:opacity-100 scale-95 hover:scale-100"
                   )}
                   onClick={() => setActivePageIndex(idx)}
                 >
                   <div className={cn(
-                    "w-16 h-11 rounded-md border flex flex-col items-center justify-center bg-black overflow-hidden transition-all shadow-lg",
-                    activePageIndex === idx ? "border-emerald-500 ring-2 ring-emerald-500/30" : "border-white/10"
+                    "w-20 h-14 rounded-lg border-2 flex flex-col items-center justify-center bg-black overflow-hidden transition-all shadow-2xl relative",
+                    activePageIndex === idx ? "border-emerald-500 ring-4 ring-emerald-500/20" : "border-white/10 hover:border-white/30"
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
                     
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                    {/* Hover Overlays */}
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center gap-2">
                        <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-5 w-5 rounded-full bg-blue-600 text-white hover:bg-blue-700 p-0 shadow-xl"
+                        className="h-7 w-7 rounded-full bg-blue-500 text-white hover:bg-blue-600 p-0 shadow-lg border border-white/20 transform hover:scale-110 transition-transform"
                         onClick={(e) => { e.stopPropagation(); handleDuplicatePage(idx); }}
                       >
-                        <Copy className="w-2.5 h-2.5" />
+                        <Copy className="w-3 h-3" />
                       </Button>
                       {pages.length > 1 && (
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-5 w-5 rounded-full bg-red-600 text-white hover:bg-red-700 p-0 shadow-xl"
+                          className="h-7 w-7 rounded-full bg-red-500 text-white hover:bg-red-600 p-0 shadow-lg border border-white/20 transform hover:scale-110 transition-transform"
                           onClick={(e) => { e.stopPropagation(); handleDeletePage(idx); }}
                         >
-                          <Trash2 className="w-2.5 h-2.5" />
+                          <Trash2 className="w-3 h-3" />
                         </Button>
                       )}
                     </div>
                   </div>
-                  <span className="text-[7px] font-bold uppercase text-white/40 truncate text-center">
-                    P{idx + 1} • {page.candles.length} BARS
-                  </span>
+                  <div className="flex flex-col items-center leading-none">
+                    <span className="text-[9px] font-black uppercase text-white/60 tracking-wider">
+                      Page {idx + 1}
+                    </span>
+                    <span className="text-[7px] font-mono font-bold text-emerald-500/50 uppercase mt-0.5">
+                      {page.candles.length} BARS
+                    </span>
+                  </div>
                 </div>
               ))}
               
               <Button 
                 variant="outline" 
-                className="w-16 h-11 border-dashed border-white/20 bg-transparent hover:bg-white/5 hover:border-emerald-500/50 flex flex-col gap-0.5 shrink-0 rounded-md transition-all group"
+                className="w-20 h-14 border-2 border-dashed border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-emerald-500/50 flex flex-col gap-1 shrink-0 rounded-lg transition-all group"
                 onClick={handleAddPage}
               >
-                <Plus className="w-3 h-3 text-white/20 group-hover:text-emerald-500 transition-colors" />
-                <span className="text-[6px] font-bold text-white/20 uppercase group-hover:text-emerald-500">New</span>
+                <Plus className="w-4 h-4 text-white/20 group-hover:text-emerald-500 group-hover:scale-110 transition-all" />
+                <span className="text-[7px] font-black text-white/20 uppercase tracking-widest group-hover:text-emerald-500">New Page</span>
               </Button>
             </div>
             <ScrollBar orientation="horizontal" className="bg-white/5" />
