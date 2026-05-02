@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
@@ -681,10 +680,10 @@ export default function PricePattern() {
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
                     
-                    {/* Page Label - Bottom Left */}
-                    <div className="absolute bottom-1 left-2 z-10 pointer-events-none">
-                       <span className="text-[9px] font-bold text-white uppercase tracking-wider drop-shadow-md">
-                        {idx + 1}
+                    {/* Page Label - Bottom Left (Now showing custom name) */}
+                    <div className="absolute bottom-1 left-2 z-10 pointer-events-none max-w-[80%]">
+                       <span className="text-[9px] font-bold text-white uppercase tracking-wider drop-shadow-md truncate block">
+                        {page.name || (idx + 1)}
                       </span>
                     </div>
 
