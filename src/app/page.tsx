@@ -297,6 +297,45 @@ const LayersPanel = ({ candles, onAddCandle, onUpdateCandle, onRemoveCandle, onC
   </div>
 );
 
+// --- Small Preview Helper for Navigator ---
+const PagePreview = ({ candles, settings }: { candles: Candlestick[], settings: ChartSettings }) => {
+  if (candles.length === 0) return <div className="w-full h-full flex items-center justify-center opacity-10"><Zap className="w-4 h-4" /></div>;
+  
+  const bounds = getChartBounds(candles);
+  const range = Math.max(bounds.max - bounds.min, 1);
+  const padding = 5;
+  const width = 80;
+  const height = 44;
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-hidden">
+      {candles.map((c, i) => {
+        const x = (i / Math.max(1, candles.length - 1)) * (width - 10) + 5;
+        const getY = (p: number) => height - ((p - bounds.min) / range) * (height - 10) - 5;
+        const yOpen = getY(c.open + (c.offsetY || 0));
+        const yClose = getY(c.close + (c.offsetY || 0));
+        const yHigh = getY(c.high + (c.offsetY || 0));
+        const yLow = getY(c.low + (c.offsetY || 0));
+        const isBullish = c.close >= c.open;
+        const color = isBullish ? settings.bullColor : settings.bearColor;
+
+        return (
+          <g key={c.id}>
+            <line x1={x} y1={yHigh} x2={x} y2={yLow} stroke={color} strokeWidth="1" />
+            <rect 
+              x={x - 2} 
+              y={Math.min(yOpen, yClose)} 
+              width="4" 
+              height={Math.max(1, Math.abs(yOpen - yClose))} 
+              fill={color} 
+            />
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
+
 export default function PricePattern() {
   const [pages, setPages] = useState<ChartPage[]>([
     { id: createId(), name: "Page 1", candles: createTemplateWithNewIds(TEMPLATES.bullish_snr_3_valleys) }
@@ -329,7 +368,6 @@ export default function PricePattern() {
   const activePage = useMemo(() => pages[activePageIndex], [pages, activePageIndex]);
   const candles = activePage.candles;
 
-  // Audio Unlocking for Mobile
   const audioInitializedRef = useRef(false);
   const unlockAudio = useCallback(() => {
     if (audioInitializedRef.current) return;
@@ -342,7 +380,7 @@ export default function PricePattern() {
     const randomUrl = NOTIF_SOUND_URLS[Math.floor(Math.random() * NOTIF_SOUND_URLS.length)];
     const audio = new Audio(randomUrl);
     audio.volume = 1.0; 
-    audio.play().catch(e => console.warn("Audio play failed on mobile/desktop:", e));
+    audio.play().catch(e => console.warn("Audio play failed:", e));
   }, []);
 
   const showNotification = useCallback((title: string, emoji: string) => {
@@ -383,17 +421,15 @@ export default function PricePattern() {
     let open = lastClose;
     let close, high, low;
 
-    const isImpulsive = Math.random() < 0.15; 
-
     if (type === 'Bullish') {
-      const bodySize = isImpulsive ? randomRange(250, 450) : randomRange(50, 150);
+      const bodySize = randomRange(50, 150);
       const topWick = randomRange(25, 60);
       const botWick = randomRange(20, 70);
       close = open + bodySize;
       high = close + topWick;
       low = open - botWick;
     } else if (type === 'Bearish') {
-      const bodySize = isImpulsive ? randomRange(250, 450) : randomRange(50, 150);
+      const bodySize = randomRange(50, 150);
       const topWick = randomRange(25, 60);
       const botWick = randomRange(20, 70);
       close = open - bodySize;
@@ -404,21 +440,12 @@ export default function PricePattern() {
       const isBullish = Math.random() > 0.5;
       const topWick = randomRange(25, 50);
       const botWick = randomRange(25, 50);
-      
       close = isBullish ? open + bodySize : open - bodySize; 
       high = Math.max(open, close) + topWick;
       low = Math.min(open, close) - botWick;
     }
 
-    const newCandle: Candlestick = { 
-      id: createId(),
-      open, 
-      close, 
-      high, 
-      low, 
-      offsetY: 0 
-    };
-
+    const newCandle: Candlestick = { id: createId(), open, close, high, low, offsetY: 0 };
     updateActivePageCandles([...currentCandles, newCandle]);
   }, [activePageIndex, pages, unlockAudio, updateActivePageCandles]);
 
@@ -436,8 +463,6 @@ export default function PricePattern() {
   const handleClearAll = useCallback(() => {
     updateActivePageCandles([]);
   }, [updateActivePageCandles]);
-
-  // --- Page Navigation Functions ---
 
   const handleAddPage = useCallback(() => {
     const newPage: ChartPage = {
@@ -470,8 +495,6 @@ export default function PricePattern() {
     }
   }, [pages.length, activePageIndex]);
 
-  // --- Export Functions ---
-
   const handleExportSVG = useCallback(() => {
     unlockAudio();
     if (candles.length === 0) return;
@@ -499,7 +522,6 @@ export default function PricePattern() {
     };
 
     let svgContent = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" viewBox="0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}" fill="none" xmlns="http://www.w3.org/2000/svg">`;
-    
     candles.forEach((c, i) => {
       const x = startX + (i * baseWidth);
       const priceOffset = c.offsetY || 0;
@@ -507,27 +529,19 @@ export default function PricePattern() {
       const yClose = getY(c.close + priceOffset);
       const yHigh = getY(c.high + priceOffset);
       const yLow = getY(c.low + priceOffset);
-      
       const isBullish = c.close >= c.open;
       const color = isBullish ? settings.bullColor : settings.bearColor;
       const wickWidth = Math.max(10, bodyWidth * 0.15);
-      const rectY = Math.min(yOpen, yClose);
-      const rectHeight = Math.max(2, Math.abs(yOpen - yClose));
-      const wickRectY = Math.min(yHigh, yLow);
-      const wickRectHeight = Math.abs(yHigh - yLow);
-      
-      svgContent += `<rect x="${x - wickWidth / 2}" y="${wickRectY}" width="${wickWidth}" height="${wickRectHeight}" rx="${settings.wickRadius}" fill="${color}" />`;
-      svgContent += `<rect x="${x - bodyWidth / 2}" y="${rectY}" width="${bodyWidth}" height="${rectHeight}" rx="${settings.bodyRadius}" fill="${color}" />`;
+      svgContent += `<rect x="${x - wickWidth / 2}" y="${Math.min(yHigh, yLow)}" width="${wickWidth}" height="${Math.abs(yHigh - yLow)}" rx="${settings.wickRadius}" fill="${color}" />`;
+      svgContent += `<rect x="${x - bodyWidth / 2}" y="${Math.min(yOpen, yClose)}" width="${bodyWidth}" height="${Math.max(2, Math.abs(yOpen - yClose))}" rx="${settings.bodyRadius}" fill="${color}" />`;
     });
-
-    svgContent += `<text x="${chartAreaWidth + 40}" y="${chartAreaHeight / 2}" fill="#888888" font-family="monospace" font-size="42" font-weight="bold">PRICE TICKER</text>`;
     svgContent += `</svg>`;
 
     const blob = new Blob([svgContent], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `PricePattern_Vector_${Date.now()}.svg`;
+    a.download = `PricePattern_SVG_${Date.now()}.svg`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -546,36 +560,23 @@ export default function PricePattern() {
     unlockAudio();
     const canvas = chartRef.current?.getCanvas();
     if (!canvas || candles.length === 0) return;
-    
     setIsAnimating(false);
-    
     setTimeout(() => {
       const stream = canvas.captureStream(30); 
-      const recorder = new MediaRecorder(stream, { 
-        mimeType: 'video/webm;codecs=vp9', 
-        videoBitsPerSecond: 15000000 
-      });
-      
+      const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 15000000 });
       const chunks: Blob[] = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
-      
+      recorder.ondataavailable = (e) => e.data.size > 0 && chunks.push(e.data);
       recorder.onstop = () => {
         if (chunks.length === 0) return;
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
         const a = document.createElement('a');
         a.href = url;
         a.download = `PricePattern_${Date.now()}.webm`;
-        document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
         URL.revokeObjectURL(url);
         setIsAnimating(false);
         showNotification("Berhasil di unduh", "🤩");
       };
-      
       recorderRef.current = recorder;
       recorder.start();
       setIsAnimating(true);
@@ -599,9 +600,7 @@ export default function PricePattern() {
   const handleResizeMove = (e: React.PointerEvent) => {
     if (!isResizing) return;
     const newWidth = window.innerWidth - e.clientX;
-    if (newWidth >= 200 && newWidth <= 600) {
-      setLayersPanelWidth(newWidth);
-    }
+    if (newWidth >= 200 && newWidth <= 600) setLayersPanelWidth(newWidth);
   };
 
   const handleResizeEnd = (e: React.PointerEvent) => {
@@ -611,136 +610,92 @@ export default function PricePattern() {
 
   return (
     <div className="flex h-screen w-full bg-[#000000] overflow-hidden font-body select-none text-white" onClick={unlockAudio}>
-      <aside 
-        className={cn(
-          "flex-col flex-shrink-0 bg-[#0a0a0a] border-r border-white/5 transition-all duration-300 ease-in-out lg:flex",
-          showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none border-r-0"
-        )}
-      >
+      <aside className={cn("flex-col flex-shrink-0 bg-[#0a0a0a] border-r border-white/5 transition-all duration-300 ease-in-out lg:flex", showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none")}>
         <div className="w-[280px]">
-          <PropertiesPanel 
-            settings={settings}
-            updateSettings={updateSettings}
-            onClose={() => setShowProperties(false)}
-          />
+          <PropertiesPanel settings={settings} updateSettings={updateSettings} onClose={() => setShowProperties(false)} />
         </div>
       </aside>
 
       <main className="flex-1 flex flex-col relative overflow-hidden bg-black transition-all duration-300">
         <header className="h-12 flex items-center justify-between px-4 border-b border-white/5 bg-[#0a0a0a] z-30">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => setShowProperties(!showProperties)} className="hidden lg:flex text-white hover:bg-white/5">
-              <Menu className="w-5 h-5" />
-            </Button>
-            
+            <Button variant="ghost" size="icon" onClick={() => setShowProperties(!showProperties)} className="hidden lg:flex text-white hover:bg-white/5"><Menu className="w-5 h-5" /></Button>
             <Sheet open={isConfigOpen} onOpenChange={setIsConfigOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9" onClick={() => setIsConfigOpen(true)}>
-                  <Settings2 className="w-5 h-5" />
-                </Button>
-              </SheetTrigger>
+              <SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9"><Settings2 className="w-5 h-5" /></Button></SheetTrigger>
               <SheetContent side="left" className="p-0 w-[280px] bg-[#0a0a0a] border-r border-white/5 [&>button]:hidden">
-                <PropertiesPanel 
-                  settings={settings}
-                  updateSettings={updateSettings}
-                  onClose={() => setIsConfigOpen(false)}
-                />
+                <PropertiesPanel settings={settings} updateSettings={updateSettings} onClose={() => setIsConfigOpen(false)} />
               </SheetContent>
             </Sheet>
-            
             <div className="text-[10px] font-bold uppercase tracking-[2px] text-emerald-500 flex items-center gap-2">
               <Zap className="w-3 h-3 text-emerald-500 fill-emerald-500" />
               <span className="hidden xs:inline">PricePattern</span>
             </div>
           </div>
-
           <div className="flex items-center gap-2">
             <Sheet open={isLayersOpen} onOpenChange={setIsLayersOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9" onClick={() => setIsLayersOpen(true)}>
-                  <Layers className="w-5 h-5" />
-                </Button>
-              </SheetTrigger>
+              <SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden text-white h-9 w-9"><Layers className="w-5 h-5" /></Button></SheetTrigger>
               <SheetContent side="right" className="p-0 w-[280px] bg-[#0a0a0a] border-l border-white/5 [&>button]:hidden">
-                <LayersPanel 
-                  candles={candles}
-                  onAddCandle={handleAddCandle}
-                  onUpdateCandle={handleUpdateCandle}
-                  onRemoveCandle={handleRemoveCandle}
-                  onClearAll={handleClearAll}
-                  onTemplateLoad={handleTemplateLoad}
-                  onClose={() => setIsLayersOpen(false)}
-                />
+                <LayersPanel candles={candles} onAddCandle={handleAddCandle} onUpdateCandle={handleUpdateCandle} onRemoveCandle={handleRemoveCandle} onClearAll={handleClearAll} onTemplateLoad={handleTemplateLoad} onClose={() => setIsLayersOpen(false)} />
               </SheetContent>
             </Sheet>
-
-            <a 
-              href="https://www.instagram.com/masffadil/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/5 group active:scale-95"
-            >
-              <Instagram className="w-3.5 h-3.5 text-pink-500 group-hover:scale-110 transition-transform" />
-              <span className="text-[10px] font-bold tracking-wider text-white/80 group-hover:text-white hidden sm:inline">masffadil</span>
-            </a>
+            <a href="https://www.instagram.com/masffadil/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 group transition-all"><Instagram className="w-3.5 h-3.5 text-pink-500 group-hover:scale-110 transition-transform" /><span className="text-[10px] font-bold tracking-wider text-white/80 group-hover:text-white hidden sm:inline">masffadil</span></a>
           </div>
         </header>
 
-        {/* Canva-style Page Navigator - MOVED TO TOP */}
-        <div className="h-20 bg-[#0a0a0a] border-b border-white/5 flex flex-col z-20">
+        {/* --- Canva-Style Top Page Navigator with Visual Previews --- */}
+        <div className="h-[100px] bg-[#0a0a0a] border-b border-white/5 flex flex-col z-20">
           <ScrollArea className="flex-1 w-full px-4">
-            <div className="flex items-center gap-3 py-2.5">
+            <div className="flex items-center gap-3 py-3">
               {pages.map((page, idx) => (
                 <div 
                   key={page.id} 
                   className={cn(
-                    "group relative flex flex-col items-center gap-1 cursor-pointer transition-all shrink-0",
-                    activePageIndex === idx ? "opacity-100" : "opacity-50 hover:opacity-80"
+                    "group relative flex flex-col items-center gap-1.5 cursor-pointer transition-all shrink-0",
+                    activePageIndex === idx ? "opacity-100" : "opacity-40 hover:opacity-100"
                   )}
                   onClick={() => setActivePageIndex(idx)}
                 >
                   <div className={cn(
-                    "w-16 h-11 rounded border flex flex-col items-center justify-center bg-black/40 overflow-hidden transition-all",
-                    activePageIndex === idx ? "border-emerald-500 ring-1 ring-emerald-500" : "border-white/10"
+                    "w-20 h-14 rounded-md border flex flex-col items-center justify-center bg-black overflow-hidden transition-all shadow-lg",
+                    activePageIndex === idx ? "border-emerald-500 ring-2 ring-emerald-500/30" : "border-white/10"
                   )}>
-                    <div className="text-[8px] font-mono font-bold text-white/20 select-none">P{idx + 1}</div>
+                    <PagePreview candles={page.candles} settings={settings} />
+                    
+                    {/* Hover Overlays */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                       <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6 rounded-full bg-blue-600 text-white hover:bg-blue-700 p-0 shadow-xl"
+                        onClick={(e) => { e.stopPropagation(); handleDuplicatePage(idx); }}
+                      >
+                        <Copy className="w-3 h-3" />
+                      </Button>
+                      {pages.length > 1 && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-6 w-6 rounded-full bg-red-600 text-white hover:bg-red-700 p-0 shadow-xl"
+                          onClick={(e) => { e.stopPropagation(); handleDeletePage(idx); }}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-[7px] font-bold uppercase text-white/60 truncate w-16 text-center">{page.name}</span>
-                  
-                  {pages.length > 1 && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-red-500 text-white p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeletePage(idx);
-                      }}
-                    >
-                      <X className="w-2 h-2" />
-                    </Button>
-                  )}
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="absolute -top-1 -left-1 h-3.5 w-3.5 rounded-full bg-blue-500 text-white p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDuplicatePage(idx);
-                    }}
-                  >
-                    <Copy className="w-2 h-2" />
-                  </Button>
+                  <div className="flex items-center gap-1 w-20 justify-center">
+                    <span className="text-[8px] font-bold uppercase text-white/40 truncate text-center">Page {idx + 1}</span>
+                  </div>
                 </div>
               ))}
               
               <Button 
                 variant="outline" 
-                className="w-16 h-11 border-dashed border-white/20 bg-transparent hover:bg-white/5 flex flex-col gap-1 shrink-0"
+                className="w-20 h-14 border-dashed border-white/20 bg-transparent hover:bg-white/5 hover:border-emerald-500/50 flex flex-col gap-1 shrink-0 rounded-md transition-all group"
                 onClick={handleAddPage}
               >
-                <Plus className="w-3.5 h-3.5 text-white/40" />
-                <span className="text-[7px] font-bold text-white/40 uppercase">New</span>
+                <Plus className="w-4 h-4 text-white/20 group-hover:text-emerald-500 transition-colors" />
+                <span className="text-[7px] font-bold text-white/20 uppercase group-hover:text-emerald-500">Add Page</span>
               </Button>
             </div>
             <ScrollBar orientation="horizontal" className="bg-white/5" />
@@ -748,85 +703,59 @@ export default function PricePattern() {
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-6 overflow-hidden bg-[#000] relative">
-          <div className="w-full h-full flex flex-col items-center justify-center relative">
-            {notification && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in slide-in-from-top-4 duration-500">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl">
-                  <span className="text-lg">{notification.emoji}</span>
-                  <span className="text-xs font-bold tracking-wider text-white uppercase">{notification.title}</span>
-                </div>
+          {notification && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in slide-in-from-top-4 duration-500">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl">
+                <span className="text-lg">{notification.emoji}</span>
+                <span className="text-xs font-bold tracking-wider text-white uppercase">{notification.title}</span>
               </div>
-            )}
-            
-            <div className="flex-1 w-full h-full flex items-center justify-center">
-              <ChartRenderer 
-                ref={chartRef}
-                candles={candles} 
-                settings={settings} 
-                isAnimating={isAnimating}
-                onAnimationComplete={handleAnimationComplete}
-                onSettingsChange={updateSettings}
-              />
             </div>
+          )}
+          
+          <div className="flex-1 w-full h-full flex items-center justify-center">
+            <ChartRenderer 
+              ref={chartRef}
+              candles={candles} 
+              settings={settings} 
+              isAnimating={isAnimating}
+              onAnimationComplete={handleAnimationComplete}
+              onSettingsChange={updateSettings}
+            />
+          </div>
 
-            {/* Floating Action Bar */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 sm:gap-4 bg-[#0a0a0a]/80 backdrop-blur-lg p-2 sm:p-3 rounded-xl border border-white/5 shadow-2xl">
-              {isAnimating ? (
-                <Button className="min-w-[80px] sm:min-w-[120px] h-9 sm:h-10 font-bold text-[10px] sm:text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all active:scale-95" onClick={() => setIsAnimating(false)}>
-                  <X className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Stop</span>
-                </Button>
-              ) : (
-                <Button className="min-w-[80px] sm:min-w-[120px] h-9 sm:h-10 font-bold text-[10px] sm:text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95" onClick={handleReplay} disabled={candles.length === 0}>
-                  <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Preview</span>
-                </Button>
-              )}
-              
-              <Separator orientation="vertical" className="h-6 bg-white/10" />
-              
-              <Button variant="outline" className="h-9 sm:h-10 px-3 sm:px-6 text-[10px] sm:text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
-                <FileCode className="w-3.5 h-3.5" /> <span className="hidden xs:inline">SVG</span>
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 sm:gap-4 bg-[#0a0a0a]/80 backdrop-blur-lg p-2 sm:p-3 rounded-xl border border-white/5 shadow-2xl">
+            {isAnimating ? (
+              <Button className="min-w-[80px] sm:min-w-[120px] h-9 sm:h-10 font-bold text-[10px] sm:text-[11px] gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-all" onClick={() => setIsAnimating(false)}>
+                <X className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Stop</span>
               </Button>
-              
-              <Button className="min-w-[100px] sm:min-w-[140px] h-9 sm:h-10 text-[10px] sm:text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2 shadow-lg shadow-emerald-900/20" onClick={handleRecordVideo} disabled={candles.length === 0}>
-                <Video className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Video</span>
+            ) : (
+              <Button className="min-w-[80px] sm:min-w-[120px] h-9 sm:h-10 font-bold text-[10px] sm:text-[11px] gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all" onClick={handleReplay} disabled={candles.length === 0}>
+                <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Preview</span>
               </Button>
-            </div>
+            )}
+            <Separator orientation="vertical" className="h-6 bg-white/10" />
+            <Button variant="outline" className="h-9 sm:h-10 px-3 sm:px-6 text-[10px] sm:text-[11px] font-bold border-white/10 bg-transparent hover:bg-white/5 gap-2" onClick={handleExportSVG} disabled={candles.length === 0}>
+              <FileCode className="w-3.5 h-3.5" /> <span className="hidden xs:inline">SVG</span>
+            </Button>
+            <Button className="min-w-[100px] sm:min-w-[140px] h-9 sm:h-10 text-[10px] sm:text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 border-none gap-2" onClick={handleRecordVideo} disabled={candles.length === 0}>
+              <Video className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Video</span>
+            </Button>
           </div>
         </div>
 
-        {/* Footer Status Bar */}
         <div className="h-6 flex items-center justify-between px-4 text-[8px] font-bold text-muted-foreground uppercase tracking-[1px] bg-[#0a0a0a] border-t border-white/5">
           <div className="flex gap-4">
             <span className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Page: {activePageIndex + 1} / {pages.length}</span>
             <span className="flex items-center gap-2 hidden xs:flex"><div className="w-1 h-1 rounded-full bg-emerald-500" /> Bars: {candles.length}</span>
           </div>
-          <div className="flex items-center gap-3">
-            <Monitor className="w-3 h-3" />
-            <span className="hidden sm:inline text-emerald-500/50">Core 4K Precision Active</span>
-          </div>
+          <div className="flex items-center gap-3"><Monitor className="w-3 h-3" /><span className="hidden sm:inline text-emerald-500/50">Core 4K Precision Active</span></div>
         </div>
       </main>
 
-      <aside 
-        className="hidden lg:flex flex-row flex-shrink-0 bg-[#0a0a0a] border-l border-white/5"
-        style={{ width: `${layersPanelWidth}px` }}
-      >
-        <div 
-          className="w-1.5 h-full cursor-col-resize hover:bg-emerald-500/30 transition-colors z-50 bg-white/5 active:bg-emerald-500/50"
-          onPointerDown={handleResizeStart}
-          onPointerMove={handleResizeMove}
-          onPointerUp={handleResizeEnd}
-        />
+      <aside className="hidden lg:flex flex-row flex-shrink-0 bg-[#0a0a0a] border-l border-white/5" style={{ width: `${layersPanelWidth}px` }}>
+        <div className="w-1.5 h-full cursor-col-resize hover:bg-emerald-500/30 transition-colors z-50 bg-white/5" onPointerDown={handleResizeStart} onPointerMove={handleResizeMove} onPointerUp={handleResizeEnd} />
         <div className="flex-1 h-full overflow-hidden">
-          <LayersPanel 
-            candles={candles}
-            onAddCandle={handleAddCandle}
-            onUpdateCandle={handleUpdateCandle}
-            onRemoveCandle={handleRemoveCandle}
-            onClearAll={handleClearAll}
-            onTemplateLoad={handleTemplateLoad}
-            onClose={() => setIsLayersOpen(false)}
-          />
+          <LayersPanel candles={candles} onAddCandle={handleAddCandle} onUpdateCandle={handleUpdateCandle} onRemoveCandle={handleRemoveCandle} onClearAll={handleClearAll} onTemplateLoad={handleTemplateLoad} onClose={() => setIsLayersOpen(false)} />
         </div>
       </aside>
     </div>
