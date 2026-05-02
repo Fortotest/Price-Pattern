@@ -6,7 +6,6 @@ import { Candlestick, ChartSettings, ChartPage } from "@/lib/chart-types";
 import { TEMPLATES, createTemplateWithNewIds, createId, CANVAS_WIDTH, CANVAS_HEIGHT, getChartBounds } from "@/lib/chart-utils";
 import ChartRenderer, { ChartRendererHandle } from "@/components/chart-renderer";
 import ManualEditor from "@/components/manual-editor";
-import FluidBackground from "@/components/fluid-background";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -22,10 +21,10 @@ import {
   X,
   FileCode,
   Video,
-  Instagram,
   Plus,
   Copy,
-  MoreHorizontal
+  MoreHorizontal,
+  Instagram
 } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -618,8 +617,6 @@ export default function PricePattern() {
 
   return (
     <div className="flex h-screen w-full mesh-gradient-bg overflow-hidden font-body select-none text-white relative" onClick={unlockAudio}>
-      <FluidBackground />
-      
       <aside className={cn("flex-col flex-shrink-0 bg-[#0a0a0a]/40 backdrop-blur-md border-r border-white/5 transition-all duration-300 ease-in-out lg:flex z-30", showProperties ? "w-[280px]" : "w-0 overflow-hidden border-none")}>
         <div className="w-[280px]">
           <PropertiesPanel settings={settings} updateSettings={updateSettings} onClose={() => setShowProperties(false)} />
