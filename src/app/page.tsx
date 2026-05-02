@@ -24,8 +24,7 @@ import {
   Instagram,
   Plus,
   Copy,
-  MoreHorizontal,
-  Edit2
+  MoreHorizontal
 } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -503,22 +502,6 @@ export default function PricePattern() {
     }
   }, [pages.length, activePageIndex]);
 
-  const handleRenamePage = useCallback((index: number) => {
-    // We use a small timeout to let the dropdown menu close properly before showing the prompt
-    setTimeout(() => {
-      const currentPage = pages[index];
-      const currentName = currentPage.name || `Page ${index + 1}`;
-      const newName = window.prompt("Enter new page name:", currentName);
-      if (newName !== null && newName.trim() !== "") {
-        setPages(prev => {
-          const updated = [...prev];
-          updated[index] = { ...updated[index], name: newName.trim() };
-          return updated;
-        });
-      }
-    }, 100);
-  }, [pages]);
-
   const handleExportSVG = useCallback(() => {
     unlockAudio();
     if (candles.length === 0) return;
@@ -685,10 +668,10 @@ export default function PricePattern() {
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
                     
-                    {/* Page Label - Bottom Left (Displays Page Name) */}
+                    {/* Page Label - Bottom Left (Displays Page Number Only) */}
                     <div className="absolute bottom-1 left-2 z-10 pointer-events-none max-w-[80%]">
-                       <span className="text-[9px] font-bold text-white uppercase tracking-wider drop-shadow-md truncate block">
-                        {page.name || (idx + 1)}
+                       <span className="text-[10px] font-bold text-white uppercase tracking-wider drop-shadow-md truncate block">
+                        {idx + 1}
                       </span>
                     </div>
 
@@ -706,12 +689,6 @@ export default function PricePattern() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-[#0a0a0a] border-white/10 text-white min-w-[120px]">
-                          <DropdownMenuItem 
-                            onClick={(e) => { e.stopPropagation(); handleRenamePage(idx); }}
-                            className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 focus:bg-white/5 focus:text-emerald-500 cursor-pointer"
-                          >
-                            <Edit2 className="w-3 h-3" /> RENAME
-                          </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={(e) => { e.stopPropagation(); handleDuplicatePage(idx); }}
                             className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 focus:bg-white/5 focus:text-emerald-500 cursor-pointer"
