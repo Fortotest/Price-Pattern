@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
@@ -503,8 +504,9 @@ export default function PricePattern() {
   }, [pages.length, activePageIndex]);
 
   const handleRenamePage = useCallback((index: number) => {
-    const newName = prompt("Enter new page name:", pages[index].name);
-    if (newName && newName.trim()) {
+    const currentPage = pages[index];
+    const newName = window.prompt("Enter new page name:", currentPage.name);
+    if (newName !== null && newName.trim() !== "") {
       setPages(prev => {
         const updated = [...prev];
         updated[index] = { ...updated[index], name: newName.trim() };
@@ -679,14 +681,14 @@ export default function PricePattern() {
                   )}>
                     <PagePreview candles={page.candles} settings={settings} />
                     
-                    {/* Page Label - Bottom Left (Canva/Image Style) */}
+                    {/* Page Label - Bottom Left */}
                     <div className="absolute bottom-1 left-2 z-10 pointer-events-none">
                        <span className="text-[9px] font-bold text-white uppercase tracking-wider drop-shadow-md">
                         {idx + 1}
                       </span>
                     </div>
 
-                    {/* Corner Menu Pill - Top Right (Canva/Image Style) */}
+                    {/* Corner Menu Pill - Top Right */}
                     <div className="absolute top-1 right-1 z-20">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -701,20 +703,20 @@ export default function PricePattern() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-[#0a0a0a] border-white/10 text-white min-w-[120px]">
                           <DropdownMenuItem 
-                            onClick={(e) => { e.stopPropagation(); handleRenamePage(idx); }}
+                            onSelect={(e) => { e.preventDefault(); handleRenamePage(idx); }}
                             className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 focus:bg-white/5 focus:text-emerald-500 cursor-pointer"
                           >
                             <Edit2 className="w-3 h-3" /> RENAME
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            onClick={(e) => { e.stopPropagation(); handleDuplicatePage(idx); }}
+                            onSelect={(e) => { e.preventDefault(); handleDuplicatePage(idx); }}
                             className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 focus:bg-white/5 focus:text-emerald-500 cursor-pointer"
                           >
                             <Copy className="w-3 h-3" /> DUPLICATE
                           </DropdownMenuItem>
                           {pages.length > 1 && (
                             <DropdownMenuItem 
-                              onClick={(e) => { e.stopPropagation(); handleDeletePage(idx); }}
+                              onSelect={(e) => { e.preventDefault(); handleDeletePage(idx); }}
                               className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 text-red-500 focus:bg-red-500/10 focus:text-red-400 cursor-pointer"
                             >
                               <Trash2 className="w-3 h-3" /> DELETE
